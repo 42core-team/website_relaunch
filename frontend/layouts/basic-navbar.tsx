@@ -54,16 +54,16 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
       >
         {/* Left Content */}
         <NavbarBrand>
-          {/* <div className="rounded-full bg-default-foreground text-background"> */}
+          <Link href="/">
             <img src="/logo-white.svg" alt="CORE" className="w-10 h-10" />
-          {/* </div> */}
-          <span className="ml-2 text-small font-medium text-default-foreground">CORE</span>
+            <span className="ml-2 text-small font-medium text-default-foreground">CORE</span>
+          </Link>
         </NavbarBrand>
 
         {/* Center Content */}
         <NavbarContent justify="center">
           <NavbarItem isActive className="data-[active='true']:font-medium[date-active='true']">
-            <Link aria-current="page" className="text-default-foreground" href="#" size="sm">
+            <Link aria-current="page" className="text-default-foreground" href="/" size="sm">
               Home
             </Link>
           </NavbarItem>

@@ -1,6 +1,8 @@
+import Image from "next/image";
 import { motion } from "framer-motion";
 import DefaultLayout from "@/layouts/default";
 import { title } from "@/components/primitives";
+import { CoreLogoWhite } from "../social";
 
 export default function AboutPage() {
   return (
@@ -12,7 +14,10 @@ export default function AboutPage() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h1 className={title()}>About CORE</h1>
+          <div className="flex flex-row items-center justify-center gap-4">
+            <h1 className={title()}>About</h1>
+            <CoreLogoWhite className="w-20 h-auto"/>
+          </div>
           <p className="mt-4 text-lg text-default-600">
             Bringing the world together through code and creativity
           </p>
@@ -81,9 +86,9 @@ export default function AboutPage() {
         >
           <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center">
             <motion.div 
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -98,7 +103,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div 
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -113,7 +118,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div 
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -128,7 +133,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div 
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm lg:col-start-2"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}

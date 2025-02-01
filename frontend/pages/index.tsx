@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+import Image from "next/image";
 import { Link } from "@heroui/link";
 import { Snippet } from "@heroui/snippet";
 import { Code } from "@heroui/code";
@@ -52,6 +54,76 @@ export default function IndexPage() {
             </span>
           </Snippet>
         </div>
+      </section>
+      <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-screen">
+        <motion.div 
+          className="flex flex-col gap-32"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {[
+            {
+              src: "/images/goblin_archer_idle__0.png",
+              alt: "Gib Character",
+              text: "Meet Gib, your friendly companion",
+              delay: 0.2,
+              direction: 1 // 1 for right, -1 for left
+            },
+            {
+              src: "/images/goblin_basic_idle__0.png",
+              alt: "Bob Character",
+              text: "Bob brings the fun to every challenge",
+              delay: 0.4,
+              direction: -1
+            },
+            {
+              src: "/images/goblin_tank_idle__0.png",
+              alt: "Rob Character",
+              text: "Rob is always ready for action",
+              delay: 0.6,
+              direction: 1
+            },
+            {
+              src: "/images/goblin_healer_idle__0.png",
+              alt: "Zob Character",
+              text: "Zob adds mystery to the adventure",
+              delay: 0.8,
+              direction: -1
+            }
+          ].map((character, index) => (
+            <motion.div
+              key={character.alt}
+              className="flex flex-col items-center min-h-screen justify-center"
+              initial={{ opacity: 0 }}
+              whileInView={{ 
+                opacity: 1,
+                x: character.direction * 50,
+                rotate: character.direction * 15
+              }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <Image 
+                src={character.src}
+                alt={character.alt}
+                width={400}
+                height={400}
+                className="image-rendering-pixel"
+                style={{ imageRendering: 'pixelated' }}
+              />
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.5 }}
+                className="text-center mt-4 text-xl"
+              >
+                {character.text}
+              </motion.p>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
     </DefaultLayout>
   );

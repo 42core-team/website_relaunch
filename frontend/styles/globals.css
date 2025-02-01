@@ -8,3 +8,9 @@
     font-weight: normal;
     font-style: normal;
 }
+
+.image-rendering-pixel {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}

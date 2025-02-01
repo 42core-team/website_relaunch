@@ -66,65 +66,89 @@ export default function IndexPage() {
             {
               src: "/images/goblin_archer_idle__0.png",
               alt: "Gib Character",
-              text: "Meet Gib, your friendly companion",
+              content: (
+                <div className="flex flex-col items-center gap-4">
+                  <h1 className="text-4xl font-bold">Meet Gib</h1>
+                  <p className="text-2xl">Your friendly companion</p>
+                  <p className="text-xl text-gray-400">Master of the bow</p>
+                </div>
+              ),
               delay: 0.2,
-              direction: 1 // 1 for right, -1 for left
+              direction: 1
             },
             {
               src: "/images/goblin_basic_idle__0.png",
               alt: "Bob Character",
-              text: "Bob brings the fun to every challenge",
+              content: (
+                <div className="flex flex-col items-center gap-4">
+                  <h1 className="text-4xl font-bold">Bob the Brave</h1>
+                  <p className="text-2xl">Brings fun to every challenge</p>
+                  <p className="text-xl text-gray-400">Ready for adventure</p>
+                </div>
+              ),
               delay: 0.4,
               direction: -1
             },
             {
               src: "/images/goblin_tank_idle__0.png",
               alt: "Rob Character",
-              text: "Rob is always ready for action",
+              content: (
+                <div className="flex flex-col items-center gap-4">
+                  <h1 className="text-4xl font-bold">Robust Rob</h1>
+                  <p className="text-2xl">Always ready for action</p>
+                  <p className="text-xl text-gray-400">The mighty defender</p>
+                </div>
+              ),
               delay: 0.6,
               direction: 1
             },
             {
               src: "/images/goblin_healer_idle__0.png",
               alt: "Zob Character",
-              text: "Zob adds mystery to the adventure",
+              content: (
+                <div className="flex flex-col items-center gap-4">
+                  <h1 className="text-4xl font-bold">Zob the Wise</h1>
+                  <p className="text-2xl">Adds mystery to the adventure</p>
+                  <p className="text-xl text-gray-400">Keeper of secrets</p>
+                </div>
+              ),
               delay: 0.8,
               direction: -1
             }
           ].map((character, index) => (
             <motion.div
               key={character.alt}
-              className="flex flex-col items-center min-h-screen justify-center"
-              initial={{ opacity: 0, x: 0 }}
-              whileInView={{ 
-                opacity: 1,
-                x: character.direction * 600,
-                rotate: character.direction * 15
-              }}
-              exit={{ x: character.direction * 1000 }}
+              className="flex flex-col items-center min-h-screen justify-center relative"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: false, margin: "-100px" }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
+              transition={{ duration: 1.2 }}
             >
-              <Image 
-                src={character.src}
-                alt={character.alt}
-                width={800}
-                height={800}
-                className="image-rendering-pixel"
-                style={{ 
-                  imageRendering: 'pixelated',
-                  transform: character.direction === 1 ? 'scaleX(-1)' : 'none'
+              <div className="absolute z-10 left-1/2 -translate-x-1/2">
+                {character.content}
+              </div>
+              <motion.div
+                initial={{ opacity: 0, x: 0 }}
+                whileInView={{ 
+                  opacity: 1,
+                  x: character.direction * 600,
+                  rotate: character.direction * 15
                 }}
-              />
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 0.5 }}
-                className="text-center mt-4 text-2xl"
+                viewport={{ once: false, margin: "-100px" }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
               >
-                {character.text}
-              </motion.p>
+                <Image 
+                  src={character.src}
+                  alt={character.alt}
+                  width={800}
+                  height={800}
+                  className="image-rendering-pixel"
+                  style={{ 
+                    imageRendering: 'pixelated',
+                    transform: character.direction === 1 ? 'scaleX(-1)' : 'none'
+                  }}
+                />
+              </motion.div>
             </motion.div>
           ))}
         </motion.div>

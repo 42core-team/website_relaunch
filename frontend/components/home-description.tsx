@@ -18,7 +18,7 @@ export default function HomeDescription({ title, subtitle, description, code = "
           <Snippet hideCopyButton hideSymbol variant="bordered">
             <span>
               Get started by editing{" "}
-              <Code color="primary" className="">{code}</Code>
+              <Code color="primary">{code}</Code>
             </span>
           </Snippet>
         </div>

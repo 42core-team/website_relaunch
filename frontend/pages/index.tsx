@@ -7,21 +7,19 @@ import { siteConfig } from "@/config/site";
 import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
+import { CoreLogoWhite } from "./social";
 
 export default function IndexPage() {
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-        <div className="inline-block max-w-xl text-center justify-center">
-          <span className={title()}>Make&nbsp;</span>
-          <span className={title({ color: "violet" })}>beautiful&nbsp;</span>
-          <br />
-          <span className={title()}>
-            websites regardless of your design experience.
+        <div className="inline-block text-center justify-center w-full">
+          <CoreLogoWhite className="mx-auto w-[30%] h-auto" />
+          <span className="text-2xl font-bold">
+            Imagine a game contest that brings people
+            <br />
+            from around the world together for fun and learning.
           </span>
-          <div className={subtitle({ class: "mt-4" })}>
-            Beautiful, fast and modern React UI library.
-          </div>
         </div>
 
         <div className="flex gap-3">

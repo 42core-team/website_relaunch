@@ -35,6 +35,7 @@ const menuItems = [
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
   ({classNames = {}, ...props}, ref) => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
 
     return (
       <Navbar
@@ -62,18 +63,36 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
 
         {/* Center Content */}
         <NavbarContent justify="center">
-          <NavbarItem isActive className="data-[active='true']:font-medium[date-active='true']">
-            <Link aria-current="page" className="text-default-foreground" href="/" size="sm">
+          <NavbarItem>
+            <Link 
+              className={cn("text-default-500", {
+                "font-bold text-default-foreground": pathname === "/"
+              })} 
+              href="/" 
+              size="sm"
+            >
               Home
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="text-default-500" href="/wiki" size="sm">
+            <Link 
+              className={cn("text-default-500", {
+                "font-bold text-default-foreground": pathname === "/wiki"
+              })} 
+              href="/wiki" 
+              size="sm"
+            >
               Wiki
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="text-default-500" href="/about" size="sm">
+            <Link 
+              className={cn("text-default-500", {
+                "font-bold text-default-foreground": pathname === "/about"
+              })} 
+              href="/about" 
+              size="sm"
+            >
               About Us
             </Link>
           </NavbarItem>

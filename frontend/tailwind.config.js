@@ -9,15 +9,15 @@ module.exports = {
     "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
 
-  // theme: {
-  //   extend: {
-  //     fontFamily: {
-  //       Peyda: ["Peyda"],
-  //       sans: ["var(--font-sans)"],
-  //       mono: ["var(--font-mono)"],
-  //     },
-  //   },
-  // },
+
+
+  theme: {
+    extend: {
+      fontFamily: {
+        'original': ['Original', 'sans-serif']
+      },
+    },
+  },
   darkMode: "class",
   plugins: [heroui()],
 }

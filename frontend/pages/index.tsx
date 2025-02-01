@@ -10,6 +10,7 @@ import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
 import { CoreLogoWhite } from "./social";
+import HomeDescription from "@/components/home-description";
 
 export default function IndexPage() {
   return (
@@ -67,11 +68,11 @@ export default function IndexPage() {
               src: "/images/goblin_archer_idle__0.png",
               alt: "Gib Character",
               content: (
-                <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">Meet Gib</h1>
-                  <p className="text-2xl">Your friendly companion</p>
-                  <p className="text-xl text-gray-400">Master of the bow</p>
-                </div>
+                <HomeDescription
+                  title="Meet Gib"
+                  subtitle="Your friendly companion"
+                  description="Master of the bow"
+                />
               ),
               delay: 0.2,
               direction: 1
@@ -80,11 +81,11 @@ export default function IndexPage() {
               src: "/images/goblin_basic_idle__0.png",
               alt: "Bob Character",
               content: (
-                <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">Bob the Brave</h1>
-                  <p className="text-2xl">Brings fun to every challenge</p>
-                  <p className="text-xl text-gray-400">Ready for adventure</p>
-                </div>
+                <HomeDescription
+                  title="Bob the Brave"
+                  subtitle="Brings fun to every challenge"
+                  description="Ready for adventure"
+                />
               ),
               delay: 0.4,
               direction: -1
@@ -93,11 +94,11 @@ export default function IndexPage() {
               src: "/images/goblin_tank_idle__0.png",
               alt: "Rob Character",
               content: (
-                <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">Robust Rob</h1>
-                  <p className="text-2xl">Always ready for action</p>
-                  <p className="text-xl text-gray-400">The mighty defender</p>
-                </div>
+                <HomeDescription
+                  title="Rob the Mighty"
+                  subtitle="Always ready for action"
+                  description="The mighty defender"
+                />
               ),
               delay: 0.6,
               direction: 1
@@ -106,11 +107,12 @@ export default function IndexPage() {
               src: "/images/goblin_healer_idle__0.png",
               alt: "Zob Character",
               content: (
-                <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">Zob the Wise</h1>
-                  <p className="text-2xl">Adds mystery to the adventure</p>
-                  <p className="text-xl text-gray-400">Keeper of secrets</p>
-                </div>
+                <HomeDescription
+                  title="Zob the Wise"
+                  subtitle="Adds mystery to the adventure"
+                  description="Keeper of secrets"
+                  code="pages/index.tsx"
+                />
               ),
               delay: 0.8,
               direction: -1
@@ -131,7 +133,7 @@ export default function IndexPage() {
                 initial={{ opacity: 0, x: 0 }}
                 whileInView={{ 
                   opacity: 1,
-                  x: character.direction * 600,
+                  x: character.direction * (typeof window !== 'undefined' ? window.innerWidth * 0.47 : 600),
                   rotate: character.direction * 15
                 }}
                 viewport={{ once: false, margin: "-100px" }}

@@ -30,9 +30,12 @@ export default function AboutPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Our Mission</h2>
+            <h2 className="text-2xl font-bold">The Minds Behind CORE Game</h2>
             <p className="text-default-600">
-              CORE aims to create an inclusive, global community where programmers of all skill levels can learn, compete, and grow together. Through our innovative bot game coding contests, we're revolutionizing how people experience programming education and competition.
+            At CORE Game, we’re more than just coders—we’re innovators, challengers, and problem-solvers. What started as a passion project among students at 42 Heilbronn has evolved into a global coding competition that pushes the limits of strategy, AI, and game development.
+Our mission? To create an environment where learning meets competition, and where every line of code tells a story. Whether you're here to sharpen your programming skills, engage in high-level AI battles, or just have fun, CORE Game is the ultimate playground for creative minds.
+But CORE Game is more than just a game—it’s a community. A place where developers from all backgrounds come together to compete, collaborate, and grow. From intense coding duels to deep strategic planning, every match is an opportunity to learn, adapt, and become a better programmer.
+So, whether you're here to dominate the leaderboard or just see what’s possible, welcome to CORE Game. Let’s build, battle, and break boundaries—together.
             </p>
           </div>
 

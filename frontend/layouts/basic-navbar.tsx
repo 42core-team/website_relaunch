@@ -77,9 +77,9 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link 
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/wiki"
+                "font-bold text-default-foreground": pathname === "/wiki/season1"
               })} 
-              href="/wiki" 
+              href="/wiki/season1" 
               size="sm"
             >
               Wiki

@@ -95,29 +95,33 @@ export default function IndexPage() {
             <motion.div
               key={character.alt}
               className="flex flex-col items-center min-h-screen justify-center"
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0, x: 0 }}
               whileInView={{ 
                 opacity: 1,
-                x: character.direction * 50,
+                x: character.direction * 600,
                 rotate: character.direction * 15
               }}
+              exit={{ x: character.direction * 1000 }}
               viewport={{ once: false, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             >
               <Image 
                 src={character.src}
                 alt={character.alt}
-                width={400}
-                height={400}
+                width={800}
+                height={800}
                 className="image-rendering-pixel"
-                style={{ imageRendering: 'pixelated' }}
+                style={{ 
+                  imageRendering: 'pixelated',
+                  transform: character.direction === 1 ? 'scaleX(-1)' : 'none'
+                }}
               />
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: false }}
                 transition={{ duration: 0.5 }}
-                className="text-center mt-4 text-xl"
+                className="text-center mt-4 text-2xl"
               >
                 {character.text}
               </motion.p>

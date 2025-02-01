@@ -79,7 +79,7 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
               className={cn("text-default-500", {
                 "font-bold text-default-foreground": pathname === "/wiki/season1"
               })} 
-              href="/wiki/season1" 
+              href="https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf" 
               size="sm"
             >
               Wiki
@@ -108,6 +108,7 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
               endContent={<Icon icon="solar:alt-arrow-right-linear" />}
               radius="full"
               variant="flat"
+              onClick={() => window.open("https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf", "_blank")}
             >
               Get Started
             </Button>

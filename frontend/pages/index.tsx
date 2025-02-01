@@ -33,14 +33,14 @@ export default function IndexPage() {
               radius: "full",
               variant: "shadow",
             })}
-            href={siteConfig.links.docs}
+            href="https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf"
           >
             Documentation
           </Link>
           <Link
             isExternal
             className={buttonStyles({ variant: "bordered", radius: "full" })}
-            href={siteConfig.links.github}
+            href="https://github.com/42core-team/my-core-bot"
           >
             <GithubIcon size={20} />
             GitHub
@@ -60,9 +60,9 @@ export default function IndexPage() {
               alt: "Gib Character",
               content: (
                 <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">🚀 Unlock Your Coding Potential</h1>
+                  <h1 className="text-4xl font-bold">What the Game is About</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">Experience the thrill of coding like never before! Our international bot game coding contest is designed to challenge and inspire coders of all skill levels. Whether you're a seasoned programmer or just starting your coding journey, this contest is your opportunity to push your limits, solve exciting challenges, and connect with like-minded individuals from around the globe. Join the coding revolution and let your creativity soar. Compete in a friendly environment that fosters collaboration, learning, and fun. Unleash your coding prowess and see where your skills take you.</p>
+                  <p className="text-xl text-gray-400">CORE Game is a competitive coding challenge where you design and program your own AI-powered bots to battle it out in a dynamic 2D arena. Every decision matters—strategy, efficiency, and adaptability will determine whether your bot rises to victory or falls in defeat. Are you ready to code your way to the top?</p>
                 </div>
               ),
               delay: 0.2,
@@ -73,9 +73,9 @@ export default function IndexPage() {
               alt: "Bob Character",
               content: (
                 <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">🌐 Connect with Global Gamers</h1>
+                  <h1 className="text-4xl font-bold">How to Play the Game</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">In the spirit of adventure, our coding contest serves as a gateway to the vast expanse of programming. It's designed to be approachable for beginners, yet complex enough to challenge even the most seasoned veterans. Picture a contest that feels like a captivating journey - a quest where you're armed with curiosity and an eagerness to unravel the intricacies of the coding cosmos.</p>
+                  <p className="text-xl text-gray-400">Write your own bot, fine-tune its strategy, and deploy it into battle. The game runs autonomously based on the logic you’ve programmed, so your code is your weapon. Learn from past matches, tweak your tactics, and keep improving—because in CORE Game, the smartest code wins.</p>
                 </div>
               ),
               delay: 0.4,
@@ -86,9 +86,9 @@ export default function IndexPage() {
               alt: "Rob Character",
               content: (
                 <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">🌌 Fun Learning with Real-world Challenges</h1>
+                  <h1 className="text-4xl font-bold">What is Necessary to Play</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">Step into a nostalgic realm reminiscent of the good old days of LAN parties, where camaraderie and coding brilliance intersect. Our event captures the essence of those memorable gatherings, blending the spirit with the excitement of coding challenges. It's more than a contest, it's a gathering of minds and code.</p>
+                  <p className="text-xl text-gray-400">All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you're a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!</p>
                 </div>
               ),
               delay: 0.6,
@@ -99,9 +99,9 @@ export default function IndexPage() {
               alt: "Zob Character",
               content: (
                 <div className="flex flex-col items-center gap-4">
-                  <h1 className="text-4xl font-bold">🚀 Unlock Your Coding Potential</h1>
+                  <h1 className="text-4xl font-bold">What We Offer as a Team</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">Experience the thrill of coding like never before! Our international bot game coding contest is designed to challenge and inspire coders of all skill levels. Whether you're a seasoned programmer or just starting your coding journey, this contest is your opportunity to push your limits, solve exciting challenges, and connect with like-minded individuals from around the globe. Join the coding revolution and let your creativity soar. Compete in a friendly environment that fosters collaboration, learning, and fun. Unleash your coding prowess and see where your skills take you.</p>
+                  <p className="text-xl text-gray-400">We’re more than just a game—we’re a community of coders, innovators, and problem-solvers. As a team, we provide an engaging platform, regular challenges, and a space to connect with like-minded programmers. Workshops, mentorship, and thrilling competitions—we’ve got everything you need to grow, learn, and have fun!</p>
                 </div>
               ),
               delay: 0.8,

@@ -18,7 +18,7 @@ import {
 } from "@heroui/react";
 import {Icon} from "@iconify/react";
 
-import {AcmeIcon} from "../pages/social";
+import { CoreLogoWhite} from "../pages/social";
 import { ThemeSwitch } from "@/components/theme-switch";
 
 const menuItems = [
@@ -54,10 +54,10 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
       >
         {/* Left Content */}
         <NavbarBrand>
-          <div className="rounded-full bg-default-foreground text-background">
-            <AcmeIcon size={34} />
-          </div>
-          <span className="ml-2 text-small font-medium text-default-foreground">ACME</span>
+          {/* <div className="rounded-full bg-default-foreground text-background"> */}
+            <img src="/logo-white.svg" alt="CORE" className="w-10 h-10" />
+          {/* </div> */}
+          <span className="ml-2 text-small font-medium text-default-foreground">CORE</span>
         </NavbarBrand>
 
         {/* Center Content */}
@@ -68,23 +68,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="text-default-500" href="#" size="sm">
-              Features
+            <Link className="text-default-500" href="/wiki" size="sm">
+              Wiki
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="text-default-500" href="#" size="sm">
-              Customers
-            </Link>
-          </NavbarItem>
-          <NavbarItem>
-            <Link className="text-default-500" href="#" size="sm">
+            <Link className="text-default-500" href="/about" size="sm">
               About Us
-            </Link>
-          </NavbarItem>
-          <NavbarItem>
-            <Link className="text-default-500" href="#" size="sm">
-              Integrations
             </Link>
           </NavbarItem>
         </NavbarContent>
@@ -119,11 +109,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
             },
           }}
         >
-          <NavbarMenuItem>
-            <Button fullWidth as={Link} href="/#" variant="faded">
-              Sign In
-            </Button>
-          </NavbarMenuItem>
           <NavbarMenuItem className="mb-4">
             <Button fullWidth as={Link} className="bg-foreground text-background" href="/#">
               Get Started

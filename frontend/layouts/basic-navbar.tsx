@@ -18,7 +18,7 @@ import {
 } from "@heroui/react";
 import {Icon} from "@iconify/react";
 
-import { CoreLogoWhite} from "../pages/social";
+import { CoreLogoWhite} from "../components/social";
 import { ThemeSwitch } from "@/components/theme-switch";
 
 const menuItems = [

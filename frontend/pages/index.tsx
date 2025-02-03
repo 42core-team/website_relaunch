@@ -9,7 +9,7 @@ import { siteConfig } from "@/config/site";
 import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
-import { CoreLogoWhite } from "./social";
+import { CoreLogoWhite } from "../components/social";
 import HomeDescription from "@/components/home-description";
 
 export default function IndexPage() {

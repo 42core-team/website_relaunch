@@ -1,5 +1,4 @@
-import type {IconSvgProps} from "./types.ts";
-
+import { IconSvgProps } from "@/types";
 import React from "react";
 
 const OpenCollectiveIcon: React.FC<IconSvgProps> = ({size = 24, width, height, ...props}) => {

@@ -33,16 +33,16 @@ export default function AboutPage() {
             <h2 className="text-2xl font-bold">The Minds Behind CORE Game</h2>
             <p className="text-default-600">
             At CORE Game, we&apos;re more than just coders—we&apos;re innovators, challengers, and problem-solvers. What started as a passion project among students at 42 Heilbronn has evolved into a global coding competition that pushes the limits of strategy, AI, and game development.
-Our mission? To create an environment where learning meets competition, and where every line of code tells a story. Whether you're here to sharpen your programming skills, engage in high-level AI battles, or just have fun, CORE Game is the ultimate playground for creative minds.
+Our mission? To create an environment where learning meets competition, and where every line of code tells a story. Whether you&apos;re here to sharpen your programming skills, engage in high-level AI battles, or just have fun, CORE Game is the ultimate playground for creative minds.
 But CORE Game is more than just a game—it&apos;s a community. A place where developers from all backgrounds come together to compete, collaborate, and grow. From intense coding duels to deep strategic planning, every match is an opportunity to learn, adapt, and become a better programmer.
-So, whether you're here to dominate the leaderboard or just see what&apos;s possible, welcome to CORE Game. Let&apos;s build, battle, and break boundaries—together.
+So, whether you&apos;re here to dominate the leaderboard or just see what&apos;s possible, welcome to CORE Game. Let&apos;s build, battle, and break boundaries—together.
             </p>
           </div>
 
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Our Vision</h2>
             <p className="text-default-600">
-              We envision a world where coding is accessible, engaging, and fun for everyone. By combining gaming elements with programming challenges, we're building bridges between entertainment and education, creating unique opportunities for learning and collaboration.
+              We envision a world where coding is accessible, engaging, and fun for everyone. By combining gaming elements with programming challenges, we&apos;re building bridges between entertainment and education, creating unique opportunities for learning and collaboration.
             </p>
           </div>
 
@@ -56,7 +56,7 @@ So, whether you're here to dominate the leaderboard or just see what&apos;s poss
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Join Our Community</h2>
             <p className="text-default-600">
-              Whether you're a beginner taking your first steps in coding or an experienced developer looking for new challenges, CORE welcomes you. Join our growing community and be part of the next generation of programming excellence.
+              Whether you&apos;re a beginner taking your first steps in coding or an experienced developer looking for new challenges, CORE welcomes you. Join our growing community and be part of the next generation of programming excellence.
             </p>
           </div>
         </motion.div>

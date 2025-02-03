@@ -1,8 +1,5 @@
-import { Link } from "@heroui/link";
-
 import { Head } from "./head";
 
-import { Navbar } from "@/components/navbar";
 import BasicNavbar from "./basic-navbar";
 import Footer from "./footer";
 

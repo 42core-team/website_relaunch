@@ -88,7 +88,7 @@ export default function IndexPage() {
                 <div className="flex flex-col items-center gap-4">
                   <h1 className="text-4xl font-bold">What is Necessary to Play</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you're a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!</p>
+                  <p className="text-xl text-gray-400">All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you&apos;re a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!</p>
                 </div>
               ),
               delay: 0.6,

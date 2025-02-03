@@ -121,73 +121,107 @@ export default function AboutPage() {
         >
           <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
               <Image
-                src="https://picsum.photos/200/200?random=1"
+                src="/team/fschuber.jpg"
                 alt="Team member"
                 width={200}
                 height={200}
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
-              <h3 className="text-xl font-semibold">Sarah Johnson</h3>
-              <p className="text-default-600">Founder & CEO</p>
+              <h3 className="text-xl font-semibold">Frederick Schubert</h3>
+              <p className="text-default-600">Member of the Core Team</p>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Image
-                src="https://picsum.photos/200/200?random=2"
+                src="/team/jgotz.png"
                 alt="Team member"
                 width={200}
                 height={200}
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
-              <h3 className="text-xl font-semibold">Michael Chen</h3>
-              <p className="text-default-600">CTO</p>
+              <h3 className="text-xl font-semibold">Jonas Götz</h3>
+              <p className="text-default-600">Member of the Core Team</p>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Image
-                src="https://picsum.photos/200/200?random=3"
+                src="/team/jkauker.jpg"
                 alt="Team member"
                 width={200}
                 height={200}
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
-              <h3 className="text-xl font-semibold">Emily Rodriguez</h3>
-              <p className="text-default-600">Lead Developer</p>
+              <h3 className="text-xl font-semibold">Jonas Kauker</h3>
+              <p className="text-default-600">Member of the Core Team</p>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm lg:col-start-2"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Image
-                src="https://picsum.photos/200/200?random=4"
+                src="/team/tpaesch.jpeg"
                 alt="Team member"
                 width={200}
                 height={200}
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
-              <h3 className="text-xl font-semibold">David Kim</h3>
-              <p className="text-default-600">Community Manager</p>
+              <h3 className="text-xl font-semibold">Theo Paesch</h3>
+              <p className="text-default-600">Member of the Core Team</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Image
+                src="/team/flfische.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Florian Fischer</h3>
+              <p className="text-default-600">Member of the Core Team</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Image
+                src="/team/pgrossma.jpeg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Paul Großmann</h3>
+              <p className="text-default-600">Member of the Core Team</p>
             </motion.div>
           </div>
         </motion.div>

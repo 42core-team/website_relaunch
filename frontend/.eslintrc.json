@@ -26,6 +26,10 @@
     }
   },
   "rules": {
+    // custom rules
+    "react/no-unescaped-entities": "off",
+
+    // default rules
     "no-console": "warn",
     "react/prop-types": "off",
     "react/jsx-uses-react": "off",

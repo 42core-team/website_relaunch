@@ -33,7 +33,7 @@ export default function IndexPage() {
               radius: "full",
               variant: "shadow",
             })}
-            href="https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf"
+            href="https://wiki.coregame.de"
           >
             Documentation
           </Link>

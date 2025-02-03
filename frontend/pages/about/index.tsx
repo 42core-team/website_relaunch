@@ -103,7 +103,7 @@ export default function AboutPage() {
           </p>
           <div className="mt-4">
             <a
-              href="/signup"
+              href="https://wiki.coregame.de"
               className="inline-block px-6 py-3 rounded-full bg-primary text-background font-medium hover:bg-primary-500 transition-colors"
             >
               Get Started Today

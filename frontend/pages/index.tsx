@@ -62,7 +62,7 @@ export default function IndexPage() {
                 <div className="flex flex-col items-center gap-4">
                   <h1 className="text-4xl font-bold">What the Game is About</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">CORE Game is a competitive coding challenge where you design and program your own AI-powered bots to battle it out in a dynamic 2D arena. Every decision matters—strategy, efficiency, and adaptability will determine whether your bot rises to victory or falls in defeat. Are you ready to code your way to the top?</p>
+                  <p className="text-xl text-gray-400">{`CORE Game is a competitive coding challenge where you design and program your own AI-powered bots to battle it out in a dynamic 2D arena. Every decision matters—strategy, efficiency, and adaptability will determine whether your bot rises to victory or falls in defeat. Are you ready to code your way to the top?`}</p>
                 </div>
               ),
               delay: 0.2,
@@ -75,7 +75,7 @@ export default function IndexPage() {
                 <div className="flex flex-col items-center gap-4">
                   <h1 className="text-4xl font-bold">How to Play the Game</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">Write your own bot, fine-tune its strategy, and deploy it into battle. The game runs autonomously based on the logic you’ve programmed, so your code is your weapon. Learn from past matches, tweak your tactics, and keep improving—because in CORE Game, the smartest code wins.</p>
+                  <p className="text-xl text-gray-400">{`Write your own bot, fine-tune its strategy, and deploy it into battle. The game runs autonomously based on the logic you’ve programmed, so your code is your weapon. Learn from past matches, tweak your tactics, and keep improving—because in CORE Game, the smartest code wins.`}</p>
                 </div>
               ),
               delay: 0.4,
@@ -88,7 +88,7 @@ export default function IndexPage() {
                 <div className="flex flex-col items-center gap-4">
                   <h1 className="text-4xl font-bold">What is Necessary to Play</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you&apos;re a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!</p>
+                  <p className="text-xl text-gray-400">{`All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you&apos;re a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!`}</p>
                 </div>
               ),
               delay: 0.6,
@@ -101,7 +101,7 @@ export default function IndexPage() {
                 <div className="flex flex-col items-center gap-4">
                   <h1 className="text-4xl font-bold">What We Offer as a Team</h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">We’re more than just a game—we’re a community of coders, innovators, and problem-solvers. As a team, we provide an engaging platform, regular challenges, and a space to connect with like-minded programmers. Workshops, mentorship, and thrilling competitions—we’ve got everything you need to grow, learn, and have fun!</p>
+                  <p className="text-xl text-gray-400">{`We’re more than just a game—we’re a community of coders, innovators, and problem-solvers. As a team, we provide an engaging platform, regular challenges, and a space to connect with like-minded programmers. Workshops, mentorship, and thrilling competitions—we’ve got everything you need to grow, learn, and have fun!`}</p>
                 </div>
               ),
               delay: 0.8,

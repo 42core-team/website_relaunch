@@ -1,8 +1,8 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "CORE",
+  description: "CORE game is a competitive coding challenge where you design and program your own bots to battle it out in a dynamic 2D arena.",
   navItems: [
     {
       label: "Home",

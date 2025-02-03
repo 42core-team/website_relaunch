@@ -9,19 +9,11 @@ export const siteConfig = {
       href: "/",
     },
     {
-      label: "Docs",
+      label: "Wiki",
       href: "/docs",
     },
     {
-      label: "Pricing",
-      href: "/pricing",
-    },
-    {
-      label: "Blog",
-      href: "/blog",
-    },
-    {
-      label: "About",
+      label: "About us",
       href: "/about",
     },
   ],

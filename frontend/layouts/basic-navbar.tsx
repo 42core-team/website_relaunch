@@ -22,14 +22,9 @@ import { CoreLogoWhite} from "../components/social";
 import { ThemeSwitch } from "@/components/theme-switch";
 
 const menuItems = [
-  "About",
-  "Blog",
-  "Customers",
-  "Pricing",
-  "Enterprise",
-  "Changelog",
-  "Documentation",
-  "Contact Us",
+  "Home",
+  "Wiki",
+  "About us",
 ];
 
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
@@ -134,14 +129,21 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
               Get Started
             </Button>
           </NavbarMenuItem>
-          {menuItems.map((item, index) => (
-            <NavbarMenuItem key={`${item}-${index}`}>
-              <Link className="mb-2 w-full text-default-500" href="#" size="md">
-                {item}
-              </Link>
-              {index < menuItems.length - 1 && <Divider className="opacity-50" />}
-            </NavbarMenuItem>
-          ))}
+          <NavbarMenuItem>
+            <Link className="mb-2 w-full text-default-500" href="/" size="md">
+              Home
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link className="mb-2 w-full text-default-500" href="https://wiki.coregame.de" size="md">
+              Wiki
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link className="mb-2 w-full text-default-500" href="/about" size="md">
+              About us
+            </Link>
+          </NavbarMenuItem>
         </NavbarMenu>
       </Navbar>
     );

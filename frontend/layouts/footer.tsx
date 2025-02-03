@@ -25,7 +25,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <Link href="/" className="text-default-500 hover:text-primary">Home</Link>
               <Link href="/about" className="text-default-500 hover:text-primary">About</Link>
-              <Link href="https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf" 
+              <Link href="https://wiki.coregame.de" 
                 className="text-default-500 hover:text-primary">
                 Documentation
               </Link>
@@ -49,7 +49,7 @@ export default function Footer() {
                 variant="flat"
                 size="sm"
                 as={Link}
-                href="https://docmost.it-goetz.com/s/core/p/landingpage-8TSTnbEqkf"
+                href="https://wiki.coregame.de"
               >
                 Get Started
               </Button>

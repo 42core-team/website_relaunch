@@ -23,7 +23,7 @@ export const siteConfig = {
       href: "/profile",
     },
     {
-      label: "Dashboard",
+      label: "Index",
       href: "/dashboard",
     },
     {

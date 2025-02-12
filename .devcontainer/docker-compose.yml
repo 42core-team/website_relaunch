@@ -10,7 +10,7 @@ services:
       - development-network
 
   pocketbase:
-    image: ghcr.io/paulicstudios/pocketbase:latest
+    image: ghcr.io/42core-team/pocketbase:latest
     restart: unless-stopped
     volumes:
       - pocketbase-data:/home/pocketbase/pb_data

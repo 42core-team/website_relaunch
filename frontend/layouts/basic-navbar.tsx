@@ -86,6 +86,17 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                     <NavbarItem>
                         <Link
                             className={cn("text-default-500", {
+                                "font-bold text-default-foreground": pathname === "/events"
+                            })}
+                            href="/events"
+                            size="sm"
+                        >
+                            Events
+                        </Link>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Link
+                            className={cn("text-default-500", {
                                 "font-bold text-default-foreground": pathname === "/wiki/season1"
                             })}
                             href="https://wiki.coregame.de"
@@ -172,6 +183,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                     <NavbarMenuItem>
                         <Link className="mb-2 w-full text-default-500" href="/" size="md">
                             Home
+                        </Link>
+                    </NavbarMenuItem>
+                    <NavbarMenuItem>
+                        <Link className="mb-2 w-full text-default-500" href="/events" size="md">
+                            Events
                         </Link>
                     </NavbarMenuItem>
                     <NavbarMenuItem>

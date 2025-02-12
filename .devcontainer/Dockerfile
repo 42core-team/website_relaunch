@@ -13,7 +13,7 @@ ENV DEVCONTAINER=true
 
 # Set environment variables for non-interactive installations and Go paths
 ENV DEBIAN_FRONTEND=noninteractive \
-    GOLANG_VERSION=1.23.0 \
+    GOLANG_VERSION=1.22.1 \
     PATH=$PATH:/usr/local/go/bin
 
 # Update package list and install necessary dependencies
@@ -23,11 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
     openssh-client \
-    build-essential \
     gcc \
     pkg-config \
     protobuf-compiler \
-    && curl -fsSL https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz | tar -C /usr/local -xzf - \
+    && curl -fsSL https://go.dev/dl/go${GOLANG_VERSION}.linux-arm64.tar.gz | tar -C /usr/local -xzf - \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="$PATH:$(go env GOPATH)/bin"

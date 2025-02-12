@@ -7,5 +7,5 @@ install-deps:
 gen: install-deps
 	@protoc \
 		--proto_path=protobuf "protobuf/game.proto" \
-		--go_out=services/k8sservice/genproto/game --go_opt=paths=source_relative \
-		--go-grpc_out=services/k8sservice/genproto/game --go-grpc_opt=paths=source_relative
+		--go_out=services/common/genproto/game --go_opt=paths=source_relative \
+		--go-grpc_out=services/common/genproto/game --go-grpc_opt=paths=source_relative

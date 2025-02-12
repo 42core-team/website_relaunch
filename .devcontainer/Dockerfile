@@ -10,3 +10,24 @@ RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
 
 # Set `DEVCONTAINER` environment variable to help with orientation
 ENV DEVCONTAINER=true
+
+# Set environment variables for non-interactive installations and Go paths
+ENV DEBIAN_FRONTEND=noninteractive \
+    GOLANG_VERSION=1.23.0 \
+    PATH=$PATH:/usr/local/go/bin
+
+# Update package list and install necessary dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    ca-certificates \
+    build-essential \
+    openssh-client \
+    build-essential \
+    gcc \
+    pkg-config \
+    protobuf-compiler \
+    && curl -fsSL https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz | tar -C /usr/local -xzf - \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="$PATH:$(go env GOPATH)/bin"

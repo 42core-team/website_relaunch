@@ -118,17 +118,24 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                                         as="button"
                                         className="transition-transform"
                                         size="sm"
-                                        src={userData?.avatar || "https://i.pravatar.cc/150"}
-                                        name={userData?.name || "User"}
-                                    />
+                                        src={
+                                            userData?.avatar
+                                                ? `${process.env.NEXT_PUBLIC_POCKETBASE_URL}/api/files/${userData.collectionId}/${userData.id}/${userData.avatar}?thumb=100x100`
+                                                : undefined
+                                        }
+                                        name={(userData?.name || "User").substring(0, 2).toUpperCase()}
+                                    >
+                                        {!userData?.avatar &&
+                                            (userData?.name || "User").substring(0, 2).toUpperCase()}
+                                    </Avatar>
                                 </DropdownTrigger>
                                 <DropdownMenu aria-label="Profile Actions" variant="flat">
-                                    <DropdownItem key="profile" href="/profile">
+                                    {/* <DropdownItem key="profile" href="/profile">
                                         Profile
                                     </DropdownItem>
                                     <DropdownItem key="settings" href="/settings">
                                         Settings
-                                    </DropdownItem>
+                                    </DropdownItem> */}
                                     <DropdownItem key="logout" color="danger" onPress={() => {
                                         pb.authStore.clear();
                                         router.push("/");

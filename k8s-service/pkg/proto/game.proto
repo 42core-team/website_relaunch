@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package game;
+option go_package = "github.com/42core-team/website_relaunch/k8s-service/pkg/proto";
+
+service GameService {
+  rpc CreateGame(CreateGameRequest) returns (Game) {}
+  rpc GetGame(GetGameRequest) returns (Game) {}
+  rpc StreamGameStatus(GameStatusRequest) returns (stream GameStatus) {}
+  rpc StreamLogs(LogRequest) returns (stream LogEntry) {}
+}
+
+message CreateGameRequest {
+  string name = 1;
+  string game_type = 2;
+}
+
+message GetGameRequest {
+  string game_id = 1;
+}
+
+message Game {
+  string id = 1;
+  string name = 2;
+  string game_type = 3;
+  string status = 4;
+}
+
+message GameStatusRequest {
+  string game_id = 1;
+}
+
+message GameStatus {
+  string game_id = 1;
+  string status = 2;
+  int32 players_connected = 3;
+  string current_state = 4;
+}
+
+message LogRequest {
+  string game_id = 1;
+}
+
+message LogEntry {
+  string game_id = 1;
+  string timestamp = 2;
+  string message = 3;
+  string level = 4;
+} 

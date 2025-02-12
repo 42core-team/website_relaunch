@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.12
-// source: game.proto
+// source: pkg/proto/game.proto
 
-package k8s_service
+package proto
 
 import (
 	context "context"
@@ -19,22 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GameService_CreateGame_FullMethodName            = "/GameService/CreateGame"
-	GameService_GetGame_FullMethodName               = "/GameService/GetGame"
-	GameService_SubscribeToGameStatus_FullMethodName = "/GameService/SubscribeToGameStatus"
-	GameService_GetPlayerLogs_FullMethodName         = "/GameService/GetPlayerLogs"
-	GameService_GetGameLogs_FullMethodName           = "/GameService/GetGameLogs"
+	GameService_CreateGame_FullMethodName       = "/game.GameService/CreateGame"
+	GameService_GetGame_FullMethodName          = "/game.GameService/GetGame"
+	GameService_StreamGameStatus_FullMethodName = "/game.GameService/StreamGameStatus"
+	GameService_StreamLogs_FullMethodName       = "/game.GameService/StreamLogs"
 )
 
 // GameServiceClient is the client API for GameService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GameServiceClient interface {
-	CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*CreateGameResponse, error)
-	GetGame(ctx context.Context, in *GetGameRequest, opts ...grpc.CallOption) (*GetGameResponse, error)
-	SubscribeToGameStatus(ctx context.Context, in *GameStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameStatusResponse], error)
-	GetPlayerLogs(ctx context.Context, in *PlayerLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PlayerLog], error)
-	GetGameLogs(ctx context.Context, in *GameLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameLog], error)
+	CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*Game, error)
+	GetGame(ctx context.Context, in *GetGameRequest, opts ...grpc.CallOption) (*Game, error)
+	StreamGameStatus(ctx context.Context, in *GameStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameStatus], error)
+	StreamLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogEntry], error)
 }
 
 type gameServiceClient struct {
@@ -45,9 +43,9 @@ func NewGameServiceClient(cc grpc.ClientConnInterface) GameServiceClient {
 	return &gameServiceClient{cc}
 }
 
-func (c *gameServiceClient) CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*CreateGameResponse, error) {
+func (c *gameServiceClient) CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*Game, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateGameResponse)
+	out := new(Game)
 	err := c.cc.Invoke(ctx, GameService_CreateGame_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -55,9 +53,9 @@ func (c *gameServiceClient) CreateGame(ctx context.Context, in *CreateGameReques
 	return out, nil
 }
 
-func (c *gameServiceClient) GetGame(ctx context.Context, in *GetGameRequest, opts ...grpc.CallOption) (*GetGameResponse, error) {
+func (c *gameServiceClient) GetGame(ctx context.Context, in *GetGameRequest, opts ...grpc.CallOption) (*Game, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetGameResponse)
+	out := new(Game)
 	err := c.cc.Invoke(ctx, GameService_GetGame_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -65,13 +63,13 @@ func (c *gameServiceClient) GetGame(ctx context.Context, in *GetGameRequest, opt
 	return out, nil
 }
 
-func (c *gameServiceClient) SubscribeToGameStatus(ctx context.Context, in *GameStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameStatusResponse], error) {
+func (c *gameServiceClient) StreamGameStatus(ctx context.Context, in *GameStatusRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameStatus], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[0], GameService_SubscribeToGameStatus_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[0], GameService_StreamGameStatus_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[GameStatusRequest, GameStatusResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[GameStatusRequest, GameStatus]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -82,15 +80,15 @@ func (c *gameServiceClient) SubscribeToGameStatus(ctx context.Context, in *GameS
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_SubscribeToGameStatusClient = grpc.ServerStreamingClient[GameStatusResponse]
+type GameService_StreamGameStatusClient = grpc.ServerStreamingClient[GameStatus]
 
-func (c *gameServiceClient) GetPlayerLogs(ctx context.Context, in *PlayerLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PlayerLog], error) {
+func (c *gameServiceClient) StreamLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogEntry], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[1], GameService_GetPlayerLogs_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[1], GameService_StreamLogs_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[PlayerLogsRequest, PlayerLog]{ClientStream: stream}
+	x := &grpc.GenericClientStream[LogRequest, LogEntry]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -101,36 +99,16 @@ func (c *gameServiceClient) GetPlayerLogs(ctx context.Context, in *PlayerLogsReq
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_GetPlayerLogsClient = grpc.ServerStreamingClient[PlayerLog]
-
-func (c *gameServiceClient) GetGameLogs(ctx context.Context, in *GameLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameLog], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[2], GameService_GetGameLogs_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[GameLogsRequest, GameLog]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_GetGameLogsClient = grpc.ServerStreamingClient[GameLog]
+type GameService_StreamLogsClient = grpc.ServerStreamingClient[LogEntry]
 
 // GameServiceServer is the server API for GameService service.
 // All implementations must embed UnimplementedGameServiceServer
 // for forward compatibility.
 type GameServiceServer interface {
-	CreateGame(context.Context, *CreateGameRequest) (*CreateGameResponse, error)
-	GetGame(context.Context, *GetGameRequest) (*GetGameResponse, error)
-	SubscribeToGameStatus(*GameStatusRequest, grpc.ServerStreamingServer[GameStatusResponse]) error
-	GetPlayerLogs(*PlayerLogsRequest, grpc.ServerStreamingServer[PlayerLog]) error
-	GetGameLogs(*GameLogsRequest, grpc.ServerStreamingServer[GameLog]) error
+	CreateGame(context.Context, *CreateGameRequest) (*Game, error)
+	GetGame(context.Context, *GetGameRequest) (*Game, error)
+	StreamGameStatus(*GameStatusRequest, grpc.ServerStreamingServer[GameStatus]) error
+	StreamLogs(*LogRequest, grpc.ServerStreamingServer[LogEntry]) error
 	mustEmbedUnimplementedGameServiceServer()
 }
 
@@ -141,20 +119,17 @@ type GameServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGameServiceServer struct{}
 
-func (UnimplementedGameServiceServer) CreateGame(context.Context, *CreateGameRequest) (*CreateGameResponse, error) {
+func (UnimplementedGameServiceServer) CreateGame(context.Context, *CreateGameRequest) (*Game, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGame not implemented")
 }
-func (UnimplementedGameServiceServer) GetGame(context.Context, *GetGameRequest) (*GetGameResponse, error) {
+func (UnimplementedGameServiceServer) GetGame(context.Context, *GetGameRequest) (*Game, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGame not implemented")
 }
-func (UnimplementedGameServiceServer) SubscribeToGameStatus(*GameStatusRequest, grpc.ServerStreamingServer[GameStatusResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeToGameStatus not implemented")
+func (UnimplementedGameServiceServer) StreamGameStatus(*GameStatusRequest, grpc.ServerStreamingServer[GameStatus]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamGameStatus not implemented")
 }
-func (UnimplementedGameServiceServer) GetPlayerLogs(*PlayerLogsRequest, grpc.ServerStreamingServer[PlayerLog]) error {
-	return status.Errorf(codes.Unimplemented, "method GetPlayerLogs not implemented")
-}
-func (UnimplementedGameServiceServer) GetGameLogs(*GameLogsRequest, grpc.ServerStreamingServer[GameLog]) error {
-	return status.Errorf(codes.Unimplemented, "method GetGameLogs not implemented")
+func (UnimplementedGameServiceServer) StreamLogs(*LogRequest, grpc.ServerStreamingServer[LogEntry]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamLogs not implemented")
 }
 func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
 func (UnimplementedGameServiceServer) testEmbeddedByValue()                     {}
@@ -213,44 +188,33 @@ func _GameService_GetGame_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GameService_SubscribeToGameStatus_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _GameService_StreamGameStatus_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(GameStatusRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GameServiceServer).SubscribeToGameStatus(m, &grpc.GenericServerStream[GameStatusRequest, GameStatusResponse]{ServerStream: stream})
+	return srv.(GameServiceServer).StreamGameStatus(m, &grpc.GenericServerStream[GameStatusRequest, GameStatus]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_SubscribeToGameStatusServer = grpc.ServerStreamingServer[GameStatusResponse]
+type GameService_StreamGameStatusServer = grpc.ServerStreamingServer[GameStatus]
 
-func _GameService_GetPlayerLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(PlayerLogsRequest)
+func _GameService_StreamLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(LogRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GameServiceServer).GetPlayerLogs(m, &grpc.GenericServerStream[PlayerLogsRequest, PlayerLog]{ServerStream: stream})
+	return srv.(GameServiceServer).StreamLogs(m, &grpc.GenericServerStream[LogRequest, LogEntry]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_GetPlayerLogsServer = grpc.ServerStreamingServer[PlayerLog]
-
-func _GameService_GetGameLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GameLogsRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(GameServiceServer).GetGameLogs(m, &grpc.GenericServerStream[GameLogsRequest, GameLog]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameService_GetGameLogsServer = grpc.ServerStreamingServer[GameLog]
+type GameService_StreamLogsServer = grpc.ServerStreamingServer[LogEntry]
 
 // GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GameService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "GameService",
+	ServiceName: "game.GameService",
 	HandlerType: (*GameServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -264,20 +228,15 @@ var GameService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "SubscribeToGameStatus",
-			Handler:       _GameService_SubscribeToGameStatus_Handler,
+			StreamName:    "StreamGameStatus",
+			Handler:       _GameService_StreamGameStatus_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "GetPlayerLogs",
-			Handler:       _GameService_GetPlayerLogs_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetGameLogs",
-			Handler:       _GameService_GetGameLogs_Handler,
+			StreamName:    "StreamLogs",
+			Handler:       _GameService_StreamLogs_Handler,
 			ServerStreams: true,
 		},
 	},
-	Metadata: "game.proto",
+	Metadata: "pkg/proto/game.proto",
 }

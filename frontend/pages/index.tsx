@@ -1,16 +1,11 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Link } from "@heroui/link";
-import { Snippet } from "@heroui/snippet";
-import { Code } from "@heroui/code";
 import { button as buttonStyles } from "@heroui/theme";
 
-import { siteConfig } from "@/config/site";
-import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
 import { CoreLogoWhite } from "../components/social";
-import HomeDescription from "@/components/home-description";
 
 export default function IndexPage() {
   return (

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -68,17 +69,16 @@ func (s *GameService) StreamLogs(req *pb.LogRequest, stream pb.GameService_Strea
 	// Get pod for the game
 	pod, err := s.k8sService.GetPodByLabel(stream.Context(), "app=game-server")
 	if err != nil {
-		// Fallback to mock data if pod not found
-		return s.streamMockLogs(req, stream)
+		return fmt.Errorf("failed to get pod: %v", err)
 	}
 	if pod == nil {
-		return s.streamMockLogs(req, stream)
+		return fmt.Errorf("no pod found for game %s", req.GameId)
 	}
 
 	// Get log stream from pod
 	logStream, err := s.k8sService.StreamPodLogs(stream.Context(), pod.Name)
 	if err != nil {
-		return s.streamMockLogs(req, stream)
+		return fmt.Errorf("failed to get log stream: %v", err)
 	}
 	defer logStream.Close()
 
@@ -107,22 +107,6 @@ func (s *GameService) StreamLogs(req *pb.LogRequest, stream pb.GameService_Strea
 			if err := stream.Send(logEntry); err != nil {
 				return err
 			}
-		}
-	}
-}
-
-// Fallback method for mock data
-func (s *GameService) streamMockLogs(req *pb.LogRequest, stream pb.GameService_StreamLogsServer) error {
-	for {
-		select {
-		case <-stream.Context().Done():
-			return nil
-		default:
-			logEntry := s.mockData.GenerateLogEntry(req.GameId)
-			if err := stream.Send(logEntry); err != nil {
-				return err
-			}
-			time.Sleep(1 * time.Second)
 		}
 	}
 }

@@ -51,31 +51,11 @@ func (s *GameService) GetGame(ctx context.Context, req *pb.GetGameRequest) (*pb.
 }
 
 func (s *GameService) StreamGameStatus(req *pb.GameStatusRequest, stream pb.GameService_StreamGameStatusServer) error {
-	// Get pod for the game using match_id and team_id labels
-	labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
-	pod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get pod: %v", err)
-	}
-	if pod == nil {
-		return fmt.Errorf("no pod found for match %s and team %s", req.MatchId, req.TeamId)
-	}
-
-	// Send initial status immediately
-	initialStatus := &pb.GameStatus{
-		MatchId: req.MatchId,
-		TeamId:  req.TeamId,
-		Status:  string(pod.Status.Phase),
-	}
-	if err := stream.Send(initialStatus); err != nil {
-		return fmt.Errorf("failed to send initial status: %v", err)
-	}
-
 	// Check pod status every second
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	lastStatus := pod.Status.Phase
+	var lastStatus v1.PodPhase
 
 	for {
 		select {
@@ -83,25 +63,35 @@ func (s *GameService) StreamGameStatus(req *pb.GameStatusRequest, stream pb.Game
 			return nil
 		case <-ticker.C:
 			// Get latest pod status
+			labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
 			currentPod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
 			if err != nil {
 				return fmt.Errorf("failed to get pod status: %v", err)
 			}
 
-			currentStatus := currentPod.Status.Phase
+			// Pod doesn't exist anymore
+			if currentPod == nil {
+				gameStatus := &pb.GameStatus{
+					MatchId: req.MatchId,
+					TeamId:  req.TeamId,
+					Status:  "TERMINATED",
+				}
+				if err := stream.Send(gameStatus); err != nil {
+					return fmt.Errorf("failed to send termination status: %v", err)
+				}
+				return nil
+			}
 
-			// Only send update if status has changed
+			currentStatus := currentPod.Status.Phase
 			if currentStatus != lastStatus {
 				gameStatus := &pb.GameStatus{
 					MatchId: req.MatchId,
 					TeamId:  req.TeamId,
 					Status:  string(currentStatus),
 				}
-
 				if err := stream.Send(gameStatus); err != nil {
 					return fmt.Errorf("failed to send status update: %v", err)
 				}
-
 				lastStatus = currentStatus
 			}
 		}

@@ -10,7 +10,6 @@ import {
     TableCell,
 } from "@heroui/react";
 import { title } from '@/components/primitives';
-import { Link } from '@heroui/react';
 
 interface Event {
     collectionId: string;

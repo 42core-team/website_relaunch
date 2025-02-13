@@ -51,28 +51,73 @@ func (s *GameService) GetGame(ctx context.Context, req *pb.GetGameRequest) (*pb.
 }
 
 func (s *GameService) StreamGameStatus(req *pb.GameStatusRequest, stream pb.GameService_StreamGameStatusServer) error {
+	fmt.Println("StreamGameStatus called with req:", req)
+	// Get pod for the game using match_id and team_id labels
+	labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
+	pod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
+	if err != nil {
+		return fmt.Errorf("failed to get pod: %v", err)
+	}
+	if pod == nil {
+		return fmt.Errorf("no pod found for match %s and team %s", req.MatchId, req.TeamId)
+	}
+
+	// Send initial status immediately
+	initialStatus := &pb.GameStatus{
+		MatchId: req.MatchId,
+		TeamId:  req.TeamId,
+		Status:  string(pod.Status.Phase),
+	}
+	if err := stream.Send(initialStatus); err != nil {
+		return fmt.Errorf("failed to send initial status: %v", err)
+	}
+
+	// Check pod status every second
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	lastStatus := pod.Status.Phase
+
 	for {
 		select {
 		case <-stream.Context().Done():
 			return nil
-		default:
-			status := s.mockData.GenerateGameStatus(req.GameId)
-			if err := stream.Send(status); err != nil {
-				return err
+		case <-ticker.C:
+			// Get latest pod status
+			currentPod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
+			if err != nil {
+				return fmt.Errorf("failed to get pod status: %v", err)
 			}
-			time.Sleep(1 * time.Second)
+
+			currentStatus := currentPod.Status.Phase
+
+			// Only send update if status has changed
+			if currentStatus != lastStatus {
+				gameStatus := &pb.GameStatus{
+					MatchId: req.MatchId,
+					TeamId:  req.TeamId,
+					Status:  string(currentStatus),
+				}
+
+				if err := stream.Send(gameStatus); err != nil {
+					return fmt.Errorf("failed to send status update: %v", err)
+				}
+
+				lastStatus = currentStatus
+			}
 		}
 	}
 }
 
 func (s *GameService) StreamLogs(req *pb.LogRequest, stream pb.GameService_StreamLogsServer) error {
-	// Get pod for the game
-	pod, err := s.k8sService.GetPodByLabel(stream.Context(), "app=game-server")
+	// Get pod for the game using match_id and team_id labels
+	labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
+	pod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get pod: %v", err)
 	}
 	if pod == nil {
-		return fmt.Errorf("no pod found for game %s", req.GameId)
+		return fmt.Errorf("no pod found for match %s and team %s", req.MatchId, req.TeamId)
 	}
 
 	// Get log stream from pod
@@ -98,7 +143,8 @@ func (s *GameService) StreamLogs(req *pb.LogRequest, stream pb.GameService_Strea
 			}
 
 			logEntry := &pb.LogEntry{
-				GameId:    req.GameId,
+				MatchId:   req.MatchId,
+				TeamId:    req.TeamId,
 				Timestamp: time.Now().Format(time.RFC3339),
 				Message:   string(buffer[:n]),
 				Level:     "INFO",

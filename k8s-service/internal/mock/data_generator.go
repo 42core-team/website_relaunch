@@ -22,7 +22,6 @@ func NewDataGenerator() *DataGenerator {
 
 func (g *DataGenerator) GenerateGameStatus(gameID string) *pb.GameStatus {
 	return &pb.GameStatus{
-		GameId:           gameID,
 		Status:           g.gameStatuses[rand.Intn(len(g.gameStatuses))],
 		PlayersConnected: rand.Int31n(10),
 		CurrentState:     fmt.Sprintf("Round %d", rand.Intn(10)+1),
@@ -31,7 +30,6 @@ func (g *DataGenerator) GenerateGameStatus(gameID string) *pb.GameStatus {
 
 func (g *DataGenerator) GenerateLogEntry(gameID string) *pb.LogEntry {
 	return &pb.LogEntry{
-		GameId:    gameID,
 		Timestamp: time.Now().Format(time.RFC3339),
 		Message:   fmt.Sprintf("Game event occurred at round %d", rand.Intn(100)),
 		Level:     g.logLevels[rand.Intn(len(g.logLevels))],

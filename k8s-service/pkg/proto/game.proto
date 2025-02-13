@@ -27,23 +27,27 @@ message Game {
 }
 
 message GameStatusRequest {
-  string game_id = 1;
+  string match_id = 1;
+  string team_id = 2;
 }
 
 message GameStatus {
-  string game_id = 1;
-  string status = 2;
-  int32 players_connected = 3;
-  string current_state = 4;
+  string match_id = 1;
+  string team_id = 2;
+  string status = 3;
+  int32 players_connected = 4;
+  string current_state = 5;
 }
 
 message LogRequest {
-  string game_id = 1;
+  string match_id = 1;
+  string team_id = 2;
 }
 
 message LogEntry {
-  string game_id = 1;
-  string timestamp = 2;
-  string message = 3;
-  string level = 4;
+  string match_id = 1;
+  string team_id = 2;
+  string timestamp = 3;
+  string message = 4;
+  string level = 5;
 } 

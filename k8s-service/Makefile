@@ -6,6 +6,7 @@ GO=go
 GOARCH=arm64
 GOOS=linux
 CGO_ENABLED=0
+GOPATH=$(shell go env GOPATH)
 
 # Proto related variables
 PROTO_DIR=pkg/proto
@@ -17,7 +18,7 @@ BUILD_DIR=build
 # Generate protobuf code
 proto: deps
 	@echo "Generating protobuf code..."
-	protoc --go_out=. \
+	PATH="$(GOPATH)/bin:$$PATH" protoc --go_out=. \
 		--go_opt=paths=source_relative \
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative \

@@ -1,8 +1,8 @@
 import { Card } from "@heroui/react";
-import DefaultLayout from "@/layouts/default";
 import { useRouter } from "next/router";
 import PocketBase from 'pocketbase';
 import { useState, useEffect } from 'react';
+import EventLayout from "@/layouts/event";
 
 interface Event {
     collectionId: string;
@@ -63,26 +63,26 @@ export default function EventPage() {
 
     if (isLoading) {
         return (
-            <DefaultLayout>
+            <EventLayout eventId={id as string}>
                 <div className="flex items-center justify-center min-h-[200px]">
                     <p>Loading event stats...</p>
                 </div>
-            </DefaultLayout>
+            </EventLayout>
         );
     }
 
     if (!event) {
         return (
-            <DefaultLayout>
+            <EventLayout eventId={id as string}>
                 <div className="flex items-center justify-center min-h-[200px]">
                     <p>No event data found</p>
                 </div>
-            </DefaultLayout>
+            </EventLayout>
         );
     }
 
     return (
-        <DefaultLayout>
+        <EventLayout eventId={id as string}>
             <div className="container mx-auto py-8">
                 <h1 className="text-3xl font-bold mb-8">{event.name}</h1>
                 
@@ -121,6 +121,6 @@ export default function EventPage() {
                     </div>
                 </Card>
             </div>
-        </DefaultLayout>
+        </EventLayout>
     );
 }

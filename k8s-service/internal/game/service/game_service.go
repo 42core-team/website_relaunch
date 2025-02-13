@@ -51,7 +51,6 @@ func (s *GameService) GetGame(ctx context.Context, req *pb.GetGameRequest) (*pb.
 }
 
 func (s *GameService) StreamGameStatus(req *pb.GameStatusRequest, stream pb.GameService_StreamGameStatusServer) error {
-	fmt.Println("StreamGameStatus called with req:", req)
 	// Get pod for the game using match_id and team_id labels
 	labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
 	pod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)

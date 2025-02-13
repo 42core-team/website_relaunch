@@ -38,11 +38,7 @@ func NewK8sService(configPath string) (*K8sService, error) {
 	}
 
 	if err != nil {
-		// Fall back to in-cluster config
-		// config, err = rest.InClusterConfig()
-		// if err != nil {
 		return nil, err
-		// }
 	}
 
 	kubeConfig = config

@@ -30,3 +30,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="$PATH:$(go env GOPATH)/bin"
+
+# Create .kube directory
+RUN mkdir -p /home/node/.kube
+
+# Make sure the node user owns the .kube directory
+RUN chown -R node:node /home/node/.kube

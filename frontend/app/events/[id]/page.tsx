@@ -1,5 +1,7 @@
+'use client'
+
 import { Card } from "@heroui/react";
-import { useRouter } from "next/router";
+import {useParams, useRouter} from "next/navigation";
 import PocketBase from 'pocketbase';
 import { useState, useEffect } from 'react';
 import EventLayout from "@/layouts/event";
@@ -26,7 +28,8 @@ interface Stats {
 
 export default function EventPage() {
     const router = useRouter();
-    const { id } = router.query;
+    const id = useParams().id;
+
     const [event, setEvent] = useState<Event | null>(null);
     const [stats, setStats] = useState<Stats | null>(null);
     const [isLoading, setIsLoading] = useState(true);

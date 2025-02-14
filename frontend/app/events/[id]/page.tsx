@@ -27,7 +27,6 @@ interface Stats {
 }
 
 export default function EventPage() {
-    const router = useRouter();
     const id = useParams().id;
 
     const [event, setEvent] = useState<Event | null>(null);

@@ -1,6 +1,5 @@
 'use server'
 
-import pbaseAdmin from "@/pbaseAdmin";
 import pbAdmin from "@/pbaseAdmin";
 
 export interface Team {
@@ -29,12 +28,12 @@ export async function createTeam(name: string, eventId: string, userId: string):
     if (existingTeam)
         return existingTeam;
 
-    const team = await pbaseAdmin.collection('teams').create<Team>({
+    const team = await pbAdmin.collection('teams').create<Team>({
         name,
         event: eventId
     });
 
-    await pbaseAdmin.collection('team_user').create<Team>({
+    await pbAdmin.collection('team_user').create<Team>({
         user: userId,
         team: team.id,
     });

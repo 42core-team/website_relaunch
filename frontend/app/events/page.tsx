@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useState } from 'react';
 import PocketBase from 'pocketbase';
 import DefaultLayout from '@/layouts/default';

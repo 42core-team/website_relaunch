@@ -1,25 +1,21 @@
-import { Head } from "./head";
-import BasicNavbar from "./basic-navbar";
+'use client'
 import EventNavbar from "@/components/event-navbar";
 import EventJoinNotice from "@/components/event-join-notice";
-import Footer from "./footer";
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import PocketBase from 'pocketbase';
+import {useParams} from "next/navigation";
 
-export default function EventLayout({
-    children,
-    eventId,
-}: {
+export default function EventLayout({children}: {
     children: React.ReactNode;
-    eventId: string;
 }) {
     const [showJoinNotice, setShowJoinNotice] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
+    const eventId = useParams().id as string;
 
     useEffect(() => {
         const checkEventMembership = async () => {
             const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
-            
+
             // Check if user is authenticated
             if (!pb.authStore.isValid || !pb.authStore.record) {
                 new Error("User is not authenticated");
@@ -44,18 +40,19 @@ export default function EventLayout({
         checkEventMembership();
     }, [eventId]);
 
+    if(!eventId) {
+        return <div>Event not found</div>;
+    }
+
     return (
         <div className="relative flex flex-col h-screen">
-            <Head />
-            <BasicNavbar />
             {showJoinNotice && userId && (
-                <EventJoinNotice eventId={eventId} userId={userId} />
+                <EventJoinNotice eventId={eventId} userId={userId}/>
             )}
-            <EventNavbar eventId={eventId} />
+            <EventNavbar eventId={eventId}/>
             <main className="container mx-auto max-w-7xl px-6 flex-grow">
                 {children}
             </main>
-            <Footer />
         </div>
     );
 }

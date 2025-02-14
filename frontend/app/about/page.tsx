@@ -7,7 +7,7 @@ import { CoreLogoWhite } from "../../components/social";
 
 export default function AboutPage() {
   return (
-    <DefaultLayout>
+    <div>
       <section className="flex flex-col items-center justify-center gap-8 py-8 md:py-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -227,6 +227,6 @@ export default function AboutPage() {
           </div>
         </motion.div>
       </section>
-    </DefaultLayout>
+    </div>
   );
 }

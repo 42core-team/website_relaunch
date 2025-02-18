@@ -42,8 +42,10 @@ func main() {
 		} else {
 			log.Printf("Current matches:")
 			for _, match := range matches {
-				log.Printf("Match - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
-					match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				if match.State == "planned" {
+					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				}
 			}
 		}
 
@@ -53,8 +55,10 @@ func main() {
 		for {
 			select {
 			case match := <-matchChan:
-				log.Printf("Match Update - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
-					match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				if match.State == "planned" {
+					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				}
 			case err := <-errChan:
 				log.Printf("Subscription error: %v", err)
 				return

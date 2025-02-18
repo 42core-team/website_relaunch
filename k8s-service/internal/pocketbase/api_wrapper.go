@@ -48,14 +48,12 @@ func (a *APIWrapper) GetMatches() ([]Match, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
-	log.Printf("Response body: %s", string(body))
 
 	var response PaginatedResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
-	log.Printf("Successfully decoded %d matches", len(response.Items))
 	return response.Items, nil
 }
 

@@ -4,15 +4,12 @@
 package pocketbase
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"strings"
-
-	"github.com/google/uuid"
+	"time"
 )
 
 type APIWrapper struct {
@@ -94,76 +91,50 @@ func (a *APIWrapper) SubscribeToMatches() (<-chan Match, <-chan error) {
 		defer close(matchChan)
 		defer close(errChan)
 
-		clientID := uuid.New().String()
-		url := fmt.Sprintf("%s/api/realtime", a.baseURL)
+		lastPollTime := time.Now()
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 
-		// First establish connection
-		connectPayload := fmt.Sprintf(`{"clientId":"%s"}`, clientID)
-		req, err := http.NewRequest("POST", url, strings.NewReader(connectPayload))
-		if err != nil {
-			errChan <- fmt.Errorf("failed to create connect request: %v", err)
-			return
-		}
+		for range ticker.C {
+			currentPollTime := time.Now()
+			url := fmt.Sprintf("%s/api/collections/matches/records?sort=-updated", a.baseURL)
 
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.adminKey))
-		req.Header.Set("Content-Type", "application/json")
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				errChan <- fmt.Errorf("failed to create request: %v", err)
+				continue
+			}
+			req.Header.Set("Authorization", fmt.Sprintf("Admin %s", a.adminKey))
 
-		log.Printf("Connecting to realtime endpoint with client ID: %s", clientID)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			errChan <- fmt.Errorf("failed to connect: %v", err)
-			return
-		}
-		resp.Body.Close()
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				errChan <- fmt.Errorf("failed to make request: %v", err)
+				continue
+			}
 
-		// Then subscribe to the collection
-		subscribePayload := fmt.Sprintf(`{"clientId":"%s","subscriptions":["matches"]}`, clientID)
-		req, err = http.NewRequest("POST", url, strings.NewReader(subscribePayload))
-		if err != nil {
-			errChan <- fmt.Errorf("failed to create subscribe request: %v", err)
-			return
-		}
+			var response PaginatedResponse
+			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+				resp.Body.Close()
+				errChan <- fmt.Errorf("failed to decode response: %v", err)
+				continue
+			}
+			resp.Body.Close()
 
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.adminKey))
-		req.Header.Set("Content-Type", "application/json")
-
-		log.Printf("Subscribing to matches collection...")
-		resp, err = http.DefaultClient.Do(req)
-		if err != nil {
-			errChan <- fmt.Errorf("failed to subscribe: %v", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		log.Printf("Connected with status: %s", resp.Status)
-
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			line := scanner.Text()
-			log.Printf("Received SSE line: %s", line)
-
-			if strings.HasPrefix(line, "data: ") {
-				data := strings.TrimPrefix(line, "data: ")
-				var event struct {
-					Type   string `json:"type"`
-					Record Match  `json:"record"`
-				}
-
-				if err := json.Unmarshal([]byte(data), &event); err != nil {
-					log.Printf("Error unmarshaling event: %v", err)
+			// Process only matches that were updated since last poll
+			for _, match := range response.Items {
+				const customLayout = "2006-01-02 15:04:05.000Z" // Matches "2025-02-18 09:47:27.521Z"
+				updatedTime, err := time.Parse(customLayout, match.Updated)
+				if err != nil {
+					log.Printf("Error parsing update time for match %s: %v", match.ID, err)
 					continue
 				}
 
-				if event.Type == "create" || event.Type == "update" {
-					log.Printf("Received match event - Type: %s, Match ID: %s, State: %s",
-						event.Type, event.Record.ID, event.Record.State)
-					matchChan <- event.Record
+				if updatedTime.After(lastPollTime) {
+					matchChan <- match
 				}
 			}
-		}
 
-		if err := scanner.Err(); err != nil {
-			errChan <- fmt.Errorf("scanner error: %v", err)
+			lastPollTime = currentPollTime
 		}
 	}()
 

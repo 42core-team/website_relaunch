@@ -13,3 +13,13 @@ type RealtimeEvent struct {
 	Action       string `json:"action"`
 	Record       Match  `json:"record"`
 }
+
+type Team struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Locked  bool   `json:"locked"`
+	Repo    string `json:"repo"`
+	Event   string `json:"event"`
+	Created string `json:"created"`
+	Updated string `json:"updated"`
+}

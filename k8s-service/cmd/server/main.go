@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 
@@ -25,7 +26,7 @@ func main() {
 	pb.RegisterGameServiceServer(s, service.NewGameService(k8sService))
 
 	// Admin token (PocketBase JWT). If it's empty, fail fast.
-	adminKey := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTczOTU3NDQ0OSwiaWQiOiJ1MngyNTUyMTQwOXk4MzEiLCJyZWZyZXNoYWJsZSI6ZmFsc2UsInR5cGUiOiJhdXRoIn0.diHDZXfjvtTTK2XtpFpV4dtlnYdJATF8c1NiNhEZdgw"
+	adminKey := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTczOTk2NTc1NiwiaWQiOiJ1MngyNTUyMTQwOXk4MzEiLCJyZWZyZXNoYWJsZSI6ZmFsc2UsInR5cGUiOiJhdXRoIn0.UVpRvhqE2EMbJJQsmmouDbPQ8i0gxMKs-TiBnmB-HwU"
 	if adminKey == "" {
 		log.Fatal("POCKETBASE_ADMIN_KEY environment variable is not set")
 	}
@@ -43,6 +44,7 @@ func main() {
 			log.Printf("Current matches:")
 			for _, match := range matches {
 				if match.State == "planned" {
+					k8sService.DeployMatchContainers(context.Background(), match)
 					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
 						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
 				}
@@ -56,6 +58,7 @@ func main() {
 			select {
 			case match := <-matchChan:
 				if match.State == "planned" {
+					k8sService.DeployMatchContainers(context.Background(), match)
 					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
 						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
 				}

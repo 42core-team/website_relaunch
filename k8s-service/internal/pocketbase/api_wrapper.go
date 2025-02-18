@@ -29,13 +29,21 @@ type PaginatedResponse struct {
 	Items      []Match `json:"items"`
 }
 
+type TeamPaginatedResponse struct {
+	Page       int     `json:"page"`
+	PerPage    int     `json:"perPage"`
+	TotalPages int     `json:"totalPages"`
+	TotalItems int     `json:"totalItems"`
+	Items      []*Team `json:"items"`
+}
+
 func (a *APIWrapper) GetMatches() ([]Match, error) {
 	url := fmt.Sprintf("%s/api/collections/matches/records", a.baseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.adminKey))
+	req.Header.Set("Authorization", a.adminKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -63,7 +71,7 @@ func (a *APIWrapper) GetMatch(id string) (*Match, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.adminKey))
+	req.Header.Set("Authorization", a.adminKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -102,7 +110,7 @@ func (a *APIWrapper) SubscribeToMatches() (<-chan Match, <-chan error) {
 				errChan <- fmt.Errorf("failed to create request: %v", err)
 				continue
 			}
-			req.Header.Set("Authorization", fmt.Sprintf("Admin %s", a.adminKey))
+			req.Header.Set("Authorization", a.adminKey)
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
@@ -137,4 +145,38 @@ func (a *APIWrapper) SubscribeToMatches() (<-chan Match, <-chan error) {
 	}()
 
 	return matchChan, errChan
+}
+
+func (a *APIWrapper) GetMatchTeams(match_id string) ([]*Team, error) {
+	url := fmt.Sprintf("%s/api/collections/match_teams/records", a.baseURL)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Authorization", a.adminKey)
+
+	log.Printf("Fetching teams for match %s...", match_id)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("Error response: %s", string(body))
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Debug response
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("Teams response: %s", string(body))
+
+	var response TeamPaginatedResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	log.Printf("Found %d teams", len(response.Items))
+	return response.Items, nil
 }

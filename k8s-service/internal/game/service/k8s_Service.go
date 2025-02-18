@@ -2,8 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
 
+	"github.com/42core-team/website_relaunch/k8s-service/internal/pocketbase"
+	pb "github.com/42core-team/website_relaunch/k8s-service/internal/pocketbase"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -117,4 +121,23 @@ func (s *K8sService) StreamPodLogs(ctx context.Context, podName string) (io.Read
 // DeleteDeployment deletes a deployment and its associated resources
 func (s *K8sService) DeleteDeployment(ctx context.Context, name string) error {
 	return s.clientset.AppsV1().Deployments(gameNamespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+func (s *K8sService) DeployMatchContainers(ctx context.Context, match pb.Match) error {
+	adminKey := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTczOTk2NTc1NiwiaWQiOiJ1MngyNTUyMTQwOXk4MzEiLCJyZWZyZXNoYWJsZSI6ZmFsc2UsInR5cGUiOiJhdXRoIn0.UVpRvhqE2EMbJJQsmmouDbPQ8i0gxMKs-TiBnmB-HwU"
+	if adminKey == "" {
+		log.Fatal("POCKETBASE_ADMIN_KEY environment variable is not set")
+	}
+	apiWrapper := pocketbase.NewAPIWrapper("http://pocketbase:8090", adminKey)
+	teams, err := apiWrapper.GetMatchTeams(match.ID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch match teams: %w", err)
+	}
+
+	s.CreateDeployment(ctx, match.ID, "nginx:latest", map[string]string{"match_id": match.ID})
+	for _, team := range teams {
+		fmt.Println("Creating deployment for team:", team.ID)
+		s.CreateDeployment(ctx, match.ID, "nginx:latest", map[string]string{"match_id": match.ID, "team_id": team.ID})
+	}
+	return nil
 }

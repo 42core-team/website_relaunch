@@ -43,9 +43,9 @@ func main() {
 		} else {
 			log.Printf("Current matches:")
 			for _, match := range matches {
-				if match.State == "planned" {
+				if match.State == "ready" {
 					k8sService.DeployMatchContainers(context.Background(), match)
-					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+					log.Printf("New ready match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
 						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
 				}
 			}
@@ -57,9 +57,9 @@ func main() {
 		for {
 			select {
 			case match := <-matchChan:
-				if match.State == "planned" {
+				if match.State == "ready" {
 					k8sService.DeployMatchContainers(context.Background(), match)
-					log.Printf("New planned match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+					log.Printf("New ready match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
 						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
 				}
 			case err := <-errChan:

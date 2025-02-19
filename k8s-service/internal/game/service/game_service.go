@@ -20,7 +20,7 @@ type GameService struct {
 
 type K8sServiceInterface interface {
 	GetPodByLabel(ctx context.Context, label string) (*v1.Pod, error)
-	StreamPodLogs(ctx context.Context, podName string) (io.ReadCloser, error)
+	StreamPodLogs(ctx context.Context, match_id string, team_id string) (io.ReadCloser, error)
 }
 
 func NewGameService(k8sService K8sServiceInterface) *GameService {
@@ -99,18 +99,8 @@ func (s *GameService) StreamGameStatus(req *pb.GameStatusRequest, stream pb.Game
 }
 
 func (s *GameService) StreamLogs(req *pb.LogRequest, stream pb.GameService_StreamLogsServer) error {
-	// Get pod for the game using match_id and team_id labels
-	labelSelector := fmt.Sprintf("match_id=%s,team_id=%s", req.MatchId, req.TeamId)
-	pod, err := s.k8sService.GetPodByLabel(stream.Context(), labelSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get pod: %v", err)
-	}
-	if pod == nil {
-		return fmt.Errorf("no pod found for match %s and team %s", req.MatchId, req.TeamId)
-	}
-
 	// Get log stream from pod
-	logStream, err := s.k8sService.StreamPodLogs(stream.Context(), pod.Name)
+	logStream, err := s.k8sService.StreamPodLogs(stream.Context(), req.MatchId, req.TeamId)
 	if err != nil {
 		return fmt.Errorf("failed to get log stream: %v", err)
 	}

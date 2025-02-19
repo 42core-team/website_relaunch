@@ -148,7 +148,7 @@ func (a *APIWrapper) SubscribeToMatches() (<-chan Match, <-chan error) {
 }
 
 func (a *APIWrapper) GetMatchTeams(match_id string) ([]*Team, error) {
-	url := fmt.Sprintf("%s/api/collections/match_teams/records", a.baseURL)
+	url := fmt.Sprintf("%s/api/collections/match_teams/records?filter=(match='%s')", a.baseURL, match_id)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)

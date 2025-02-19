@@ -170,7 +170,6 @@ func (a *APIWrapper) GetMatchTeams(match_id string) ([]*Team, error) {
 
 	// Debug response
 	body, _ := io.ReadAll(resp.Body)
-	log.Printf("Teams response: %s", string(body))
 
 	var response TeamPaginatedResponse
 	if err := json.Unmarshal(body, &response); err != nil {

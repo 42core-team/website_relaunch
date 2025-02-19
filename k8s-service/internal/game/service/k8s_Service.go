@@ -137,7 +137,7 @@ func (s *K8sService) DeployMatchContainers(ctx context.Context, match pb.Match) 
 	s.CreateDeployment(ctx, match.ID, "nginx:latest", map[string]string{"match_id": match.ID})
 	for _, team := range teams {
 		fmt.Println("Creating deployment for team:", team.ID)
-		s.CreateDeployment(ctx, match.ID, "nginx:latest", map[string]string{"match_id": match.ID, "team_id": team.ID})
+		s.CreateDeployment(ctx, match.ID+"-"+team.ID, "nginx:latest", map[string]string{"match_id": match.ID, "team_id": team.ID})
 	}
 	return nil
 }

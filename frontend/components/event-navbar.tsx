@@ -3,14 +3,15 @@ import { usePathname } from "next/navigation";
 
 interface EventNavbarProps {
     eventId: string;
+    isUserRegistered?: boolean;
 }
 
-export default function EventNavbar({ eventId }: EventNavbarProps) {
+export default function EventNavbar({ eventId, isUserRegistered = false }: EventNavbarProps) {
     const pathname = usePathname();
     
     const navItems = [
         { name: 'Info', path: `/events/${eventId}` },
-        { name: 'My Team', path: `/events/${eventId}/my-team` },
+        ...(isUserRegistered ? [{ name: 'My Team', path: `/events/${eventId}/my-team` }] : []),
         { name: 'Teams', path: `/events/${eventId}/teams` },
         { name: 'Group Phase', path: `/events/${eventId}/groups` },
         { name: 'Tournament Tree', path: `/events/${eventId}/bracket` },

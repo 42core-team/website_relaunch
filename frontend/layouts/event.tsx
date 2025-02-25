@@ -4,16 +4,19 @@ import EventJoinNotice from "@/components/event-join-notice";
 import React, {useEffect, useState} from "react";
 import PocketBase from 'pocketbase';
 import {useParams} from "next/navigation";
+import { Event, getEventById, isUserRegisteredForEvent, shouldShowJoinNotice } from "@/app/actions/event";
 
 export default function EventLayout({children}: {
     children: React.ReactNode;
 }) {
     const [showJoinNotice, setShowJoinNotice] = useState(false);
+    const [isUserRegistered, setIsUserRegistered] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
+    const [event, setEvent] = useState<Event | null>(null);
     const eventId = useParams().id as string;
 
     useEffect(() => {
-        const checkEventMembership = async () => {
+        const fetchEventDetails = async () => {
             const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
 
             // Check if user is authenticated
@@ -23,21 +26,26 @@ export default function EventLayout({children}: {
             }
 
             try {
-                setUserId(pb.authStore.record.id);
+                const currentUserId = pb.authStore.record.id;
+                setUserId(currentUserId);
 
-                // Check if user is already part of the event
-                const records = await pb.collection('event_user').getList(1, 1, {
-                    filter: `event="${eventId}" && user="${userId}"`,
-                });
+                // Get event details from server action
+                const eventData = await getEventById(eventId);
+                setEvent(eventData);
 
-                // Show notice if user is not part of the event
-                setShowJoinNotice(records.items.length === 0);
+                // Check if user is registered using server action
+                const userRegistered = await isUserRegisteredForEvent(currentUserId, eventId);
+                setIsUserRegistered(userRegistered);
+
+                // Check if join notice should be shown using server action
+                const shouldShow = await shouldShowJoinNotice(currentUserId, eventId);
+                setShowJoinNotice(shouldShow);
             } catch (err) {
-                console.error('Error checking event membership:', err);
+                console.error('Error fetching event details:', err);
             }
         };
 
-        checkEventMembership();
+        fetchEventDetails();
     }, [eventId]);
 
     if(!eventId) {
@@ -49,7 +57,7 @@ export default function EventLayout({children}: {
             {showJoinNotice && userId && (
                 <EventJoinNotice eventId={eventId} userId={userId}/>
             )}
-            <EventNavbar eventId={eventId}/>
+            <EventNavbar eventId={eventId} isUserRegistered={isUserRegistered}/>
             <main className="container mx-auto max-w-7xl px-6 flex-grow">
                 {children}
             </main>

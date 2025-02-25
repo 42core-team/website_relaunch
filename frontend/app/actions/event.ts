@@ -26,13 +26,10 @@ export async function isUserRegisteredForEvent(userId: string, eventId: string):
 
 // Determine if join notice should be shown
 export async function shouldShowJoinNotice(userId: string, eventId: string): Promise<boolean> {
-    console.log("shouldShowJoinNotice")
     const isRegistered = await isUserRegisteredForEvent(userId, eventId);
     console.log(isRegistered)
-    if (isRegistered) {
-        console.log("registered")
+    if (isRegistered)
         return false;
-    }
 
     // Get event details to check start date
     const event = await getEventById(eventId);

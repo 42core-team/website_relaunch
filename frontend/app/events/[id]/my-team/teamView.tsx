@@ -1,7 +1,7 @@
 'use client'
 import { useState} from "react";
 import pb from "@/pbase";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import {Button} from "@heroui/react";
 import {Input} from "@heroui/input";
 import {createTeam, Team} from "@/app/actions/team";

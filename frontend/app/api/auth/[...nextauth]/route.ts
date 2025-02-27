@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import { ensureDbConnected } from "@/initializer/database";
-import { User } from "@/entities/users.entity";
+import { UserEntity } from "@/entities/users.entity";
 
 const handler = NextAuth({
     providers: [
@@ -14,7 +14,7 @@ const handler = NextAuth({
         async signIn({ user, account, profile }) {
             if (account?.provider === "github") {
                 const dataSource = await ensureDbConnected();
-                const userRepository = dataSource.getRepository(User);
+                const userRepository = dataSource.getRepository(UserEntity);
 
                 const existingUser = await userRepository.findOne({
                     where: { email: user.email! }
@@ -33,7 +33,7 @@ const handler = NextAuth({
         },
         async session({ session, token }) {
             const dataSource = await ensureDbConnected();
-            const userRepository = dataSource.getRepository(User);
+            const userRepository = dataSource.getRepository(UserEntity);
             const dbUser = await userRepository.findOne({
                 where: { email: session.user?.email! }
             });

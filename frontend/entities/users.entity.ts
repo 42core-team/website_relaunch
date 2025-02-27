@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany} from "typeorm";
+import {TeamEntity} from "@/entities/team.entity";
 
 @Entity('users')
-export class User {
+export class UserEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -17,6 +18,9 @@ export class User {
     @Column()
     profilePicture: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn()
     createdAt: Date;
+
+    @ManyToMany(() => TeamEntity, team => team.users)
+    teams: TeamEntity[]
 }

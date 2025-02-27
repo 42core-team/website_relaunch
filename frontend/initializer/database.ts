@@ -1,6 +1,9 @@
 import 'reflect-metadata';
 import {DataSource} from "typeorm";
-import {User} from "@/entities/users.entity";
+import {UserEntity} from "@/entities/users.entity";
+import {TeamEntity} from "@/entities/team.entity";
+import {EventEntity} from "@/entities/event.entity";
+import {MatchEntity} from "@/entities/match.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -10,7 +13,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME || "postgres",
     synchronize: true,
     logging: false,
-    entities: [User],
+    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity],
 });
 
 export async function initializeDb() {

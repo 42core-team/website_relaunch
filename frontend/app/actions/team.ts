@@ -19,32 +19,20 @@ export interface TeamMember {
 }
 
 export async function getTeam(userId: string, eventId: string): Promise<Team | null> {
-    try {
-        const teamUserRecords = await pbAdmin.collection('team_user').getFullList({
-            filter: `user = "${userId}"`,
-        });
-        
-        if (!teamUserRecords || teamUserRecords.length === 0)
-            return null;
-            
-        const teamIds = teamUserRecords.map(record => record.team);
-        
-        for (const teamId of teamIds) {
-            try {
-                const team = await pbAdmin.collection('teams').getFirstListItem<Team>(
-                    `id = "${teamId}" && event = "${eventId}"`
-                );
-                if (team) {
-                    return team;
-                }
-            } catch (error) {
-                continue;
-            }
-        }
-        return null;
-    } catch (err) {
-        return null;
-    }
+  try {
+    const record = await pbAdmin.collection('team_by_user_and_event').getFirstListItem(
+      `team_user = "${userId}" && team_event = "${eventId}"`
+    );
+    return {
+      id: record.event_id,
+      name: record.team_name,
+      repo: record.team_repo,
+      created: record.team_created,
+      updated: record.team_updated,
+    };
+  } catch (err) {
+    return null;
+  }
 }
 
 export async function createTeam(name: string, eventId: string, userId: string): Promise<Team> {

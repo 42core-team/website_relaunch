@@ -1,5 +1,6 @@
-import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany} from "typeorm";
+import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, OneToMany} from "typeorm";
 import {TeamEntity} from "@/entities/team.entity";
+import {NotificationEntity} from "@/entities/notifications.entity";
 
 @Entity('users')
 export class UserEntity {
@@ -23,4 +24,7 @@ export class UserEntity {
 
     @ManyToMany(() => TeamEntity, team => team.users)
     teams: TeamEntity[]
+
+    @OneToMany(() => NotificationEntity, notification => notification.user)
+    notifications: NotificationEntity[]
 }

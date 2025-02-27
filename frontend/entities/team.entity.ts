@@ -8,8 +8,8 @@ import {
     PrimaryGeneratedColumn, UpdateDateColumn
 } from "typeorm";
 import {EventEntity} from "@/entities/event.entity";
-import {UserEntity} from "@/entities/users.entity";
 import {MatchEntity} from "@/entities/match.entity";
+import {UserEntity} from "@/entities/users.entity";
 
 @Entity("teams")
 export class TeamEntity {

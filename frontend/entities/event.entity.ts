@@ -1,5 +1,5 @@
 import {Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
-import {TeamEntity} from "@/entities/team.entity";
+import {TeamEntity} from "./team.entity";
 
 @Entity('events')
 export class EventEntity {

@@ -4,6 +4,7 @@ import {MatchEntity} from "@/entities/match.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {EventEntity} from "@/entities/event.entity";
+import {NotificationEntity} from "@/entities/notifications.entity";
 
 
 export const AppDataSource = new DataSource({
@@ -14,7 +15,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME || "postgres",
     synchronize: true,
     logging: false,
-    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity],
+    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity, NotificationEntity],
 });
 
 export async function initializeDb() {

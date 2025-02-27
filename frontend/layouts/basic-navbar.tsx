@@ -25,26 +25,14 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import pb from "@/pbase";
 import GithubLoginButton from "@/components/github";
 import router from "next/router";
+import {signOut, useSession} from "next-auth/react";
 
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
     ({ classNames = {}, ...props }, ref) => {
         const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-        const [isAuthenticated, setIsAuthenticated] = useState(false);
-        const [userData, setUserData] = useState<any>(null);
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const session = useSession();
 
-        useEffect(() => {
-            // Check authentication status
-            const user = pb.authStore.record;
-            setIsAuthenticated(pb.authStore.isValid);
-            setUserData(user);
-
-            // Listen for authentication changes
-            pb.authStore.onChange((auth) => {
-                setIsAuthenticated(pb.authStore.isValid);
-                setUserData(pb.authStore.record);
-            });
-        }, []);
 
         return (
             <Navbar
@@ -122,7 +110,7 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 <NavbarContent className="hidden md:flex" justify="end">
                     <NavbarItem className="ml-2 !flex gap-2">
                         <ThemeSwitch />
-                        {isAuthenticated ? (
+                        {session.data?.user.id ? (
                             <Dropdown placement="bottom-end">
                                 <DropdownTrigger>
                                     <Avatar
@@ -130,14 +118,9 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                                         className="transition-transform"
                                         size="sm"
                                         src={
-                                            userData?.avatar
-                                                ? `${process.env.NEXT_PUBLIC_POCKETBASE_URL}/api/files/${userData.collectionId}/${userData.id}/${userData.avatar}?thumb=100x100`
-                                                : undefined
-                                        }
-                                        name={(userData?.name || "User").substring(0, 2).toUpperCase()}
+                                            session.data?.user.image}
+                                        name={(session.data.user?.name || "User").substring(0, 2).toUpperCase()}
                                     >
-                                        {!userData?.avatar &&
-                                            (userData?.name || "User").substring(0, 2).toUpperCase()}
                                     </Avatar>
                                 </DropdownTrigger>
                                 <DropdownMenu aria-label="Profile Actions" variant="flat">
@@ -148,8 +131,9 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                                         Settings
                                     </DropdownItem> */}
                                     <DropdownItem key="logout" color="danger" onPress={() => {
-                                        pb.authStore.clear();
-                                        router.push("/");
+                                        signOut().then(() => {
+                                            router.push("/");
+                                        })
                                     }}>
                                         Log Out
                                     </DropdownItem>

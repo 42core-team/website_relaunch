@@ -16,11 +16,11 @@ export default function App({children}: {
         <body>
         <HeroUIProvider>
             <NextThemesProvider>
-                <DefaultLayout>
-                    <SessionProvider>
+                <SessionProvider>
+                    <DefaultLayout>
                         {children}
-                    </SessionProvider>
-                </DefaultLayout>
+                    </DefaultLayout>
+                </SessionProvider>
             </NextThemesProvider>
         </HeroUIProvider>
         </body>

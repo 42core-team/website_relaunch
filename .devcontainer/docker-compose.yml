@@ -9,14 +9,15 @@ services:
     networks:
       - development-network
 
-  pocketbase:
-    image: ghcr.io/paulicstudios/pocketbase:latest
+  postgres:
+    image: postgres:latest
     restart: unless-stopped
-    volumes:
-      - pocketbase-data:/home/pocketbase/pb_data
-      - ../pocketbase/pb_migrations:/home/pocketbase/pb_migrations
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
-      - 8090:8090
+      - 5432:5432
     networks:
       - development-network
 

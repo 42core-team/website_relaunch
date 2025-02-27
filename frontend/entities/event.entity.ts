@@ -15,6 +15,12 @@ export class EventEntity {
     @Column({default: ""})
     location: string
 
+    @Column()
+    minTeamSize: number;
+
+    @Column()
+    maxTeamSize: number;
+
     @Column({type: "timestamp"})
     startDate: Date;
 

@@ -26,7 +26,7 @@ export class TeamEntity {
     repo: string
 
     @ManyToOne(() => EventEntity, event => event.teams)
-    event: Event
+    event: EventEntity
 
     @JoinTable()
     @ManyToMany(() => UserEntity, user => user.teams)
@@ -34,6 +34,10 @@ export class TeamEntity {
 
     @ManyToMany(() => MatchEntity, match => match.teams)
     matches: MatchEntity[]
+
+    @JoinTable()
+    @ManyToMany(() => UserEntity, user => user.teamInvites)
+    teamInvites: UserEntity[]
 
     @CreateDateColumn()
     createdAt: Date;

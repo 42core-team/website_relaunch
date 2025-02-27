@@ -24,6 +24,8 @@ const handler = NextAuth({
                     await userRepository.save({
                         email: user.email!,
                         username: profile?.login || user.name!,
+                        name: user.name! || profile?.name!,
+                        profilePicture: user.image! || profile?.avatar_url!,
                     });
                 }
             }

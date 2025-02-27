@@ -11,6 +11,12 @@ export class User {
     @Column()
     username: string;
 
+    @Column()
+    name: string;
+
+    @Column()
+    profilePicture: string;
+
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 }

@@ -8,7 +8,9 @@ export async function GET(request: Request) {
     await AppDataSource.getRepository(User).save({
         email: "test@test.de",
         username: "test",
+        name: "test",
+        profilePicture: "test"
     })
 
-    return Response.json(await AppDataSource.getRepository(User).find())
+    return Response.json(await AppDataSource.getRepository(User).find());
 }

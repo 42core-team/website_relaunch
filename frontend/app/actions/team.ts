@@ -13,6 +13,7 @@ export interface Team {
     updated?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    membersCount?: number;
 }
 
 export interface TeamMember {
@@ -156,6 +157,37 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
         }));
     } catch (err) {
         console.error('Error getting team members:', err);
+        return [];
+    }
+}
+
+/**
+ * Get all teams for a specific event
+ * @param eventId ID of the event
+ * @returns Array of teams
+ */
+export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+        
+        const teams = await teamRepository
+            .createQueryBuilder('team')
+            .innerJoin('team.event', 'event')
+            .leftJoinAndSelect('team.users', 'users')
+            .where('event.id = :eventId', { eventId })
+            .getMany();
+        
+        return teams.map(team => ({
+            id: team.id,
+            name: team.name,
+            repo: team.repo || '',
+            membersCount: team.users?.length || 0,
+            createdAt: team.createdAt,
+            updatedAt: team.updatedAt
+        }));
+    } catch (err) {
+        console.error('Error getting teams for event:', err);
         return [];
     }
 }

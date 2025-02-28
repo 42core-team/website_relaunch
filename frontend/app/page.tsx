@@ -118,7 +118,7 @@ export default function IndexPage() {
                                 initial={{opacity: 0, x: 0}}
                                 whileInView={{
                                     opacity: 1,
-                                    x: character.direction * (typeof window !== 'undefined' ? window.innerWidth * 0.47 : 600),
+                                    x: character.direction * window.innerWidth * 0.47,
                                     rotate: character.direction * 15
                                 }}
                                 viewport={{once: false, margin: "-100px"}}

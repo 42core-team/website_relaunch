@@ -27,5 +27,4 @@ networks:
   development-network:
 
 volumes:
-  pocketbase-data:
   postgres-data:

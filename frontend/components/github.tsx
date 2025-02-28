@@ -1,4 +1,3 @@
-import pb from "@/pbase"
 import { Button } from "@heroui/react"
 import { GithubIcon } from "./icons"
 import {signIn} from "next-auth/react";

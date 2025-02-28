@@ -22,7 +22,6 @@ import {
 } from "@heroui/react";
 import { usePathname } from "next/navigation";
 import { ThemeSwitch } from "@/components/theme-switch";
-import pb from "@/pbase";
 import GithubLoginButton from "@/components/github";
 import router from "next/router";
 import {signOut, useSession} from "next-auth/react";

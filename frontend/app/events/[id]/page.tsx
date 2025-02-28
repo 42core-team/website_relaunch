@@ -2,24 +2,9 @@
 
 import {Card} from "@heroui/react";
 import {useParams, useRouter} from "next/navigation";
-import PocketBase from 'pocketbase';
 import {useState, useEffect} from 'react';
 import EventLayout from "@/layouts/event";
-
-interface Event {
-    collectionId: string;
-    collectionName: string;
-    created: string;
-    id: string;
-    max_team_size: number;
-    min_team_size: number;
-    name: string;
-    description: string;
-    location: string;
-    start_date: string;
-    end_date: string;
-    updated: string;
-}
+import { getEventById, getTeamsCountForEvent, getParticipantsCountForEvent, Event } from '@/app/actions/event';
 
 interface Stats {
     totalParticipants: number;
@@ -38,20 +23,15 @@ export default function EventPage() {
             if (!id) return;
 
             try {
-                const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
-
-                const event = await pb.collection('events').getOne(id as string);
-                const teams = await pb.collection('teams').getList(1, 1, {
-                    filter: `event = "${id}"`,
-                });
-                const participants = await pb.collection('event_user').getList(1, 1, {
-                    filter: `event = "${id}"`,
-                });
-
-                setEvent(event as Event);
+                const eventData = await getEventById(id as string);
+                setEvent(eventData);
+                
+                const teamsCount = await getTeamsCountForEvent(id as string);
+                const participantsCount = await getParticipantsCountForEvent(id as string);
+                
                 setStats({
-                    totalParticipants: participants.totalItems,
-                    totalTeams: teams.totalItems,
+                    totalParticipants: participantsCount,
+                    totalTeams: teamsCount,
                 });
             } catch (error) {
                 console.error('Error fetching event stats:', error);
@@ -96,7 +76,7 @@ export default function EventPage() {
 
                 <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-2">Location</h3>
-                    <p className="text-xl">{event.location}</p>
+                    <p className="text-xl">{event.location || 'TBA'}</p>
                 </Card>
             </div>
 
@@ -114,6 +94,16 @@ export default function EventPage() {
                                 {new Date(event.start_date).toLocaleDateString('de-DE')}
                             </p>
                         </div>
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-500">End Date</h3>
+                            <p className="mt-1">
+                                {new Date(event.end_date).toLocaleDateString('de-DE')}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-medium text-gray-500">Team Size</h3>
+                        <p className="mt-1">{event.min_team_size} - {event.max_team_size} members</p>
                     </div>
                 </div>
             </Card>

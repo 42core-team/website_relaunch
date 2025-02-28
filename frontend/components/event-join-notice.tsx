@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { useState } from "react";
-import PocketBase from 'pocketbase';
+import { joinEvent } from "@/app/actions/event";
 
 interface EventJoinNoticeProps {
     eventId: string;
@@ -16,15 +16,13 @@ export default function EventJoinNotice({ eventId, userId }: EventJoinNoticeProp
         setError(null);
         
         try {
-            const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
+            const success = await joinEvent(userId, eventId);
             
-            await pb.collection('event_user').create({
-                event: eventId,
-                user: userId,
-            });
-
-            // Refresh the page to update the UI
-            window.location.reload();
+            if (success) {
+                window.location.reload();
+            } else {
+                setError('Failed to join the event. Please try again.');
+            }
         } catch (err) {
             console.error('Error joining event:', err);
             setError('Failed to join the event. Please try again.');

@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from "react";
-import pb from "@/pbase";
-import {useParams, useRouter} from "next/navigation";
-import {Button, Avatar} from "@heroui/react";
-import {Input} from "@heroui/input";
-import {createTeam, Team, leaveTeam, TeamMember, getTeamMembers} from "@/app/actions/team";
+import { useParams, useRouter } from "next/navigation";
+import { Button, Avatar } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { createTeam, Team, leaveTeam, TeamMember, getTeamMembers } from "@/app/actions/team";
+import { useSession } from "next-auth/react";
 
 const TeamCreationSection = ({ 
     newTeamName, 
@@ -67,28 +67,34 @@ const TeamInfoSection = ({ myTeam, onLeaveTeam, isLeaving, teamMembers }: {
             </div>
             <div>
                 <p className="text-sm text-default-500">Created</p>
-                <p className="font-medium">{new Date(myTeam.created).toLocaleDateString()}</p>
+                <p className="font-medium">{new Date(myTeam.createdAt || '').toLocaleDateString()}</p>
             </div>
             <div>
                 <p className="text-sm text-default-500">Updated</p>
-                <p className="font-medium">{new Date(myTeam.updated).toLocaleDateString()}</p>
+                <p className="font-medium">{new Date(myTeam.updatedAt || '').toLocaleDateString()}</p>
             </div>
         </div>
         
         {/* Team Members Section */}
         <div className="mt-6 mb-8 p-4 bg-default-100 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">Team Members</h3>
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">Team Members</h3>
+                <Button 
+                    color="primary" 
+                    size="sm" 
+                    variant="flat"
+                    startContent={<span className="text-lg">+</span>}
+                >
+                    Invite Others
+                </Button>
+            </div>
             <div className="flex flex-wrap gap-4">
                 {teamMembers.length > 0 ? (
                     teamMembers.map((member) => (
                         <div key={member.id} className="flex flex-col items-center">
                             <Avatar
                                 size="lg"
-                                src={
-                                    member.avatar
-                                        ? `${process.env.NEXT_PUBLIC_POCKETBASE_URL}/api/files/${member.collectionId}/${member.id}/${member.avatar}?thumb=100x100`
-                                        : undefined
-                                }
+                                src={member.profilePicture}
                                 name={(member.name || "User").substring(0, 2).toUpperCase()}
                                 className="mb-2"
                             />
@@ -124,6 +130,7 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const eventId = useParams().id as string;
     const router = useRouter();
+    const { data: session } = useSession();
     
     // Fetch team members when team changes
     useEffect(() => {
@@ -147,14 +154,14 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
             return;
         }
 
-        if (!pb.authStore.isValid || !pb.authStore.record?.id) {
+        if (!session || !session.user || !session.user.id) {
             console.error("User not authenticated");
             return;
         }
 
         try {
             setIsLoading(true);
-            const team: Team = await createTeam(newTeamName, eventId, pb.authStore.record.id);
+            const team: Team = await createTeam(newTeamName, eventId, session.user.id);
             setMyTeam(team);
         } catch (err) {
             console.error("Error creating team:", err);
@@ -164,19 +171,18 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     }
 
     async function handleLeaveTeam() {
-        if (!myTeam || !pb.authStore.isValid || !pb.authStore.record?.id) {
+        if (!myTeam || !session || !session.user || !session.user.id) {
             console.error("No team to leave or user not authenticated");
             return;
         }
 
         try {
             setIsLeaving(true);
-            const success = await leaveTeam(myTeam.id, pb.authStore.record.id);
+            const success = await leaveTeam(myTeam.id, session.user.id);
             
             if (success) {
                 setMyTeam(null);
                 setTeamMembers([]);
-                // Optional: refresh the page or show a success message
                 router.refresh();
             } else {
                 console.error("Failed to leave team");

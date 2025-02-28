@@ -2,9 +2,9 @@
 import EventNavbar from "@/components/event-navbar";
 import EventJoinNotice from "@/components/event-join-notice";
 import React, {useEffect, useState} from "react";
-import PocketBase from 'pocketbase';
 import {useParams} from "next/navigation";
 import { Event, getEventById, isUserRegisteredForEvent, shouldShowJoinNotice } from "@/app/actions/event";
+import { useSession } from "next-auth/react";
 
 export default function EventLayout({children}: {
     children: React.ReactNode;
@@ -14,19 +14,18 @@ export default function EventLayout({children}: {
     const [userId, setUserId] = useState<string | null>(null);
     const [event, setEvent] = useState<Event | null>(null);
     const eventId = useParams().id as string;
+    const { data: session } = useSession();
 
     useEffect(() => {
         const fetchEventDetails = async () => {
-            const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
-
             // Check if user is authenticated
-            if (!pb.authStore.isValid || !pb.authStore.record) {
-                new Error("User is not authenticated");
+            if (!session || !session.user || !session.user.id) {
+                console.log("User is not authenticated");
                 return;
             }
 
             try {
-                const currentUserId = pb.authStore.record.id;
+                const currentUserId = session.user.id;
                 setUserId(currentUserId);
 
                 // Get event details from server action
@@ -45,8 +44,10 @@ export default function EventLayout({children}: {
             }
         };
 
-        fetchEventDetails();
-    }, [eventId]);
+        if (session) {
+            fetchEventDetails();
+        }
+    }, [eventId, session]);
 
     if(!eventId) {
         return <div>Event not found</div>;

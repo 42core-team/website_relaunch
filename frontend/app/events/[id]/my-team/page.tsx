@@ -1,25 +1,58 @@
-import TeamView from "./teamView";
-import {getTeam} from "@/app/actions/team";
-import {useUserData} from "@/app/actions/user";
-import {isUserRegisteredForEvent} from "@/app/actions/event";
-import {redirect} from "next/navigation";
+'use client'
 
-export default async function Page({params}: {params: Promise<{id: string}>}) {
-    const user = await useUserData();
-    const eventId = (await params).id;
-    
-    //TODO: refactor this to a layout so it will be checked everytime in the event area
-    // Check if user is registered for this event
-    const isRegistered = await isUserRegisteredForEvent(user.id, eventId);
-    
-    if (!isRegistered) {
-        redirect(`/events/${eventId}`);
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useParams, useRouter } from 'next/navigation';
+import TeamView from "./teamView";
+import { getTeam, Team } from "@/app/actions/team";
+import { isUserRegisteredForEvent } from "@/app/actions/event";
+
+export default function Page() {
+    const { data: session, status } = useSession();
+    const params = useParams();
+    const router = useRouter();
+    const eventId = params.id as string;
+    const [isLoading, setIsLoading] = useState(true);
+    const [team, setTeam] = useState<Team | null>(null);
+    const [isRegistered, setIsRegistered] = useState(false);
+
+    useEffect(() => {
+        async function checkUserAndLoadTeam() {
+            if (status === 'loading') return;
+            
+            if (!session || !session.user || !session.user.id) {
+                router.push('/login');
+                return;
+            }
+
+            try {
+                const userRegistered = await isUserRegisteredForEvent(session.user.id, eventId);
+                setIsRegistered(userRegistered);
+                
+                if (!userRegistered) {
+                    router.push(`/events/${eventId}`);
+                    return;
+                }
+                
+                const userTeam = await getTeam(session.user.id, eventId);
+                setTeam(userTeam);
+            } catch (error) {
+                console.error('Error loading team data:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        checkUserAndLoadTeam();
+    }, [session, status, eventId, router]);
+
+    if (status === 'loading' || isLoading) {
+        return <div className="text-center py-8">Loading your team...</div>;
     }
-    
-    const team = await getTeam(user.id, eventId);
-    return (
-        <TeamView
-            initialTeam={team}
-        />
-    );
+
+    if (!isRegistered) {
+        return null;
+    }
+
+    return <TeamView initialTeam={team} />;
 }

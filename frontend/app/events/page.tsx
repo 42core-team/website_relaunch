@@ -1,6 +1,5 @@
 'use client'
 import {useEffect, useState} from 'react';
-import PocketBase from 'pocketbase';
 import DefaultLayout from '@/layouts/default';
 import {
     Table,
@@ -11,18 +10,7 @@ import {
     TableCell,
 } from "@heroui/react";
 import {title} from '@/components/primitives';
-
-interface Event {
-    collectionId: string;
-    collectionName: string;
-    id: string;
-    name: string;
-    start_date: string;
-    min_team_size: number;
-    max_team_size: number;
-    created: string;
-    updated: string;
-}
+import { getEvents, Event } from '@/app/actions/event';
 
 export default function EventsPage() {
     const [events, setEvents] = useState<Event[]>([]);
@@ -32,11 +20,8 @@ export default function EventsPage() {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
-                const records = await pb.collection('events').getList(1, 50, {
-                    sort: '-created',
-                });
-                setEvents(records.items as Event[]);
+                const eventData = await getEvents(50);
+                setEvents(eventData);
             } catch (err) {
                 setError('Failed to fetch events');
                 console.error('Error fetching events:', err);

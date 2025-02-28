@@ -17,7 +17,7 @@ export class UserEntity {
     @Column()
     name: string;
 
-    @Column()
+    @Column({nullable: true})
     profilePicture: string;
 
     @CreateDateColumn()

@@ -24,6 +24,21 @@ export interface TeamMember {
     profilePicture?: string;
 }
 
+export interface UserSearchResult {
+    id: string;
+    name: string;
+    username: string;
+    profilePicture?: string;
+    isInvited: boolean;
+}
+
+export interface TeamInviteWithDetails {
+    id: string;
+    teamId: string;
+    teamName: string;
+    createdAt: Date;
+}
+
 export async function getTeam(userId: string, eventId: string): Promise<Team | null> {
   try {
     const dataSource = await ensureDbConnected();
@@ -158,6 +173,217 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
     } catch (err) {
         console.error('Error getting team members:', err);
         return [];
+    }
+}
+
+/**
+ * Search for users that can be invited to a team
+ * @param teamId ID of the team to invite to
+ * @param eventId ID of the event
+ * @param searchQuery query string to search by username or name
+ * @returns Array of user search results
+ */
+export async function searchUsersForInvite(teamId: string, eventId: string, searchQuery: string): Promise<UserSearchResult[]> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const userRepository = dataSource.getRepository(UserEntity);
+        const teamRepository = dataSource.getRepository(TeamEntity);
+        
+        // First get the team with its invited users
+        const team = await teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['teamInvites', 'users']
+        });
+        
+        if (!team) {
+            throw new Error("Team not found");
+        }
+        
+        // Get all users for this event who are not in the team and not already invited
+        const users = await userRepository.createQueryBuilder('user')
+            .innerJoin('user.events', 'event', 'event.id = :eventId', { eventId })
+            .where('user.name ILIKE :query OR user.username ILIKE :query', { query: `%${searchQuery}%` })
+            .getMany();
+        
+        // Filter out users who are already in the team or already invited
+        const teamUserIds = team.users.map(u => u.id);
+        const invitedUserIds = team.teamInvites.map(u => u.id);
+        
+        const filteredUsers = users.filter(user => 
+            !teamUserIds.includes(user.id) && !invitedUserIds.includes(user.id)
+        );
+        
+        return filteredUsers.map(user => ({
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            profilePicture: user.profilePicture,
+            isInvited: false
+        }));
+    } catch (err) {
+        console.error('Error searching users for invite:', err);
+        return [];
+    }
+}
+
+/**
+ * Send a team invite to a user
+ * @param teamId ID of the team sending the invite
+ * @param userId ID of the user to invite
+ * @returns boolean indicating success
+ */
+export async function sendTeamInvite(teamId: string, userId: string): Promise<boolean> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+        const userRepository = dataSource.getRepository(UserEntity);
+        
+        // Find the team and user
+        const team = await teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['teamInvites', 'users', 'event']
+        });
+        
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+        
+        if (!team || !user) {
+            return false;
+        }
+        
+        // Check if user is already in the team
+        if (team.users.some(u => u.id === userId)) {
+            return false;
+        }
+        
+        // Check if user is already invited
+        if (team.teamInvites.some(u => u.id === userId)) {
+            return false;
+        }
+        
+        // Add user to team invites
+        team.teamInvites.push(user);
+        await teamRepository.save(team);
+        
+        return true;
+    } catch (err) {
+        console.error('Error sending team invite:', err);
+        return false;
+    }
+}
+
+/**
+ * Get pending team invites for a user
+ * @param userId ID of the user
+ * @returns Array of team invites with details
+ */
+export async function getUserPendingInvites(userId: string): Promise<TeamInviteWithDetails[]> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const userRepository = dataSource.getRepository(UserEntity);
+        
+        const user = await userRepository.findOne({
+            where: { id: userId },
+            relations: ['teamInvites']
+        });
+        
+        if (!user || !user.teamInvites || user.teamInvites.length === 0) {
+            return [];
+        }
+        
+        return user.teamInvites.map(team => ({
+            id: team.id, // Using team ID as invite ID for simplicity
+            teamId: team.id,
+            teamName: team.name,
+            createdAt: team.createdAt
+        }));
+    } catch (err) {
+        console.error('Error getting user pending invites:', err);
+        return [];
+    }
+}
+
+/**
+ * Accept a team invite
+ * @param teamId ID of the team that sent the invite
+ * @param userId ID of the user accepting the invite
+ * @returns Object with success status and optional message
+ */
+export async function acceptTeamInvite(teamId: string, userId: string): Promise<{ success: boolean, message?: string }> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+        const userRepository = dataSource.getRepository(UserEntity);
+        
+        // Find team and user
+        const team = await teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['users', 'teamInvites']
+        });
+        
+        const user = await userRepository.findOne({
+            where: { id: userId },
+            relations: ['teams']
+        });
+        
+        if (!team || !user) {
+            return { success: false, message: "Team or user not found" };
+        }
+        
+        // Check if user is already in a team for this event
+        if (user.teams.some(t => t.event.id === team.event.id)) {
+            return { success: false, message: "You are already in a team for this event" };
+        }
+        
+        // Remove from invites and add to team members
+        team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
+        team.users.push(user);
+        
+        await teamRepository.save(team);
+        
+        return { success: true };
+    } catch (err) {
+        console.error('Error accepting team invite:', err);
+        return { success: false, message: "An error occurred while accepting the invite" };
+    }
+}
+
+/**
+ * Decline a team invite
+ * @param teamId ID of the team that sent the invite
+ * @param userId ID of the user declining the invite
+ * @returns Object with success status and optional message
+ */
+export async function declineTeamInvite(teamId: string, userId: string): Promise<{ success: boolean, message?: string }> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+        const userRepository = dataSource.getRepository(UserEntity);
+        
+        // Find team and user
+        const team = await teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['teamInvites']
+        });
+        
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+        
+        if (!team || !user) {
+            return { success: false, message: "Team or user not found" };
+        }
+        
+        // Remove from invites
+        team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
+        
+        await teamRepository.save(team);
+        
+        return { success: true };
+    } catch (err) {
+        console.error('Error declining team invite:', err);
+        return { success: false, message: "An error occurred while declining the invite" };
     }
 }
 

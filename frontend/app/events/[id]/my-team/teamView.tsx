@@ -1,126 +1,19 @@
 'use client'
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Avatar } from "@heroui/react";
-import { Input } from "@heroui/input";
-import { createTeam, Team, leaveTeam, TeamMember, getTeamMembers } from "@/app/actions/team";
 import { useSession } from "next-auth/react";
-
-const TeamCreationSection = ({ 
-    newTeamName, 
-    setNewTeamName, 
-    handleCreateTeam, 
-    isLoading 
-}: { 
-    newTeamName: string;
-    setNewTeamName: (name: string) => void;
-    handleCreateTeam: () => Promise<void>;
-    isLoading: boolean;
-}) => (
-    <div className="bg-default-50 p-6 rounded-lg border border-default-200">
-        <h2 className="text-xl font-semibold mb-4">Create Your Team</h2>
-        <div className="flex gap-2">
-            <Input 
-                label="Team Name" 
-                placeholder="Enter team name" 
-                value={newTeamName} 
-                onChange={e => setNewTeamName(e.target.value)} 
-                className="flex-1"
-            />
-            <Button 
-                color="primary" 
-                onPress={handleCreateTeam}
-                isLoading={isLoading}
-                isDisabled={!newTeamName}
-            >
-                Create Team
-            </Button>
-        </div>
-    </div>
-);
-
-const TeamInfoSection = ({ myTeam, onLeaveTeam, isLeaving, teamMembers }: { 
-    myTeam: Team, 
-    onLeaveTeam: () => Promise<void>,
-    isLeaving: boolean,
-    teamMembers: TeamMember[]
-}) => (
-    <div className="bg-default-50 p-6 rounded-lg border border-default-200">
-        <h2 className="text-2xl font-bold mb-4">Team: {myTeam.name}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-                <p className="text-sm text-default-500">Repository</p>
-                <p className="font-medium">
-                    {myTeam.repo ? (
-                        <a 
-                            href={myTeam.repo} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                        >
-                            {myTeam.repo}
-                        </a>
-                    ) : (
-                        "Not yet configured"
-                    )}
-                </p>
-            </div>
-            <div>
-                <p className="text-sm text-default-500">Created</p>
-                <p className="font-medium">{new Date(myTeam.createdAt || '').toLocaleDateString()}</p>
-            </div>
-            <div>
-                <p className="text-sm text-default-500">Updated</p>
-                <p className="font-medium">{new Date(myTeam.updatedAt || '').toLocaleDateString()}</p>
-            </div>
-        </div>
-        
-        {/* Team Members Section */}
-        <div className="mt-6 mb-8 p-4 bg-default-100 rounded-lg">
-            <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Team Members</h3>
-                <Button 
-                    color="primary" 
-                    size="sm" 
-                    variant="flat"
-                    startContent={<span className="text-lg">+</span>}
-                >
-                    Invite Others
-                </Button>
-            </div>
-            <div className="flex flex-wrap gap-4">
-                {teamMembers.length > 0 ? (
-                    teamMembers.map((member) => (
-                        <div key={member.id} className="flex flex-col items-center">
-                            <Avatar
-                                size="lg"
-                                src={member.profilePicture}
-                                name={(member.name || "User").substring(0, 2).toUpperCase()}
-                                className="mb-2"
-                            />
-                            <span className="text-sm font-medium">@{member.username}</span>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-default-500">No team members found</p>
-                )}
-            </div>
-        </div>
-        
-        {/* Team Management Compartment */}
-        <div className="mt-8 pt-4 border-t border-default-200 flex justify-end items-center">
-            <Button 
-                color="danger" 
-                variant="light"
-                onPress={onLeaveTeam}
-                isLoading={isLeaving}
-                size="sm"
-            >
-                Leave Team
-            </Button>
-        </div>
-    </div>
-);
+import { 
+    createTeam, 
+    Team, 
+    leaveTeam, 
+    getTeamMembers, 
+    TeamMember 
+} from "@/app/actions/team";
+import { 
+    TeamCreationSection, 
+    TeamInfoSection, 
+    TeamInvitesSection 
+} from "@/components/team";
 
 export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     const [myTeam, setMyTeam] = useState(initialTeam);
@@ -197,12 +90,16 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     return (
         <div className="w-full max-w-4xl mx-auto">
             {!myTeam ? (
-                <TeamCreationSection 
-                    newTeamName={newTeamName} 
-                    setNewTeamName={setNewTeamName} 
-                    handleCreateTeam={handleCreateTeam} 
-                    isLoading={isLoading} 
-                />
+                <>
+                    <TeamCreationSection 
+                        newTeamName={newTeamName} 
+                        setNewTeamName={setNewTeamName} 
+                        handleCreateTeam={handleCreateTeam} 
+                        isLoading={isLoading} 
+                    />
+                    {/* Show Team Invites section when user doesn't have a team */}
+                    <TeamInvitesSection />
+                </>
             ) : (
                 <TeamInfoSection 
                     myTeam={myTeam} 

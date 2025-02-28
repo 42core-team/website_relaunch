@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { 
   Card, 
   Input, 
@@ -16,10 +16,10 @@ import {
 } from '@heroui/react';
 import { SearchIcon } from '@/components/icons';
 import { getTeamsForEvent, Team } from '@/app/actions/team';
-import { getEventById, Event } from '@/app/actions/event';
 
 export default function TeamsPage() {
   const { id: eventId } = useParams();
+  const router = useRouter();
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterValue, setFilterValue] = useState('');
@@ -78,6 +78,10 @@ export default function TeamsPage() {
     setSortDescriptor(descriptor);
   };
 
+  const handleRowClick = (teamId: string) => {
+    router.push(`/events/${eventId}/teams/${teamId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -90,14 +94,17 @@ export default function TeamsPage() {
     <div className="py-8 space-y-8">
       <Card className="p-6">
         <div className="flex flex-col gap-4">
-          <div className="relative w-full sm:max-w-xs">
-            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-500" />
-            <Input
-              className="w-full pl-10"
-              placeholder="Search teams..."
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-            />
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Teams</h1>
+            <div className="relative w-full sm:max-w-xs">
+              <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-500" />
+              <Input
+                className="w-full pl-10"
+                placeholder="Search teams..."
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              />
+            </div>
           </div>
           
           <Table 
@@ -112,7 +119,11 @@ export default function TeamsPage() {
             </TableHeader>
             <TableBody emptyContent="No teams found" items={sortedTeams}>
               {(team) => (
-                <TableRow key={team.id}>
+                <TableRow 
+                  key={team.id} 
+                  className="cursor-pointer"
+                  onClick={() => handleRowClick(team.id)}
+                >
                   <TableCell>{team.name}</TableCell>
                   <TableCell>{team.membersCount}</TableCell>
                   <TableCell>

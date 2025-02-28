@@ -1,7 +1,6 @@
 'use client'
 import Image from "next/image";
 import { motion } from "framer-motion";
-import DefaultLayout from "@/layouts/default";
 import { title } from "@/components/primitives";
 import { CoreLogoWhite } from "../../components/social";
 

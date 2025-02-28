@@ -119,9 +119,9 @@ export default function TeamsPage() {
             </TableHeader>
             <TableBody emptyContent="No teams found" items={sortedTeams}>
               {(team) => (
-                <TableRow 
+                <TableRow
                   key={team.id} 
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-default-100 transition-colors"
                   onClick={() => handleRowClick(team.id)}
                 >
                   <TableCell>{team.name}</TableCell>

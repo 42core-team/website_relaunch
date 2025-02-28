@@ -16,7 +16,7 @@ export const TeamCreationSection = ({
 }: TeamCreationSectionProps) => (
     <div className="bg-default-50 p-6 rounded-lg border border-default-200">
         <h2 className="text-xl font-semibold mb-4">Create Your Team</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
             <Input 
                 label="Team Name" 
                 placeholder="Enter team name" 
@@ -28,7 +28,7 @@ export const TeamCreationSection = ({
                 color="primary" 
                 onPress={handleCreateTeam}
                 isLoading={isLoading}
-                isDisabled={!newTeamName}
+				isDisabled={!newTeamName}
             >
                 Create Team
             </Button>

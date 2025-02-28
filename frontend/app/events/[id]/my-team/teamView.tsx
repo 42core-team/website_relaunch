@@ -97,7 +97,7 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
                         handleCreateTeam={handleCreateTeam} 
                         isLoading={isLoading} 
                     />
-                    {/* Show Team Invites section when user doesn't have a team */}
+                    <div className="mt-8"></div>
                     <TeamInvitesSection />
                 </>
             ) : (

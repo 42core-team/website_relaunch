@@ -20,7 +20,7 @@ import {
     DropdownMenu,
     DropdownItem,
 } from "@heroui/react";
-
+import { usePathname } from "next/navigation";
 import { ThemeSwitch } from "@/components/theme-switch";
 import pb from "@/pbase";
 import GithubLoginButton from "@/components/github";
@@ -30,7 +30,7 @@ import {signOut, useSession} from "next-auth/react";
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
     ({ classNames = {}, ...props }, ref) => {
         const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-        const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const pathname = usePathname();
         const session = useSession();
 
 
@@ -165,22 +165,46 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                         </Button>
                     </NavbarMenuItem>
                     <NavbarMenuItem>
-                        <Link className="mb-2 w-full text-default-500" href="/" size="md">
+                        <Link 
+                            className={cn("mb-2 w-full text-default-500", {
+                                "font-bold text-default-foreground": pathname === "/"
+                            })} 
+                            href="/" 
+                            size="md"
+                        >
                             Home
                         </Link>
                     </NavbarMenuItem>
                     <NavbarMenuItem>
-                        <Link className="mb-2 w-full text-default-500" href="/events" size="md">
+                        <Link 
+                            className={cn("mb-2 w-full text-default-500", {
+                                "font-bold text-default-foreground": pathname === "/events"
+                            })} 
+                            href="/events" 
+                            size="md"
+                        >
                             Events
                         </Link>
                     </NavbarMenuItem>
                     <NavbarMenuItem>
-                        <Link className="mb-2 w-full text-default-500" href="https://wiki.coregame.de" size="md">
+                        <Link 
+                            className={cn("mb-2 w-full text-default-500", {
+                                "font-bold text-default-foreground": pathname === "/wiki/season1"
+                            })} 
+                            href="https://wiki.coregame.de" 
+                            size="md"
+                        >
                             Wiki
                         </Link>
                     </NavbarMenuItem>
                     <NavbarMenuItem>
-                        <Link className="mb-2 w-full text-default-500" href="/about" size="md">
+                        <Link 
+                            className={cn("mb-2 w-full text-default-500", {
+                                "font-bold text-default-foreground": pathname === "/about"
+                            })} 
+                            href="/about" 
+                            size="md"
+                        >
                             About us
                         </Link>
                     </NavbarMenuItem>

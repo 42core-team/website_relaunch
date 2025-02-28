@@ -127,14 +127,11 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
             return false;
         }
         
-        // Remove user from team
         team.users = team.users.filter(u => u.id !== userId);
         
-        // If this was the last user, delete the team
         if (team.users.length === 0) {
             await teamRepository.remove(team);
         } else {
-            // Otherwise, just save the updated team
             await teamRepository.save(team);
         }
         
@@ -189,7 +186,6 @@ export async function searchUsersForInvite(teamId: string, eventId: string, sear
         const userRepository = dataSource.getRepository(UserEntity);
         const teamRepository = dataSource.getRepository(TeamEntity);
         
-        // First get the team with its invited users
         const team = await teamRepository.findOne({
             where: { id: teamId },
             relations: ['teamInvites', 'users']
@@ -199,26 +195,23 @@ export async function searchUsersForInvite(teamId: string, eventId: string, sear
             throw new Error("Team not found");
         }
         
-        // Get all users for this event who are not in the team and not already invited
         const users = await userRepository.createQueryBuilder('user')
             .innerJoin('user.events', 'event', 'event.id = :eventId', { eventId })
             .where('user.name ILIKE :query OR user.username ILIKE :query', { query: `%${searchQuery}%` })
             .getMany();
         
-        // Filter out users who are already in the team or already invited
         const teamUserIds = team.users.map(u => u.id);
         const invitedUserIds = team.teamInvites.map(u => u.id);
         
-        const filteredUsers = users.filter(user => 
-            !teamUserIds.includes(user.id) && !invitedUserIds.includes(user.id)
-        );
+        const filteredUsers = users.filter(user => !teamUserIds.includes(user.id));
         
+        // Return users with isInvited flag set for those who already have invites
         return filteredUsers.map(user => ({
             id: user.id,
             name: user.name,
             username: user.username,
             profilePicture: user.profilePicture,
-            isInvited: false
+            isInvited: invitedUserIds.includes(user.id)
         }));
     } catch (err) {
         console.error('Error searching users for invite:', err);
@@ -238,7 +231,6 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
         
-        // Find the team and user
         const team = await teamRepository.findOne({
             where: { id: teamId },
             relations: ['teamInvites', 'users', 'event']
@@ -252,17 +244,14 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
             return false;
         }
         
-        // Check if user is already in the team
         if (team.users.some(u => u.id === userId)) {
             return false;
         }
         
-        // Check if user is already invited
         if (team.teamInvites.some(u => u.id === userId)) {
             return false;
         }
         
-        // Add user to team invites
         team.teamInvites.push(user);
         await teamRepository.save(team);
         
@@ -293,7 +282,7 @@ export async function getUserPendingInvites(userId: string): Promise<TeamInviteW
         }
         
         return user.teamInvites.map(team => ({
-            id: team.id, // Using team ID as invite ID for simplicity
+            id: team.id,
             teamId: team.id,
             teamName: team.name,
             createdAt: team.createdAt
@@ -316,7 +305,6 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
         
-        // Find team and user
         const team = await teamRepository.findOne({
             where: { id: teamId },
             relations: ['users', 'teamInvites']
@@ -331,12 +319,10 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
             return { success: false, message: "Team or user not found" };
         }
         
-        // Check if user is already in a team for this event
         if (user.teams.some(t => t.event.id === team.event.id)) {
             return { success: false, message: "You are already in a team for this event" };
         }
         
-        // Remove from invites and add to team members
         team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
         team.users.push(user);
         
@@ -361,7 +347,6 @@ export async function declineTeamInvite(teamId: string, userId: string): Promise
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
         
-        // Find team and user
         const team = await teamRepository.findOne({
             where: { id: teamId },
             relations: ['teamInvites']
@@ -375,7 +360,6 @@ export async function declineTeamInvite(teamId: string, userId: string): Promise
             return { success: false, message: "Team or user not found" };
         }
         
-        // Remove from invites
         team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
         
         await teamRepository.save(team);

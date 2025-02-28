@@ -126,11 +126,10 @@ export async function joinEvent(userId: string, eventId: string): Promise<boolea
         const dataSource = await ensureDbConnected();
         const eventRepository = dataSource.getRepository(EventEntity);
         const userRepository = dataSource.getRepository(UserEntity);
-        
-        // First, check if the user is already registered or Event already started
+
         const isRegistered = await shouldShowJoinNotice(userId, eventId);
-        if (isRegistered) {
-            return true;
+        if (!isRegistered) {
+            return false;
         }
 
         // Get user and event

@@ -22,7 +22,6 @@ export default function TeamsPage() {
   const { id: eventId } = useParams();
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [eventDetails, setEventDetails] = useState<Event | null>(null);
   const [filterValue, setFilterValue] = useState('');
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'name',
@@ -33,9 +32,6 @@ export default function TeamsPage() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        // Fetch event details
-        const event = await getEventById(eventId as string);
-        setEventDetails(event);
         
         // Fetch teams
         const teamsData = await getTeamsForEvent(eventId as string);

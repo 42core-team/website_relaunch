@@ -12,7 +12,7 @@ export default function App({children}: {
 }) {
 
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
         <body>
         <HeroUIProvider>
             <NextThemesProvider>

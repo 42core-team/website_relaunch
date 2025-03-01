@@ -9,6 +9,12 @@ export class UserEntity {
     id: string;
 
     @Column()
+    githubId: string;
+
+    @Column()
+    githubAccessToken: string;
+
+    @Column()
     email: string;
 
     @Column()

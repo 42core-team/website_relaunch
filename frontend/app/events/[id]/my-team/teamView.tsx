@@ -21,6 +21,7 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const eventId = useParams().id as string;
     const router = useRouter();
     const { data: session } = useSession();
@@ -54,10 +55,17 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
 
         try {
             setIsLoading(true);
-            const team: Team = await createTeam(newTeamName, eventId, session.user.id);
-            setMyTeam(team);
+            setErrorMessage(null);
+            const result = await createTeam(newTeamName, eventId, session.user.id);
+            
+            if ('error' in result) {
+                setErrorMessage(result.error);
+            } else {
+                setMyTeam(result);
+            }
         } catch (err) {
             console.error("Error creating team:", err);
+            setErrorMessage("An unexpected error occurred while creating the team.");
         } finally {
             setIsLoading(false);
         }
@@ -98,7 +106,8 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
                         newTeamName={newTeamName} 
                         setNewTeamName={setNewTeamName} 
                         handleCreateTeam={handleCreateTeam} 
-                        isLoading={isLoading} 
+                        isLoading={isLoading}
+                        errorMessage={errorMessage}
                     />
                     <div className="mt-8"></div>
                     <TeamInvitesSection />

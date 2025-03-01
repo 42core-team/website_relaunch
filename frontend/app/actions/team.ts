@@ -69,7 +69,7 @@ export async function getTeam(userId: string, eventId: string): Promise<Team | n
   }
 }
 
-export async function createTeam(name: string, eventId: string, userId: string): Promise<Team> {
+export async function createTeam(name: string, eventId: string, userId: string): Promise<Team | { error: string }> {
     const existingTeam = await getTeam(userId, eventId);
     if (existingTeam)
         return existingTeam;
@@ -85,6 +85,21 @@ export async function createTeam(name: string, eventId: string, userId: string):
     
     if (!user || !event) {
         throw new Error("User or event not found");
+    }
+    
+    // Check if a team with the same name (case insensitive) exists for this event
+    const teamsInEvent = await teamRepository
+        .createQueryBuilder('team')
+        .innerJoin('team.event', 'event')
+        .where('event.id = :eventId', { eventId })
+        .getMany();
+    
+    const teamNameExists = teamsInEvent.some(
+        team => team.name.toLowerCase() === name.toLowerCase()
+    );
+    
+    if (teamNameExists) {
+        return { error: `A team with the name "${name}" already exists for this event.` };
     }
     
     // Create new team

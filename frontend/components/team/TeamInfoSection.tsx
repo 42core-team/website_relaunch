@@ -1,11 +1,12 @@
 import { useParams } from "next/navigation";
-import { Button, Avatar, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
+import { Button, Avatar, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Chip } from "@heroui/react";
 import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
+import { useState } from "react";
 
 interface TeamInfoSectionProps {
     myTeam: Team, 
-    onLeaveTeam: () => Promise<void>,
+    onLeaveTeam: () => Promise<boolean>,
     isLeaving: boolean,
     teamMembers: TeamMember[]
 }
@@ -23,15 +24,27 @@ export const TeamInfoSection = ({
         onOpen: onConfirmOpen,
         onClose: onConfirmClose
     } = useDisclosure();
+    const [leaveError, setLeaveError] = useState<string | null>(null);
 
     const handleConfirmLeave = async () => {
+        setLeaveError(null);
         onConfirmClose();
-        await onLeaveTeam();
+        const success = await onLeaveTeam();
+        if (!success) {
+            setLeaveError("Failed to leave team. Try refreshing the page or trying again later.");
+        }
     };
     
     return (
         <div className="bg-default-50 p-6 rounded-lg border border-default-200">
-            <h2 className="text-2xl font-bold mb-4">Team: {myTeam.name}</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Team: {myTeam.name}</h2>
+                {myTeam.locked && (
+                    <Chip color="warning" variant="flat">
+                        Locked
+                    </Chip>
+                )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <p className="text-sm text-default-500">Repository</p>
@@ -64,15 +77,17 @@ export const TeamInfoSection = ({
             <div className="mt-6 mb-8 p-4 bg-default-100 rounded-lg">
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="text-lg font-semibold">Team Members</h3>
-                    <Button 
-                        color="primary" 
-                        size="sm" 
-                        variant="flat"
-                        onPress={onOpen}
-                        startContent={<span className="text-lg">+</span>}
-                    >
-                        Invite Others
-                    </Button>
+                    {!myTeam.locked && (
+                        <Button 
+                            color="primary" 
+                            size="sm" 
+                            variant="flat"
+                            onPress={onOpen}
+                            startContent={<span className="text-lg">+</span>}
+                        >
+                            Invite Others
+                        </Button>
+                    )}
                 </div>
                 <div className="flex flex-wrap gap-4">
                     {teamMembers.length > 0 ? (
@@ -94,15 +109,24 @@ export const TeamInfoSection = ({
             </div>
             
             {/* Team Management Compartment */}
-            <div className="mt-8 pt-4 border-t border-default-200 flex justify-end items-center">
-                <Button 
-                    color="danger" 
-                    variant="light"
-                    onPress={onConfirmOpen}
-                    size="sm"
-                >
-                    Leave Team
-                </Button>
+            <div className="mt-8 pt-4 border-t border-default-200">
+                {leaveError && (
+                    <div className="mb-4 px-4 py-3 rounded-md bg-danger-50 text-danger-700 border border-danger-200">
+                        {leaveError}
+                    </div>
+                )}
+                <div className="flex justify-end items-center">
+                    {!myTeam.locked && (
+                        <Button 
+                            color="danger" 
+                            variant="light"
+                            onPress={onConfirmOpen}
+                            size="sm"
+                        >
+                            Leave Team
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Invite Modal */}

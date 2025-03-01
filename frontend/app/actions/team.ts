@@ -9,6 +9,7 @@ export interface Team {
     id: string;
     name: string;
     repo: string;
+    locked?: boolean;
     created?: string;
     updated?: string;
     createdAt?: Date;
@@ -58,6 +59,7 @@ export async function getTeam(userId: string, eventId: string): Promise<Team | n
       id: team.id,
       name: team.name,
       repo: team.repo || '',
+      locked: team.locked,
       createdAt: team.createdAt,
       updatedAt: team.updatedAt
     };
@@ -124,6 +126,10 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         const user = await userRepository.findOne({ where: { id: userId } });
         
         if (!team || !user) {
+            return false;
+        }
+        
+        if (team.locked) {
             return false;
         }
         
@@ -222,7 +228,7 @@ export async function searchUsersForInvite(teamId: string, eventId: string, sear
 /**
  * Send a team invite to a user
  * @param teamId ID of the team sending the invite
- * @param userId ID of the user to invite
+ * @param userId ID of the user being invited
  * @returns boolean indicating success
  */
 export async function sendTeamInvite(teamId: string, userId: string): Promise<boolean> {
@@ -233,14 +239,19 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
         
         const team = await teamRepository.findOne({
             where: { id: teamId },
-            relations: ['teamInvites', 'users', 'event']
+            relations: ['teamInvites', 'event', 'users']
         });
         
         const user = await userRepository.findOne({
-            where: { id: userId }
+            where: { id: userId },
+            relations: ['teams']
         });
         
         if (!team || !user) {
+            return false;
+        }
+        
+        if (team.locked) {
             return false;
         }
         
@@ -249,6 +260,10 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
         }
         
         if (team.teamInvites.some(u => u.id === userId)) {
+            return false;
+        }
+        
+        if (user.teams.some(t => t.event.id === team.event.id)) {
             return false;
         }
         
@@ -317,6 +332,10 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         
         if (!team || !user) {
             return { success: false, message: "Team or user not found" };
+        }
+        
+        if (team.locked) {
+            return { success: false, message: "This team is locked and not accepting new members" };
         }
         
         if (user.teams.some(t => t.event.id === team.event.id)) {

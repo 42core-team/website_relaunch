@@ -63,10 +63,10 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
         }
     }
 
-    async function handleLeaveTeam() {
+    async function handleLeaveTeam(): Promise<boolean> {
         if (!myTeam || !session || !session.user || !session.user.id) {
             console.error("No team to leave or user not authenticated");
-            return;
+            return false;
         }
 
         try {
@@ -77,11 +77,14 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
                 setMyTeam(null);
                 setTeamMembers([]);
                 router.refresh();
+                return true;
             } else {
                 console.error("Failed to leave team");
+                return false;
             }
         } catch (err) {
             console.error("Error leaving team:", err);
+            return false;
         } finally {
             setIsLeaving(false);
         }

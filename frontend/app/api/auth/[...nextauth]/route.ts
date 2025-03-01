@@ -8,6 +8,11 @@ const handler = NextAuth({
         GithubProvider({
             clientId: process.env.GITHUB_ID!,
             clientSecret: process.env.GITHUB_SECRET!,
+            authorization: {
+                params: {
+                    scope: 'read:user user:email repo:invite'
+                }
+            }
         }),
     ],
     callbacks: {
@@ -15,6 +20,7 @@ const handler = NextAuth({
             if (account?.provider === "github") {
                 const dataSource = await ensureDbConnected();
                 const userRepository = dataSource.getRepository(UserEntity);
+                const githubProfile = profile as any;
 
                 const existingUser = await userRepository.findOne({
                     where: { email: user.email! }
@@ -23,10 +29,23 @@ const handler = NextAuth({
                 if (!existingUser) {
                     await userRepository.save({
                         email: user.email!,
-                        username: profile?.login || user.name!,
-                        name: user.name! || profile?.name!,
-                        profilePicture: user.image! || profile?.avatar_url!,
+                        username: githubProfile?.login || user.name!,
+                        name: user.name! || githubProfile?.name!,
+                        profilePicture: user.image! || githubProfile?.avatar_url!,
+                        githubId: account.providerAccountId,
+                        githubAccessToken: account.access_token,
                     });
+                } else {
+                    await userRepository.update(
+                        { id: existingUser.id },
+                        {
+                            githubId: account.providerAccountId,
+                            githubAccessToken: account.access_token,
+                            username: existingUser.username || githubProfile?.login || user.name!,
+                            name: existingUser.name || user.name! || githubProfile?.name!,
+                            profilePicture: existingUser.profilePicture || user.image! || githubProfile?.avatar_url!,
+                        }
+                    );
                 }
             }
             return true;

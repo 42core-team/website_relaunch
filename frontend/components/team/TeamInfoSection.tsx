@@ -51,7 +51,7 @@ export const TeamInfoSection = ({
                     <p className="font-medium">
                         {myTeam.repo ? (
                             <a 
-                                href={myTeam.repo} 
+                                href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_ORG}/${myTeam.repo}`}
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-primary hover:underline"

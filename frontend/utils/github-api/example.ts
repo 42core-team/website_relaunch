@@ -261,6 +261,13 @@ async function githubApiExample() {
     console.log(`URL: ${newRepoFromTemplate.html_url}`);
     console.log('---');
 
+    // Example 11: Deleting a repository
+    console.log('Deleting a repository...');
+    const repoToDelete = 'repo-to-delete';
+    await repoApi.deleteRepo(myOwner, repoToDelete);
+    console.log(`Repository ${myOwner}/${repoToDelete} deleted successfully`);
+    console.log('---');
+
   } catch (error) {
     console.error('Error in GitHub API example:', error);
   }

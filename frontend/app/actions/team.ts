@@ -162,8 +162,14 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         team.users = team.users.filter(u => u.id !== userId);
         
         if (team.users.length === 0) {
+            if (team.repo) {
+                await repositoryApi.deleteRepo(process.env.GITHUB_ORG || "", team.repo);
+            }
             await teamRepository.remove(team);
         } else {
+            if (team.repo) {
+                await repositoryApi.removeCollaborator(process.env.GITHUB_ORG || "", team.repo, user.username);
+            }
             await teamRepository.save(team);
         }
         
@@ -370,6 +376,11 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         
         team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
         team.users.push(user);
+
+        if (team.repo) {
+            await repositoryApi.addCollaborator(process.env.GITHUB_ORG || "", team.repo, user.username, "pull");
+            await userApi.acceptRepositoryInvitationByRepo(process.env.GITHUB_ORG || "", team.repo, user.githubAccessToken);
+        }
         
         await teamRepository.save(team);
         

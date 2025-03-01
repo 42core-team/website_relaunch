@@ -81,6 +81,16 @@ export class RepositoryApi {
   }
 
   /**
+   * Delete a repository
+   * @param owner Repository owner (user or organization)
+   * @param repo Repository name
+   * @returns Void on success
+   */
+  async deleteRepo(owner: string, repo: string): Promise<void> {
+    return this.client.delete<void>(`repos/${owner}/${repo}`);
+  }
+
+  /**
    * List repository issues
    * @param owner Repository owner
    * @param repo Repository name

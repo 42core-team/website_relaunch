@@ -73,7 +73,7 @@ const repos = await userApi.listUserRepositories('octocat', {
 });
 ```
 
-### Creating Repositories
+### Creating and Deleting Repositories
 
 ```typescript
 import { GitHubApiClient, RepositoryApi } from './utils/github-api';
@@ -121,6 +121,10 @@ const newRepoFromTemplate = await repoApi.createRepoFromTemplate(
   }
 );
 console.log(`Repository created from template: ${newRepoFromTemplate.full_name}`);
+
+// Delete a repository
+await repoApi.deleteRepo('owner', 'repo-to-delete');
+console.log('Repository deleted successfully');
 ```
 
 ### Managing Repository Collaborators

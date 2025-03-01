@@ -207,6 +207,26 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                             About us
                         </Link>
                     </NavbarMenuItem>
+                    
+                    {/* Theme Switch and Login/Logout in mobile menu */}
+                    <NavbarMenuItem className="mt-4 pt-4 border-t border-default-200 flex flex-col gap-4">
+                        {session.data?.user.id ? (
+                            <Button 
+                                color="danger" 
+                                variant="flat" 
+                                fullWidth
+                                onPress={() => {
+                                    signOut().then(() => {
+                                        router.push("/");
+                                    })
+                                }}
+                            >
+                                Log Out
+                            </Button>
+                        ) : (
+                            <GithubLoginButton />
+                        )}
+                    </NavbarMenuItem>
                 </NavbarMenu>
             </Navbar>
         );

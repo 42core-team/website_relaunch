@@ -55,8 +55,7 @@ export const TeamInvitesSection = () => {
                 // Remove from invites list if accepted
                 setInvites(prev => prev.filter(invite => invite.teamId !== teamId));
                 
-                // Refresh page to show new team
-                router.refresh();
+                window.location.reload();
             } else {
                 // Show error message
                 setActionStates(prev => ({

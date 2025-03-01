@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { Button, Avatar, useDisclosure } from "@heroui/react";
+import { Button, Avatar, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
 
@@ -18,6 +18,16 @@ export const TeamInfoSection = ({
 }: TeamInfoSectionProps) => {
     const eventId = useParams().id as string;
     const {isOpen, onOpen, onClose} = useDisclosure();
+    const {
+        isOpen: isConfirmOpen,
+        onOpen: onConfirmOpen,
+        onClose: onConfirmClose
+    } = useDisclosure();
+
+    const handleConfirmLeave = async () => {
+        onConfirmClose();
+        await onLeaveTeam();
+    };
     
     return (
         <div className="bg-default-50 p-6 rounded-lg border border-default-200">
@@ -88,8 +98,7 @@ export const TeamInfoSection = ({
                 <Button 
                     color="danger" 
                     variant="light"
-                    onPress={onLeaveTeam}
-                    isLoading={isLeaving}
+                    onPress={onConfirmOpen}
                     size="sm"
                 >
                     Leave Team
@@ -103,6 +112,40 @@ export const TeamInfoSection = ({
                 teamId={myTeam.id}
                 eventId={eventId}
             />
+
+            {/* Leave Team Confirmation Modal */}
+            <Modal isOpen={isConfirmOpen} onClose={onConfirmClose} size="sm">
+                <ModalContent>
+                    <ModalHeader>
+                        <h3 className="text-xl font-semibold">Leave Team</h3>
+                    </ModalHeader>
+                    <ModalBody>
+                        <p>Are you sure you want to leave this team? This action cannot be undone.</p>
+                        {teamMembers.length === 1 && (
+                            <p className="mt-2 text-danger-500">
+                                Warning: You are the last member of this team. Leaving will delete the team.
+                            </p>
+                        )}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            color="default" 
+                            variant="light" 
+                            onPress={onConfirmClose}
+                            className="mr-2"
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            color="danger" 
+                            onPress={handleConfirmLeave}
+                            isLoading={isLeaving}
+                        >
+                            Leave Team
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </div>
     );
 };

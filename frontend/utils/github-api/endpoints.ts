@@ -369,7 +369,10 @@ export class UserApi {
   async acceptRepositoryInvitationByRepo(owner: string, repo: string, accessToken?: string): Promise<boolean> {
     const invitations = await this.listRepositoryInvitations(accessToken);
 
-    const invitation = invitations.find(inv => inv.repository.owner.login == owner);
+    const invitation = invitations.find(inv => 
+      inv.repository.owner.login.toLowerCase() === owner.toLowerCase() && 
+      inv.repository.name.toLowerCase() === repo.toLowerCase()
+    );
 
     if (invitation) {
       await this.acceptRepositoryInvitation(invitation.id, accessToken);

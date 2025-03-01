@@ -68,6 +68,16 @@ export class GitHubApiClient {
           throw new Error(`GitHub API error on ${url}: ${response.status} ${response.statusText}`);
         }
 
+        // Check if response is empty (204 No Content or empty body)
+        const contentLength = response.headers.get('content-length');
+        const isEmptyResponse = response.status === 204 || (contentLength !== null && parseInt(contentLength) === 0);
+        
+        // Handle void return type or empty responses
+        if (isEmptyResponse) {
+          // For void return types or empty responses, return an empty object or undefined
+          return (undefined as unknown) as T;
+        }
+
         // Parse and return response
         const data = await response.json();
         return data as T;

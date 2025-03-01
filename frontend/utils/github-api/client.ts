@@ -40,7 +40,6 @@ export class GitHubApiClient {
     const body = options.body ? JSON.stringify(options.body) : undefined;
 
     let retries = 0;
-
     while (true) {
       try {
         const response = await fetch(url, {
@@ -49,15 +48,13 @@ export class GitHubApiClient {
           body,
         });
 
-        console.log(headers);
-
         // Handle rate limiting
-        if (response.status === 403 && this.isRateLimited(response.headers)) {
+        if (response.status === 403 || response.status === 429) {
           const resetTime = this.getRateLimitResetTime(response.headers);
           const waitTime = this.calculateWaitTime(resetTime);
           
           if (retries < this.maxRetries) {
-            console.warn(`Rate limited. Waiting ${waitTime}ms before retrying...`);
+            console.warn(`Rate limited. Waiting ${waitTime}ms before retrying... ${url}`);
             await this.delay(waitTime);
             retries++;
             continue;
@@ -68,7 +65,7 @@ export class GitHubApiClient {
 
         // Handle other errors
         if (!response.ok) {
-          throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+          throw new Error(`GitHub API error on ${url}: ${response.status} ${response.statusText}`);
         }
 
         // Parse and return response
@@ -78,7 +75,7 @@ export class GitHubApiClient {
         if (retries < this.maxRetries && this.shouldRetry(error)) {
           retries++;
           const backoffTime = this.calculateBackoffTime(retries);
-          console.warn(`Request failed. Retrying in ${backoffTime}ms... (${retries}/${this.maxRetries})`);
+          console.warn(`Request failed as ${error}. Retrying in ${backoffTime}ms... (${retries}/${this.maxRetries})`);
           await this.delay(backoffTime);
           continue;
         }
@@ -116,11 +113,10 @@ export class GitHubApiClient {
     const headers: Record<string, string> = {
       'Accept': 'application/vnd.github+json',
       'User-Agent': this.userAgent,
-      'X-GitHub-Api-Version': '2022-11-28',
       ...additionalHeaders,
     };
 
-    if (this.token) {
+    if (this.token && !additionalHeaders['Authorization']) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
@@ -131,7 +127,7 @@ export class GitHubApiClient {
    * Check if the response indicates rate limiting
    */
   private isRateLimited(headers: ResponseHeaders): boolean {
-    const remaining = parseInt(headers.get('x-ratelimit-remaining') || '1', 10);
+    const remaining = parseInt(headers.get('x-ratelimit-remaining') || '0', 10);
     return remaining === 0;
   }
 
@@ -158,9 +154,19 @@ export class GitHubApiClient {
    * Determine if we should retry based on the error
    */
   private shouldRetry(error: any): boolean {
-    // Retry on network errors or specific API errors
-    // Could be expanded based on specific needs
-    return true;
+    // Retry on network errors, timeouts, or specific API errors
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      // Network error or timeout
+      return true;
+    }
+
+    if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+      // Request was aborted or timed out
+      return true;  
+    }
+
+    // Could add other specific API errors to retry on
+    return false;
   }
 
   /**

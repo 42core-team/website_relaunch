@@ -1,8 +1,8 @@
 import { GitHubApiClient } from './client';
-import { 
-  GitHubRepository, 
-  GitHubIssue, 
-  GitHubUser, 
+import {
+  GitHubRepository,
+  GitHubIssue,
+  GitHubUser,
   GitHubCollaboratorPermission,
   GitHubRepositoryInvitation
 } from './response-types';
@@ -64,8 +64,8 @@ export class RepositoryApi {
    * @returns Created repository data
    */
   async createRepoFromTemplate(
-    templateOwner: string, 
-    templateRepo: string, 
+    templateOwner: string,
+    templateRepo: string,
     options: {
       owner: string;
       name: string;
@@ -75,7 +75,7 @@ export class RepositoryApi {
     }
   ): Promise<GitHubRepository> {
     return this.client.post<GitHubRepository>(
-      `repos/${templateOwner}/${templateRepo}/generate`, 
+      `repos/${templateOwner}/${templateRepo}/generate`,
       options
     );
   }
@@ -143,9 +143,9 @@ export class RepositoryApi {
    * @returns Repository invitation
    */
   async addCollaborator(
-    owner: string, 
-    repo: string, 
-    username: string, 
+    owner: string,
+    repo: string,
+    username: string,
     permission: 'pull' | 'push' | 'admin' | 'maintain' | 'triage' = 'pull'
   ): Promise<GitHubRepositoryInvitation> {
     return this.client.put<GitHubRepositoryInvitation>(`repos/${owner}/${repo}/collaborators/${username}`, {
@@ -162,9 +162,9 @@ export class RepositoryApi {
    * @returns Repository invitation or empty response if already a collaborator
    */
   async updateCollaboratorPermission(
-    owner: string, 
-    repo: string, 
-    username: string, 
+    owner: string,
+    repo: string,
+    username: string,
     permission: 'pull' | 'push' | 'admin' | 'maintain' | 'triage'
   ): Promise<GitHubRepositoryInvitation | void> {
     return this.client.put<GitHubRepositoryInvitation | void>(`repos/${owner}/${repo}/collaborators/${username}`, {
@@ -191,8 +191,8 @@ export class RepositoryApi {
    * @returns Permission details
    */
   async getCollaboratorPermissionLevel(
-    owner: string, 
-    repo: string, 
+    owner: string,
+    repo: string,
     username: string
   ): Promise<GitHubCollaboratorPermission> {
     return this.client.get<GitHubCollaboratorPermission>(
@@ -299,7 +299,7 @@ export class UserApi {
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
-    
+
     return this.client.get<GitHubRepositoryInvitation[]>('user/repository_invitations', {
       headers
     });
@@ -316,7 +316,7 @@ export class UserApi {
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
-    
+
     return this.client.patch<void>(`user/repository_invitations/${invitationId}`, {}, {
       headers
     });
@@ -333,7 +333,7 @@ export class UserApi {
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
-    
+
     return this.client.delete<void>(`user/repository_invitations/${invitationId}`, {
       headers
     });
@@ -346,12 +346,12 @@ export class UserApi {
    */
   async acceptAllRepositoryInvitations(accessToken?: string): Promise<number> {
     const invitations = await this.listRepositoryInvitations(accessToken);
-    
+
     if (invitations.length === 0) {
       return 0;
     }
 
-    const acceptPromises = invitations.map(invitation => 
+    const acceptPromises = invitations.map(invitation =>
       this.acceptRepositoryInvitation(invitation.id, accessToken)
     );
 
@@ -368,15 +368,14 @@ export class UserApi {
    */
   async acceptRepositoryInvitationByRepo(owner: string, repo: string, accessToken?: string): Promise<boolean> {
     const invitations = await this.listRepositoryInvitations(accessToken);
-    const fullRepoName = `${owner}/${repo}`;
-    
-    const invitation = invitations.find(inv => inv.repository.full_name === fullRepoName);
-    
+
+    const invitation = invitations.find(inv => inv.repository.owner.login == owner);
+
     if (invitation) {
       await this.acceptRepositoryInvitation(invitation.id, accessToken);
       return true;
     }
-    
+
     return false;
   }
 } 

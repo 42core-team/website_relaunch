@@ -4,6 +4,7 @@ import { ensureDbConnected } from "@/initializer/database";
 import { TeamEntity } from "@/entities/team.entity";
 import { UserEntity } from "@/entities/users.entity";
 import { EventEntity } from "@/entities/event.entity";
+import { repositoryApi, userApi } from "@/initializer/github";
 
 export interface Team {
     id: string;
@@ -111,6 +112,16 @@ export async function createTeam(name: string, eventId: string, userId: string):
     
     const savedTeam = await teamRepository.save(newTeam);
     
+    const repo = await repositoryApi.createRepo({
+        name: event.name + "-" + savedTeam.id,
+        private: true,
+    }, process.env.GITHUB_ORG || "");
+
+    savedTeam.repo = repo.name;
+    await teamRepository.save(savedTeam);
+    await repositoryApi.addCollaborator(process.env.GITHUB_ORG || "", repo.name, user.username, "pull");
+    await userApi.acceptRepositoryInvitationByRepo(process.env.GITHUB_ORG || "", repo.name, user.githubAccessToken);
+
     return {
         id: savedTeam.id,
         name: savedTeam.name,

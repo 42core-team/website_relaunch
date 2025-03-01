@@ -23,7 +23,7 @@ const handler = NextAuth({
                 const githubProfile = profile as any;
 
                 const existingUser = await userRepository.findOne({
-                    where: { email: user.email! }
+                    where: { githubId: account.providerAccountId }
                 });
 
                 if (!existingUser) {

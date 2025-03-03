@@ -24,6 +24,9 @@ export class MatchEntity{
     @Column({type: "enum", enum: MatchState})
     state: MatchState;
 
+    @Column()
+    round: number;
+
     @JoinColumn()
     @OneToOne(() => TeamEntity)
     winner: TeamEntity;

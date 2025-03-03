@@ -25,6 +25,9 @@ export class TeamEntity {
     @Column({nullable: true})
     repo: string
 
+    @Column({default: 0})
+    score: number
+
     @ManyToOne(() => EventEntity, event => event.teams)
     event: EventEntity
 

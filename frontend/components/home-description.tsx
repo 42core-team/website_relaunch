@@ -8,7 +8,7 @@ interface HomeDescriptionProps {
   code?: string;
 }
 
-export default function HomeDescription({ title, subtitle, description, code = "pages/index.tsx" }: HomeDescriptionProps) {
+export default function HomeDescription({ title, subtitle, description, code = "app/page.tsx" }: HomeDescriptionProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="text-4xl font-bold">{title}</h1>

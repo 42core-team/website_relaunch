@@ -1,0 +1,80 @@
+'use client'
+import {useEffect, useState} from 'react';
+import DefaultLayout from '@/layouts/default';
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableColumn,
+    TableRow,
+    TableCell,
+} from "@heroui/react";
+import {title} from '@/components/primitives';
+import { getEvents, Event } from '@/app/actions/event';
+
+export default function EventsPage() {
+    const [events, setEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const eventData = await getEvents(50);
+                setEvents(eventData);
+            } catch (err) {
+                setError('Failed to fetch events');
+                console.error('Error fetching events:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, []);
+
+    if (error) {
+        return <div className="text-center text-red-600">{error}</div>;
+    }
+
+    return (
+        <>
+            <div className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
+                <div className="flex flex-row items-center justify-center">
+                    <h1 className={title()}>Events</h1>
+                </div>
+                <p className="text-lg text-default-600">
+                    Discover and join upcoming coding competitions
+                </p>
+            </div>
+            <div className="mt-8">
+                <Table
+                    aria-label="Events table"
+                >
+                    <TableHeader>
+                        <TableColumn>Name</TableColumn>
+                        <TableColumn>Start Date</TableColumn>
+                        <TableColumn>Team Size</TableColumn>
+                    </TableHeader>
+                    <TableBody
+                        items={events}
+                        emptyContent={loading ? "Loading..." : "No events found"}
+                        isLoading={loading}
+                    >
+                        {(event) => (
+                            <TableRow
+                                key={event.id}
+                                onClick={() => window.location.href = `/events/${event.id}`}
+                                className="cursor-pointer transition-colors hover:bg-default-100"
+                            >
+                                <TableCell>{event.name}</TableCell>
+                                <TableCell>{new Date(event.start_date).toLocaleDateString()}</TableCell>
+                                <TableCell>{event.min_team_size} - {event.max_team_size} members</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </>
+    );
+}

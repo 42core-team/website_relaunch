@@ -1,13 +1,13 @@
+'use client'
 import Image from "next/image";
 import { motion } from "framer-motion";
-import DefaultLayout from "@/layouts/default";
 import { title } from "@/components/primitives";
 import { CoreLogoWhite } from "../../components/social";
 
 export default function AboutPage() {
   return (
-    <DefaultLayout>
-      <section className="flex flex-col items-center justify-center gap-8 py-8 md:py-10">
+    <div>
+      <section className="flex flex-col items-center justify-center gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -226,6 +226,6 @@ export default function AboutPage() {
           </div>
         </motion.div>
       </section>
-    </DefaultLayout>
+    </div>
   );
 }

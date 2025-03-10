@@ -1,12 +1,13 @@
 import React from "react";
 import EventLayout from "@/layouts/event";
 
-export default function App({children}: {
-    children: React.ReactNode
+export default async function App({children, params}: {
+    children: React.ReactNode,
+    params: Promise<{ id: string }>
 }) {
 
     return (
-        <EventLayout>
+        <EventLayout params={await params}>
             {children}
         </EventLayout>
     );

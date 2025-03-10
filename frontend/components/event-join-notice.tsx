@@ -1,3 +1,4 @@
+'use client'
 import { Button } from "@heroui/react";
 import { useState } from "react";
 import { joinEvent } from "@/app/actions/event";

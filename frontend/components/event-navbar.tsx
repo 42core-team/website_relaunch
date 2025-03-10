@@ -1,3 +1,4 @@
+'use client';
 import { Link } from "@heroui/react";
 import { usePathname } from "next/navigation";
 

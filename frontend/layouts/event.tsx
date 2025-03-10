@@ -3,7 +3,7 @@ import EventJoinNotice from "@/components/event-join-notice";
 import React from "react";
 import {getEventById, isUserRegisteredForEvent, shouldShowJoinNotice} from "@/app/actions/event";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from "@/app/utils/authOptions";
 
 export default async function EventLayout({
                                               children,

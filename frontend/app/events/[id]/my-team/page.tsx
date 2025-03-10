@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/utils/authOptions";
 import { redirect } from "next/navigation";
 import { getTeam, Team } from "@/app/actions/team";
 import { isUserRegisteredForEvent } from "@/app/actions/event";

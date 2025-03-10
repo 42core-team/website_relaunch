@@ -1,6 +1,3 @@
-'use client'
-import {useEffect, useState} from 'react';
-import DefaultLayout from '@/layouts/default';
 import {
     Table,
     TableHeader,
@@ -9,29 +6,21 @@ import {
     TableRow,
     TableCell,
 } from "@heroui/react";
-import {title} from '@/components/primitives';
+import { title } from '@/components/primitives';
 import { getEvents, Event } from '@/app/actions/event';
+import Link from 'next/link';
+import EventsTable from "@/app/events/EventTable";
 
-export default function EventsPage() {
-    const [events, setEvents] = useState<Event[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export default async function EventsPage() {
+    let events: Event[] = [];
+    let error: string | null = null;
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const eventData = await getEvents(50);
-                setEvents(eventData);
-            } catch (err) {
-                setError('Failed to fetch events');
-                console.error('Error fetching events:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEvents();
-    }, []);
+    try {
+        events = await getEvents(50);
+    } catch (err) {
+        error = 'Failed to fetch events';
+        console.error('Error fetching events:', err);
+    }
 
     if (error) {
         return <div className="text-center text-red-600">{error}</div>;
@@ -48,33 +37,9 @@ export default function EventsPage() {
                 </p>
             </div>
             <div className="mt-8">
-                <Table
-                    aria-label="Events table"
-                >
-                    <TableHeader>
-                        <TableColumn>Name</TableColumn>
-                        <TableColumn>Start Date</TableColumn>
-                        <TableColumn>Team Size</TableColumn>
-                    </TableHeader>
-                    <TableBody
-                        items={events}
-                        emptyContent={loading ? "Loading..." : "No events found"}
-                        isLoading={loading}
-                    >
-                        {(event) => (
-                            <TableRow
-                                key={event.id}
-                                onClick={() => window.location.href = `/events/${event.id}`}
-                                className="cursor-pointer transition-colors hover:bg-default-100"
-                            >
-                                <TableCell>{event.name}</TableCell>
-                                <TableCell>{new Date(event.start_date).toLocaleDateString()}</TableCell>
-                                <TableCell>{event.min_team_size} - {event.max_team_size} members</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                <EventsTable events={events} />
             </div>
         </>
     );
 }
+

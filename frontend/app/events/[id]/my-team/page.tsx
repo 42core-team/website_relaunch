@@ -1,58 +1,25 @@
-'use client'
-
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
-import TeamView from "./teamView";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 import { getTeam, Team } from "@/app/actions/team";
 import { isUserRegisteredForEvent } from "@/app/actions/event";
+import TeamView from "./teamView";
 
-export default function Page() {
-    const { data: session, status } = useSession();
-    const params = useParams();
-    const router = useRouter();
-    const eventId = params.id as string;
-    const [isLoading, setIsLoading] = useState(true);
-    const [team, setTeam] = useState<Team | null>(null);
-    const [isRegistered, setIsRegistered] = useState(false);
-
-    useEffect(() => {
-        async function checkUserAndLoadTeam() {
-            if (status === 'loading') return;
-            
-            if (!session || !session.user || !session.user.id) {
-                router.push('/login');
-                return;
-            }
-
-            try {
-                const userRegistered = await isUserRegisteredForEvent(session.user.id, eventId);
-                setIsRegistered(userRegistered);
-                
-                if (!userRegistered) {
-                    router.push(`/events/${eventId}`);
-                    return;
-                }
-                
-                const userTeam = await getTeam(session.user.id, eventId);
-                setTeam(userTeam);
-            } catch (error) {
-                console.error('Error loading team data:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        checkUserAndLoadTeam();
-    }, [session, status, eventId, router]);
-
-    if (status === 'loading' || isLoading) {
-        return <div className="text-center py-8">Loading your team...</div>;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+        redirect('/login');
     }
 
-    if (!isRegistered) {
-        return null;
+    const eventId = (await params).id;
+    const userId = session.user.id;
+
+    const userRegistered = await isUserRegisteredForEvent(userId, eventId);
+    if (!userRegistered) {
+        redirect(`/events/${eventId}`);
     }
+
+    const team = await getTeam(userId, eventId);
 
     return <TeamView initialTeam={team} />;
 }

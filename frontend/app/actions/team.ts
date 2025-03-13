@@ -115,12 +115,12 @@ export async function createTeam(name: string, eventId: string, userId: string):
     const repo = await repositoryApi.createRepo({
         name: event.name + "-" + savedTeam.id,
         private: true,
-    }, process.env.GITHUB_ORG || "");
+    }, process.env.NEXT_PUBLIC_GITHUB_ORG || "");
 
     savedTeam.repo = repo.name;
     await teamRepository.save(savedTeam);
-    await repositoryApi.addCollaborator(process.env.GITHUB_ORG || "", repo.name, user.username, "pull");
-    await userApi.acceptRepositoryInvitationByRepo(process.env.GITHUB_ORG || "", repo.name, user.githubAccessToken);
+    await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.username, "pull");
+    await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.githubAccessToken);
 
     return {
         id: savedTeam.id,
@@ -163,12 +163,12 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         
         if (team.users.length === 0) {
             if (team.repo) {
-                await repositoryApi.deleteRepo(process.env.GITHUB_ORG || "", team.repo);
+                await repositoryApi.deleteRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo);
             }
             await teamRepository.remove(team);
         } else {
             if (team.repo) {
-                await repositoryApi.removeCollaborator(process.env.GITHUB_ORG || "", team.repo, user.username);
+                await repositoryApi.removeCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.username);
             }
             await teamRepository.save(team);
         }
@@ -378,8 +378,8 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         team.users.push(user);
 
         if (team.repo) {
-            await repositoryApi.addCollaborator(process.env.GITHUB_ORG || "", team.repo, user.username, "pull");
-            await userApi.acceptRepositoryInvitationByRepo(process.env.GITHUB_ORG || "", team.repo, user.githubAccessToken);
+            await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.username, "pull");
+            await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.githubAccessToken);
         }
         
         await teamRepository.save(team);

@@ -4,7 +4,6 @@ import {MatchEntity} from "@/entities/match.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {EventEntity} from "@/entities/event.entity";
-import {NotificationEntity} from "@/entities/notifications.entity";
 
 
 export const AppDataSource = new DataSource({
@@ -17,7 +16,7 @@ export const AppDataSource = new DataSource({
     schema: process.env.DB_SCHEMA || "public",
     synchronize: true,
     logging: false,
-    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity, NotificationEntity],
+    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity],
 });
 
 export async function initializeDb() {
@@ -25,7 +24,6 @@ export async function initializeDb() {
         if(AppDataSource.isConnected)
             return;
         await AppDataSource.initialize();
-        await AppDataSource.runMigrations();
         console.log("Connected to database");
     } catch (error) {
         console.error("Error connecting to database:", error);

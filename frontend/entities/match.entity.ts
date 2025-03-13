@@ -35,6 +35,9 @@ export class MatchEntity{
     @JoinTable()
     teams: TeamEntity[];
 
+    @Column()
+    hadBye: boolean
+
     @CreateDateColumn()
     createdAt: Date;
 

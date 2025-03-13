@@ -22,6 +22,8 @@ export const AppDataSource = new DataSource({
 
 export async function initializeDb() {
     try {
+        if(AppDataSource.isConnected)
+            return;
         await AppDataSource.initialize();
         await AppDataSource.runMigrations();
         console.log("Connected to database");

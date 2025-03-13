@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import {TeamEntity} from "@/entities/team.entity";
 
-export enum MatchState{
+export enum MatchState {
     PLANNED = "PLANNED",
     READY = "READY",
     FINISHED = "FINISHED"
@@ -34,9 +34,6 @@ export class MatchEntity{
     @ManyToMany(() => TeamEntity, team => team.matches)
     @JoinTable()
     teams: TeamEntity[];
-
-    @Column()
-    hadBye: boolean
 
     @CreateDateColumn()
     createdAt: Date;

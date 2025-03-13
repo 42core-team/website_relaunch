@@ -39,6 +39,9 @@ export class EventEntity {
     @Column({type: "enum", enum: EventState, default: EventState.TEAM_FINDING})
     state: EventState;
 
+    @Column({default: 0})
+    currentRound: number;
+
     @CreateDateColumn()
     createdAt: Date;
 

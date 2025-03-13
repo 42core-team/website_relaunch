@@ -38,6 +38,9 @@ export class TeamEntity {
     @ManyToMany(() => MatchEntity, match => match.teams)
     matches: MatchEntity[]
 
+    @Column()
+    hadBye: boolean
+
     @JoinTable()
     @ManyToMany(() => UserEntity, user => user.teamInvites)
     teamInvites: UserEntity[]

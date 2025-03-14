@@ -3,7 +3,6 @@ import {MatchEntity} from "@/entities/match.entity";
 import {useEffect} from 'react';
 import ReactFlow, {
     useNodesState,
-    useEdgesState,
     Node,
     Edge,
 } from 'reactflow';

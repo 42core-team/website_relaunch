@@ -5,7 +5,9 @@ import {EventEntity} from "@/entities/event.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {MatchEntity, MatchState} from "@/entities/match.entity";
-import {Player, Swiss} from "tournament-pairings/dist/Swiss";
+import {Swiss} from "tournament-pairings";
+// @ts-ignore
+import {Player, Match} from 'tournament-pairings/interfaces';
 
 export interface Event {
     id: string;

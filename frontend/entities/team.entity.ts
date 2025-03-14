@@ -38,7 +38,7 @@ export class TeamEntity {
     @ManyToMany(() => MatchEntity, match => match.teams)
     matches: MatchEntity[]
 
-    @Column()
+    @Column({default: false})
     hadBye: boolean
 
     @JoinTable()

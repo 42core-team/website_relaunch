@@ -76,6 +76,7 @@ export async function calculateNextGroupPhaseMatches(eventId: string): Promise<b
         const newMatch = new MatchEntity();
         newMatch.state = MatchState.PLANNED
         newMatch.round = nextRound;
+        newMatch.teams = [];
         [match.player1, match.player2].forEach((player) => {
             const team = teams.find(t => t.id === player);
             if (team) {

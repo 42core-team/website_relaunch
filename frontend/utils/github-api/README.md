@@ -258,7 +258,7 @@ The `GitHubApiClient` constructor accepts the following options:
 {
   baseUrl?: string;       // Default: 'https://api.github.com'
   token?: string;         // GitHub personal access token
-  userAgent?: string;     // Default: 'GitHub-API-Client'
+  userAgent?: string;     // Default: 'GitHub-API-GraphView'
   maxRetries?: number;    // Default: 3
 }
 ```

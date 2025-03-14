@@ -28,7 +28,7 @@ export default async function EventLayout({
         showJoinNotice = await shouldShowJoinNotice(userId, eventId);
     }
 
-    if (!eventId) {
+    if (!event) {
         return <div>Event not found</div>;
     }
 

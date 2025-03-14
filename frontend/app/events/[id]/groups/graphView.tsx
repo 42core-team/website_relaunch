@@ -1,6 +1,6 @@
 'use client';
-import { MatchEntity } from "@/entities/match.entity";
-import { useEffect } from 'react';
+import {MatchEntity} from "@/entities/match.entity";
+import {useEffect} from 'react';
 import ReactFlow, {
     useNodesState,
     useEdgesState,
@@ -9,11 +9,10 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-export default function GraphView({ matches }: {
+export default function GraphView({matches}: {
     matches: MatchEntity[]
 }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
     useEffect(() => {
         if (!matches || matches.length === 0) return;
@@ -72,7 +71,7 @@ export default function GraphView({ matches }: {
 
                 newNodes.push({
                     id: nodeId,
-                    position: { x: xPos, y: yPos },
+                    position: {x: xPos, y: yPos},
                     data: {
                         label: winnerInfo ? `${matchLabel}\n${winnerInfo}` : matchLabel
                     },
@@ -89,19 +88,23 @@ export default function GraphView({ matches }: {
         });
 
         setNodes(newNodes);
-        setEdges(newEdges);
-    }, [matches, setNodes, setEdges]);
+    }, [matches]);
 
     return (
         <div className="w-full">
-            <div style={{ width: '100%', height: '80vh' }}>
+            <div style={{width: '100%', height: '80vh'}}>
+                <style jsx global>{`
+                    .react-flow__handle {
+                        display: none;
+                    }
+                `}</style>
                 <ReactFlow
+                    nodesDraggable={false}
                     nodes={nodes}
-                    edges={edges}
                     onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
                     fitView
-                    fitViewOptions={{ padding: 0.2 }}
+                    fitViewOptions={{padding: 0.2}}
+                    nodesConnectable={false}
                 />
             </div>
         </div>

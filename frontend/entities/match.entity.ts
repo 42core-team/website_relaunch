@@ -16,6 +16,11 @@ export enum MatchState {
     FINISHED = "FINISHED"
 }
 
+export enum MatchPhase {
+    SWISS = "SWISS",
+    ELIMINATION = "ELIMINATION"
+}
+
 @Entity("matches")
 export class MatchEntity{
     @PrimaryGeneratedColumn("uuid")
@@ -30,6 +35,9 @@ export class MatchEntity{
     @JoinColumn()
     @OneToOne(() => TeamEntity)
     winner: TeamEntity;
+
+    @Column({type: "enum", enum: MatchPhase, default: MatchPhase.SWISS})
+    phase: MatchPhase;
 
     @ManyToMany(() => TeamEntity, team => team.matches)
     @JoinTable()

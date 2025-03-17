@@ -1,12 +1,24 @@
 import GraphView from "@/app/events/[id]/groups/graphView";
 import Actions from "@/app/events/[id]/groups/actions";
 import {ensureDbConnected} from "@/initializer/database";
-import {MatchEntity} from "@/entities/match.entity";
+import {MatchEntity, MatchPhase} from "@/entities/match.entity";
 
-export default async function page(){
+export default async function page({ params }: { params: Promise<{ id: string }> }){
     const connection = await ensureDbConnected();
+    const eventId = (await params).id;
     const matches = await connection.getRepository(MatchEntity).find({
-        relations: ['teams', 'winner']
+        where: {
+            phase: MatchPhase.SWISS,
+            teams: {
+                event: {
+                    id: eventId
+                }
+            }
+        },
+        relations: {
+            teams: true,
+            winner: true
+        }
     });
 
     const serializedMatches = matches.map(match => ({

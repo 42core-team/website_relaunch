@@ -1,13 +1,13 @@
 'use server'
 
 import {ensureDbConnected} from "@/initializer/database";
-import {EventEntity} from "@/entities/event.entity";
+import {EventEntity, EventState} from "@/entities/event.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
-import {MatchEntity, MatchState} from "@/entities/match.entity";
-import {Swiss} from "tournament-pairings";
+import {MatchEntity, MatchPhase, MatchState} from "@/entities/match.entity";
+import {SingleElimination, Swiss} from "tournament-pairings";
 // @ts-ignore
-import {Player, Match} from 'tournament-pairings/interfaces';
+import {Match, Player} from 'tournament-pairings/interfaces';
 
 export interface Event {
     id: string;
@@ -41,6 +41,185 @@ export async function getTeamsToAvoid(teamId: string): Promise<string[]> {
     return pastOpponents.filter(id => id !== teamId);
 }
 
+export async function getMaxSwissRounds(teams: number): Promise<number> {
+    return Math.ceil(Math.log2(teams));
+}
+
+export async function createSingleEliminationBracket(eventId: string): Promise<boolean> {
+    const dataSource = await ensureDbConnected();
+    const teamsRepository = dataSource.getRepository(TeamEntity);
+    const matchRepository = dataSource.getRepository(MatchEntity);
+    const eventRepository = dataSource.getRepository(EventEntity);
+
+    const event = await eventRepository.findOne({
+        where: { id: eventId },
+        relations: ['teams']
+    });
+
+    if (!event) return false;
+
+    // Check if elimination bracket already exists
+    const existingMatches = await matchRepository.find({
+        where: {
+            phase: MatchPhase.ELIMINATION,
+            teams: {
+                event: { id: eventId }
+            }
+        },
+        relations: ['teams', 'winner']
+    });
+
+    // CASE 1: No elimination matches yet - create initial bracket
+    if (existingMatches.length === 0) {
+        // Verify Swiss rounds are complete
+        const maxSwissRounds = await getMaxSwissRounds(event.teams.length);
+        if (event.currentRound < maxSwissRounds) {
+            console.log("Swiss rounds not complete yet");
+            return false;
+        }
+
+        // Get teams ordered by score for seeding
+        const teams = await teamsRepository.find({
+            where: { event: { id: eventId } },
+            order: { score: 'DESC' }
+        });
+
+        if (teams.length < 2) return false;
+
+        // Create player objects for tournament-pairings
+        const players: Player[] = teams.map(team => ({
+            id: team.id,
+            name: team.name
+        }));
+
+        // Generate single elimination bracket
+        const matches = SingleElimination(players);
+
+        // Create match entities
+        const matchEntities: MatchEntity[] = [];
+
+        matches.forEach((match, index) => {
+            const roundNumber = Math.ceil(Math.log2(matches.length + 1)) - Math.floor(Math.log2(index + 1));
+
+            const newMatch = new MatchEntity();
+            newMatch.state = MatchState.PLANNED;
+            newMatch.round = roundNumber;
+            newMatch.phase = MatchPhase.ELIMINATION;
+            newMatch.teams = [];
+
+            // Add teams if they're not byes
+            if (match.player1) {
+                const team1 = teams.find(t => t.id === match.player1);
+                if (team1) newMatch.teams.push(team1);
+            }
+
+            if (match.player2) {
+                const team2 = teams.find(t => t.id === match.player2);
+                if (team2) newMatch.teams.push(team2);
+            }
+
+            // If a match has only one team, it's a bye - set winner immediately
+            if (newMatch.teams.length === 1) {
+                newMatch.winner = newMatch.teams[0];
+                newMatch.state = MatchState.FINISHED;
+            }
+
+            matchEntities.push(newMatch);
+        });
+
+        // Save match entities
+        await matchRepository.save(matchEntities);
+
+        // Update event state
+        await eventRepository.update(eventId, {
+            state: EventState.ELIMINATION_ROUND,
+            currentRound: 1
+        });
+
+        return true;
+    }
+
+    // CASE 2: Elimination matches exist - advance winners
+
+    // Find current round
+    const currentRound = Math.max(...existingMatches.map(m => m.round));
+
+    // Get finished matches from current round that have winners
+    const finishedMatches = existingMatches.filter(
+        match => match.round === currentRound &&
+            match.state === MatchState.FINISHED &&
+            match.winner
+    );
+
+    // Get next round matches
+    const nextRoundMatches = existingMatches.filter(
+        match => match.round === currentRound - 1 &&
+            match.state === MatchState.PLANNED
+    );
+
+    // If no next round matches, tournament is complete
+    if (nextRoundMatches.length === 0) {
+        // Check if we have a final winner
+        const finalMatch = existingMatches.find(m => m.round === 1);
+
+        if (finalMatch?.winner) {
+            // Tournament is complete, update event state
+            await eventRepository.update(eventId, {
+                state: EventState.FINISHED
+            });
+        }
+
+        return true;
+    }
+
+    // Update next round matches with winners
+    for (const nextMatch of nextRoundMatches) {
+        // Find which matches feed into this one (2 matches per next match)
+        const feedingMatches = finishedMatches.filter(m => {
+            // Calculate index ranges to determine which matches feed into which
+            const matchesPerRound = Math.pow(2, currentRound - 1);
+            const matchesInNextRound = matchesPerRound / 2;
+            const matchesPerNextMatch = matchesPerRound / matchesInNextRound;
+
+            // Calculate the index range for the current next match
+            const nextMatchIndex = nextRoundMatches.indexOf(nextMatch);
+            const startIdx = nextMatchIndex * matchesPerNextMatch;
+            const endIdx = startIdx + matchesPerNextMatch;
+
+            // Find the current match's index in its round
+            const currentMatchIndex = finishedMatches.indexOf(m);
+
+            return currentMatchIndex >= startIdx && currentMatchIndex < endIdx;
+        });
+
+        // Get winners from feeding matches
+        const winners = feedingMatches.map(m => m.winner).filter(Boolean);
+
+        // Add winners to next match
+        nextMatch.teams = winners;
+
+        // If we have two teams, match is ready to play
+        if (winners.length === 2) {
+            nextMatch.state = MatchState.READY;
+        }
+        // If we have only one winner and no other matches feed in, they win by default
+        else if (winners.length === 1) {
+            nextMatch.winner = winners[0];
+            nextMatch.state = MatchState.FINISHED;
+        }
+    }
+
+    // Save updated matches
+    await matchRepository.save(nextRoundMatches);
+
+    // Update event's current round
+    await eventRepository.update(eventId, {
+        currentRound: event.currentRound + 1
+    });
+
+    return true;
+}
+
 export async function calculateNextGroupPhaseMatches(eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();
     const teamsRepository = dataSource.getRepository(TeamEntity);
@@ -56,12 +235,12 @@ export async function calculateNextGroupPhaseMatches(eventId: string): Promise<b
             }
         }
     })
-    const maxRounds = Math.ceil(Math.log2(teams.length));
+    const maxRounds= await getMaxSwissRounds(teams.length)
     if (event.currentRound >= maxRounds)
         return false;
 
     const nextRound = event.currentRound + 1;
-    const matchableTeams = await Promise.all(teams.map(async (team: TeamEntity): Promise<Player> => {
+    const matchableTeams: Player[] = await Promise.all(teams.map(async (team: TeamEntity): Promise<Player> => {
         const teamsToAvoid = await getTeamsToAvoid(team.id);
         return {
             id: team.id,
@@ -76,6 +255,7 @@ export async function calculateNextGroupPhaseMatches(eventId: string): Promise<b
         const newMatch = new MatchEntity();
         newMatch.state = MatchState.PLANNED
         newMatch.round = nextRound;
+        newMatch.phase = MatchPhase.SWISS
         newMatch.teams = [];
         [match.player1, match.player2].forEach((player) => {
             const team = teams.find(t => t.id === player);

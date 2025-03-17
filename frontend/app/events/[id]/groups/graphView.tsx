@@ -25,7 +25,6 @@ export default function GraphView({matches}: {
         const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
 
         const newNodes: Node[] = [];
-        const newEdges: Edge[] = [];
 
         const COLUMN_WIDTH = 300;
         const ROW_HEIGHT = 50;

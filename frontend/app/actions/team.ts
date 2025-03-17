@@ -113,7 +113,7 @@ export async function createTeam(name: string, eventId: string, userId: string):
     const savedTeam = await teamRepository.save(newTeam);
     
     const repo = await repositoryApi.createRepo({
-        name: event.name + "-" + savedTeam.id,
+        name: event.name + "-" + savedTeam.name + "-" + savedTeam.id,
         private: true,
     }, process.env.NEXT_PUBLIC_GITHUB_ORG || "");
 

@@ -81,7 +81,8 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         // Get teams ordered by score for seeding
         const teams = await teamsRepository.find({
             where: { event: { id: eventId } },
-            order: { score: 'DESC' }
+            order: { score: 'DESC'},
+            take: 16
         });
 
         if (teams.length < 2) return false;
@@ -89,7 +90,9 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         // Create player objects for tournament-pairings
         const players: Player[] = teams.map(team => ({
             id: team.id,
-            name: team.name
+            name: team.name,
+            score: team.score,
+            receivedBye: team.hadBye
         }));
 
         // Generate single elimination bracket
@@ -138,6 +141,8 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
 
         return true;
     }
+
+    console.log("fhjewriofjewiofjweoifjewoifejwio")
 
     // CASE 2: Elimination matches exist - advance winners
 

@@ -40,11 +40,6 @@ export default function TeamDetailPage() {
         async function fetchData() {
             if (status === 'loading') return;
 
-            if (!session || !session.user || !session.user.id) {
-                router.push('/login');
-                return;
-            }
-
             try {
                 setIsLoading(true);
                 const membersData = await getTeamMembers(teamId);

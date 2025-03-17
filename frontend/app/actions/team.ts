@@ -41,6 +41,20 @@ export interface TeamInviteWithDetails {
     createdAt: Date;
 }
 
+export async function getTeamById(teamId: string): Promise<Team | null> {
+    const dataSource = await ensureDbConnected();
+    const teamRepository = dataSource.getRepository(TeamEntity);
+    const team = await teamRepository.findOne({ where: { id: teamId } });
+    return team ? {
+        id: team.id,
+        name: team.name,
+        repo: team.repo || '',
+        locked: team.locked,
+        createdAt: team.createdAt,
+        updatedAt: team.updatedAt
+    } : null;
+}
+
 export async function getTeam(userId: string, eventId: string): Promise<Team | null> {
   try {
     const dataSource = await ensureDbConnected();

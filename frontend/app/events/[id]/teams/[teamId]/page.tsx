@@ -15,7 +15,7 @@ import {
     Avatar
 } from '@heroui/react';
 import { ArrowLeftIcon } from '@/components/icons';
-import { Team, getTeam, getTeamMembers } from '@/app/actions/team';
+import { Team, getTeamById, getTeamMembers } from '@/app/actions/team';
 import { useSession } from 'next-auth/react';
 
 interface TeamMember {
@@ -50,7 +50,7 @@ export default function TeamDetailPage() {
                 const membersData = await getTeamMembers(teamId);
                 setMembers(membersData);
 
-                const team = await getTeam(session.user.id, eventId);
+                const team = await getTeamById(teamId);
                 setTeamInfo(team);
             } catch (error) {
                 console.error('Error fetching team members:', error);

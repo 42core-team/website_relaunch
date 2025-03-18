@@ -20,8 +20,9 @@ export default async function EventLayout({
     let isUserRegistered = false;
     let event = null;
 
+    event = await getEventById(eventId);
+    
     if (userId) {
-        event = await getEventById(eventId);
 
         isUserRegistered = await isUserRegisteredForEvent(userId, eventId);
 

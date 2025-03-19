@@ -6,140 +6,94 @@ import ReactFlow, {
     useEdgesState,
     Node,
     Edge,
+    Background,
+    MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+const MATCH_WIDTH = 200;
+const MATCH_HEIGHT = 80;
+const ROUND_SPACING = 280;
+const VERTICAL_SPACING = 100;
+const PADDING = 50;
+
+type SerializedMatch = {
+    id: string;
+    state: string;
+    round: number;
+    winner: { id: string; name: string; } | null;
+    teams: { id: string; name: string; }[];
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+const getMatchStatusColor = (state: string) => {
+    switch (state) {
+        case 'FINISHED':
+            return '#e6f7ff';
+        case 'READY':
+            return '#f0f9eb';
+        case 'IN_PROGRESS':
+            return '#fff7e6';
+        default:
+            return '#f5f5f5';
+    }
+};
+
+const getMatchStatusBorder = (state: string) => {
+    switch (state) {
+        case 'FINISHED':
+            return '#1890ff';
+        case 'READY':
+            return '#52c41a';
+        case 'IN_PROGRESS':
+            return '#fa8c16';
+        default:
+            return '#d9d9d9';
+    }
+};
+
+function createTreeCoordinate(matchCount: number): {x: number, y: number}[] {
+    const coordinates: {x: number, y: number}[] = [];
+    const totalRounds = Math.ceil(Math.log2(matchCount + 1));
+
+    for (let round = 0; round < totalRounds; round++) {
+        const matchesInRound = Math.pow(2, totalRounds - round - 1);
+        const spacing = Math.pow(2, round) * VERTICAL_SPACING;
+
+        for (let match = 0; match < matchesInRound; match++) {
+            const x = round * ROUND_SPACING;
+            const y = (match * spacing) + (spacing / 2);
+
+            coordinates.push({ x, y });
+        }
+    }
+
+    return coordinates;
+}
+
 export default function GraphView({ matches }: {
-    matches: MatchEntity[]
+    matches: SerializedMatch[]
 }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
     useEffect(() => {
-        if (!matches || matches.length === 0) return;
-
-        // Group matches by round
-        const matchesByRound = matches.reduce((acc, match) => {
-            if (!acc[match.round]) acc[match.round] = [];
-            acc[match.round].push(match);
-            return acc;
-        }, {} as Record<number, MatchEntity[]>);
-
-        // Sort rounds in ascending order (round 1 is the final)
-        const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
-
-        const newNodes: Node[] = [];
-        const newEdges: Edge[] = [];
-        const matchToNodeMap = new Map<string, string>();
-
-        // Constants for layout
-        const COLUMN_WIDTH = 300;
-        const PADDING = 40;
-        const VERTICAL_GAP = 200;
-
-        rounds.forEach((round, roundIndex) => {
-            const roundMatches = matchesByRound[round];
-
-            // Add round header
-            newNodes.push({
-                id: `round-${round}`,
-                position: {
-                    x: (rounds.length - roundIndex - 1) * COLUMN_WIDTH + PADDING,
-                    y: PADDING
-                },
-                data: {
-                    label: round === 1 ? "Final" : round === 2 ? "Semi-Finals" : `Round ${round}`
-                },
+        console.log(createTreeCoordinate(16))
+        const newNodes = createTreeCoordinate(8).map((coord, index): Node => {
+            return {
+                id: index.toString(),
+                position: {x: coord.x, y: coord.y},
                 style: {
-                    width: COLUMN_WIDTH - PADDING * 2,
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    padding: '10px',
-                }
-            });
+                    width: MATCH_WIDTH,
+                    height: MATCH_HEIGHT,
+                },
+                data: {}
+            };
+        })
 
-            // Calculate vertical spacing for matches in this round
-            // Earlier rounds (higher numbers) need more vertical space
-            const totalHeight = Math.pow(2, rounds.length - roundIndex) * VERTICAL_GAP;
-            const matchHeight = totalHeight / roundMatches.length;
-
-            roundMatches.forEach((match, matchIndex) => {
-                const nodeId = `match-${match.id}`;
-                // Position the match in the bracket
-                const xPos = (rounds.length - roundIndex - 1) * COLUMN_WIDTH + PADDING;
-                const yPos = matchHeight * (matchIndex + 0.5) + PADDING * 3;
-
-                // Format match label
-                let matchLabel = "";
-                let winnerInfo = "";
-
-                if (match.teams && match.teams.length > 0) {
-                    matchLabel = match.teams.map(team => team.name || "Team").join(" vs ");
-                    if (match.winner && match.state === 'FINISHED') {
-                        winnerInfo = `Winner: ${match.winner.name}`;
-                    }
-                } else {
-                    matchLabel = `Match ${matchIndex + 1}`;
-                }
-
-                newNodes.push({
-                    id: nodeId,
-                    position: { x: xPos, y: yPos },
-                    data: {
-                        label: winnerInfo ? `${matchLabel}\n${winnerInfo}` : matchLabel
-                    },
-                    style: {
-                        width: COLUMN_WIDTH - PADDING * 2,
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        backgroundColor: match.state === 'FINISHED' ? '#e6f7ff' :
-                            match.state === 'READY' ? '#f0f9eb' : '#fff',
-                    }
-                });
-
-                matchToNodeMap.set(match.id, nodeId);
-            });
-        });
-
-        // Create edges between rounds to show advancement
-        for (let i = 0; i < rounds.length - 1; i++) {
-            const currentRound = rounds[i];
-            const nextRound = rounds[i + 1];
-
-            const currentMatches = matchesByRound[currentRound];
-            const nextMatches = matchesByRound[nextRound];
-
-            // Each match in the current round is fed by two matches in the next round
-            currentMatches.forEach((currentMatch, idx) => {
-                // Calculate which matches feed into this one
-                const sourceIdx1 = idx * 2;
-                const sourceIdx2 = idx * 2 + 1;
-
-                if (sourceIdx1 < nextMatches.length) {
-                    newEdges.push({
-                        id: `e-${nextMatches[sourceIdx1].id}-${currentMatch.id}`,
-                        source: matchToNodeMap.get(nextMatches[sourceIdx1].id)!,
-                        target: matchToNodeMap.get(currentMatch.id)!,
-                        type: 'smoothstep',
-                        animated: currentMatch.state === 'READY'
-                    });
-                }
-
-                if (sourceIdx2 < nextMatches.length) {
-                    newEdges.push({
-                        id: `e-${nextMatches[sourceIdx2].id}-${currentMatch.id}`,
-                        source: matchToNodeMap.get(nextMatches[sourceIdx2].id)!,
-                        target: matchToNodeMap.get(currentMatch.id)!,
-                        type: 'smoothstep',
-                        animated: currentMatch.state === 'READY'
-                    });
-                }
-            });
-        }
-
-        setNodes(newNodes);
-        setEdges(newEdges);
+        console.log(newNodes);
+        setNodes(newNodes)
     }, [matches]);
 
     return (
@@ -149,6 +103,9 @@ export default function GraphView({ matches }: {
                     .react-flow__handle {
                         display: none;
                     }
+                    .react-flow__node {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                    }
                 `}</style>
                 <ReactFlow
                     nodesDraggable={false}
@@ -157,9 +114,13 @@ export default function GraphView({ matches }: {
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     fitView
-                    fitViewOptions={{ padding: 0.2 }}
+                    fitViewOptions={{ padding: 0.3 }}
                     nodesConnectable={false}
-                />
+                    minZoom={0.2}
+                    maxZoom={1.5}
+                >
+                    <Background color="#f0f0f0" gap={16} />
+                </ReactFlow>
             </div>
         </div>
     );

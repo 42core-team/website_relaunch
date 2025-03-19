@@ -1,6 +1,6 @@
 import {ensureDbConnected} from "@/initializer/database";
 import {MatchEntity, MatchPhase} from "@/entities/match.entity";
-import GraphView from "@/app/events/[id]/groups/graphView";
+import GraphView from "@/app/events/[id]/bracket/graphView";
 import Actions from "@/app/events/[id]/bracket/actions";
 
 export default async function page({ params }: { params: Promise<{ id: string }> }){
@@ -9,11 +9,7 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     const matches = await connection.getRepository(MatchEntity).find({
         where: {
             phase: MatchPhase.ELIMINATION,
-            teams: {
-                event: {
-                    id: eventId
-                }
-            }
+
         },
         relations: {
             teams: true,
@@ -36,8 +32,6 @@ export default async function page({ params }: { params: Promise<{ id: string }>
         createdAt: match.createdAt,
         updatedAt: match.updatedAt
     }));
-
-    console.log(matches, eventId);
 
     return (
         <div>

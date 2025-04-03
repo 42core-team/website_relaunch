@@ -34,7 +34,17 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 		where: {
 			phase: MatchPhase.SWISS,
 			round: event.currentRound,
-			state: MatchState.FINISHED
+			state: MatchState.FINISHED,
+			teams: {
+				event: {
+					id: eventId
+				}
+			}
+		},
+		relations: {
+			teams: {
+				event: true
+			}
 		}
 	});
 
@@ -43,12 +53,21 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 			phase: MatchPhase.ELIMINATION,
 			round: event.currentRound,
 			state: MatchState.FINISHED
+		},
+		relations: {
+			teams: {
+				event: true
+			}
 		}
 	});
 
 	// Try to change to next phase / round if all previous matches are finished
-	if (event.state === EventState.SWISS_ROUND && currentSwissRoundFinished.length === teams.length) {
-		await addPointsToTeams(eventId);
+	if (event.state === EventState.SWISS_ROUND) {
+		if (!(currentSwissRoundFinished.length * 2 === teams.length || (currentSwissRoundFinished.length * 2) + 1 === teams.length)){
+			console.log("Not all matches finished in swiss round");
+			return false;
+		}
+		await addPointsToTeams(eventId); // TODO: Temporary
 		if (event.currentRound === maxRounds) {
 			await eventRepository.update(eventId, {
 				state: EventState.ELIMINATION_ROUND,
@@ -63,9 +82,13 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 			console.log("SWISS_ROUND -> SWISS_ROUND");
 			return true;
 		}
-	} else if (event.state === EventState.ELIMINATION_ROUND) { 
+	} else if (event.state === EventState.ELIMINATION_ROUND) { // TODO: Also check that no elim rounds have been created yet - also check if all finished
 		if (event.currentRound === 0) {
-			return await createInitialBracket(eventId);
+			console.log("Creating initial bracket");
+			await calcMedianBuchholzPoints(eventId); // TODO: Temporary
+			const qualifiedTeams = await getQualifiedTeams(eventId);
+			console.log(qualifiedTeams);
+			return true;
 		} else if (currentEliminationRoundFinished.length === 16 / Math.pow(2, event.currentRound)) { // TODO: Replace with relative number to allow different bracket sizes / double elimination
 			await eventRepository.update(eventId, {
 				currentRound: event.currentRound + 1
@@ -73,6 +96,7 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 			console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
 			return true;
 		}
+		console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
 		return false; // TODO: Might be incorrect
 	} else if (event.state === EventState.TEAM_FINDING) {
 		await eventRepository.update(eventId, {
@@ -88,8 +112,10 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 		console.log("CODING_PHASE -> SWISS_ROUND");
 		return true;
 	} else if (event.state === EventState.FINISHED) {
+		console.log("FINISHED");
 		return false;
 	} else {
+		console.log("Unknown state: " + event.state);
 		return false;
 	}
 }
@@ -130,13 +156,43 @@ export async function addPointsToTeams(eventId: string): Promise<boolean> {
 	return true;
 }
 
-export async function createInitialBracket(eventId: string): Promise<boolean> {
+export async function getQualifiedTeams(eventId: string): Promise<TeamEntity[]> {
 	const dataSource = await ensureDbConnected();
 	const eventRepository = dataSource.getRepository(EventEntity);
+	const TeamRepository = dataSource.getRepository(TeamEntity);
+
+	const teams = await TeamRepository.find({
+		where: {
+			event: {
+				id: eventId
+			}
+		}
+	});
+
+	teams.sort((a, b) => {
+		const scoreDiff = (b.score + Number(b.hadBye) * 10) - (a.score + Number(a.hadBye) * 10);
+		if (scoreDiff !== 0) return scoreDiff;
+		return a.id.localeCompare(b.id); 
+	});
+
+	return teams.slice(0, 16); // make variable based on bracket size
+}
+
+export async function insertNextMatches(eventId: string): Promise<boolean> {
+	const dataSource = await ensureDbConnected();
+	const eventRepository = dataSource.getRepository(EventEntity);
+	const MatchRepository = dataSource.getRepository(MatchEntity);
+
+	const event = await eventRepository.findOne({
+		where: { id: eventId }
+	});
 	
+	if (!event) return false;		
 	
+
 	return false;
 }
+
 
 export async function calcMedianBuchholzPoints(eventId: string): Promise<boolean> {
 	const dataSource = await ensureDbConnected();

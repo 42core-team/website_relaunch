@@ -12,7 +12,7 @@ import {TeamEntity} from "@/entities/team.entity";
 
 export enum MatchState {
     PLANNED = "PLANNED",
-    READY = "READY",
+    READY = "READY", // In progress?
     FINISHED = "FINISHED"
 }
 

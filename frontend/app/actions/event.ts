@@ -45,6 +45,7 @@ export async function getMaxSwissRounds(teams: number): Promise<number> {
     return Math.ceil(Math.log2(teams));
 }
 
+// To be deprecated
 export async function createSingleEliminationBracket(eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();
     const teamsRepository = dataSource.getRepository(TeamEntity);
@@ -225,6 +226,7 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     return true;
 }
 
+// To be deprecated
 export async function calculateNextGroupPhaseMatches(eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();
     const teamsRepository = dataSource.getRepository(TeamEntity);

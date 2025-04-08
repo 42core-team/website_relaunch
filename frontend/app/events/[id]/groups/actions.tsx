@@ -10,8 +10,7 @@ export default function Actions() {
 
     return (
         <>
-            <Button onPress={() => calculateNextGroupPhaseMatches(params?.id as string)} color={"primary"}>next </Button>
-            <Button onPress={() => increaseRound(params?.id as string)} color={"primary"}>next round</Button>
+            <Button onPress={() => increaseRound(params?.id as string)} color={"primary"}>Progress Tournament</Button>
         </>
     );
 }

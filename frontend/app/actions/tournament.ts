@@ -2,7 +2,7 @@
 
 import { ensureDbConnected } from "@/initializer/database";
 import { EventEntity, EventState } from "@/entities/event.entity";
-import { getMaxSwissRounds } from "@/app/actions/event";
+import { getMaxSwissRounds, calculateNextGroupPhaseMatches, createSingleEliminationBracket } from "@/app/actions/event";
 import { TeamEntity } from "@/entities/team.entity";
 import { MatchEntity, MatchPhase, MatchState } from "@/entities/match.entity";
 
@@ -34,7 +34,18 @@ async function handleSwissRoundState(eventId: string, event: EventEntity, teams:
 	const dataSource = await ensureDbConnected();
 	const eventRepository = dataSource.getRepository(EventEntity);
 	
-	// Check if all matches in current round are finished
+	// Check if we need to create the first round of Swiss matches
+	if (event.currentRound === 0) {
+		await calculateNextGroupPhaseMatches(eventId);
+	
+		await eventRepository.update(eventId, {
+			currentRound: 1
+		});
+		console.log("SWISS_ROUND -> SWISS_ROUND (Created first round matches)");
+		return true;
+	}
+	
+	// Otherwise, check if all existing matches are finished
 	if (!(currentSwissRoundFinished.length * 2 === teams.length || (currentSwissRoundFinished.length * 2) + 1 === teams.length)){
 		console.log("Not all matches finished in swiss round");
 		return false;
@@ -42,7 +53,7 @@ async function handleSwissRoundState(eventId: string, event: EventEntity, teams:
 	await addPointsToTeams(eventId); // TODO: Temporary
 	
 	// Handle transition to elimination round or next swiss round
-	if (event.currentRound === maxRounds) {
+	if (event.currentRound >= maxRounds) {
 		await eventRepository.update(eventId, {
 			state: EventState.ELIMINATION_ROUND,
 			currentRound: 0
@@ -50,10 +61,12 @@ async function handleSwissRoundState(eventId: string, event: EventEntity, teams:
 		console.log("SWISS_ROUND -> ELIMINATION_ROUND");
 		return true;
 	} else {
+		// Create matches for the next round
+		await calculateNextGroupPhaseMatches(eventId);
 		await eventRepository.update(eventId, {
 			currentRound: event.currentRound + 1
 		});
-		console.log("SWISS_ROUND -> SWISS_ROUND");
+		console.log("SWISS_ROUND -> SWISS_ROUND (Advanced to next round)");
 		return true;
 	}
 }
@@ -192,7 +205,6 @@ export async function addPointsToTeams(eventId: string): Promise<boolean> {
 
 export async function getQualifiedTeams(eventId: string): Promise<TeamEntity[]> {
 	const dataSource = await ensureDbConnected();
-	const eventRepository = dataSource.getRepository(EventEntity);
 	const TeamRepository = dataSource.getRepository(TeamEntity);
 
 	const teams = await TeamRepository.find({

@@ -226,7 +226,7 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     return true;
 }
 
-// To be deprecated
+
 export async function calculateNextGroupPhaseMatches(eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();
     const teamsRepository = dataSource.getRepository(TeamEntity);
@@ -274,9 +274,6 @@ export async function calculateNextGroupPhaseMatches(eventId: string): Promise<b
     })
 
     await matchRepository.save(newMatches);
-    await eventRepository.update(eventId, {
-        currentRound: nextRound
-    })
     return true
 }
 

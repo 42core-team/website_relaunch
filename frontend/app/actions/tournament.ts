@@ -7,6 +7,81 @@ import { TeamEntity } from "@/entities/team.entity";
 import { MatchEntity, MatchPhase, MatchState } from "@/entities/match.entity";
 
 
+async function handleTeamFindingState(eventId: string): Promise<boolean> {
+	const dataSource = await ensureDbConnected();
+	const eventRepository = dataSource.getRepository(EventEntity);
+	
+	await eventRepository.update(eventId, {
+		state: EventState.CODING_PHASE
+	});
+	console.log("TEAM_FINDING -> CODING_PHASE");
+	return true;
+}
+
+async function handleCodingPhaseState(eventId: string): Promise<boolean> {
+	const dataSource = await ensureDbConnected();
+	const eventRepository = dataSource.getRepository(EventEntity);
+	
+	await eventRepository.update(eventId, {
+		state: EventState.SWISS_ROUND,
+		currentRound: 0
+	});
+	console.log("CODING_PHASE -> SWISS_ROUND");
+	return true;
+}
+
+async function handleSwissRoundState(eventId: string, event: EventEntity, teams: TeamEntity[], currentSwissRoundFinished: MatchEntity[], maxRounds: number): Promise<boolean> {
+	const dataSource = await ensureDbConnected();
+	const eventRepository = dataSource.getRepository(EventEntity);
+	
+	// Check if all matches in current round are finished
+	if (!(currentSwissRoundFinished.length * 2 === teams.length || (currentSwissRoundFinished.length * 2) + 1 === teams.length)){
+		console.log("Not all matches finished in swiss round");
+		return false;
+	}
+	await addPointsToTeams(eventId); // TODO: Temporary
+	
+	// Handle transition to elimination round or next swiss round
+	if (event.currentRound === maxRounds) {
+		await eventRepository.update(eventId, {
+			state: EventState.ELIMINATION_ROUND,
+			currentRound: 0
+		});
+		console.log("SWISS_ROUND -> ELIMINATION_ROUND");
+		return true;
+	} else {
+		await eventRepository.update(eventId, {
+			currentRound: event.currentRound + 1
+		});
+		console.log("SWISS_ROUND -> SWISS_ROUND");
+		return true;
+	}
+}
+
+async function handleEliminationRoundState(eventId: string, event: EventEntity, currentEliminationRoundFinished: MatchEntity[]): Promise<boolean> {
+	const dataSource = await ensureDbConnected();
+	const eventRepository = dataSource.getRepository(EventEntity);
+	
+	// Handle initial bracket creation
+	if (event.currentRound === 0) {
+		console.log("Creating initial bracket");
+		await calcMedianBuchholzPoints(eventId); // TODO: Temporary
+		const qualifiedTeams = await getQualifiedTeams(eventId);
+		console.log(qualifiedTeams);
+		return true;
+	} 
+	// Handle advancing to next elimination round
+	else if (currentEliminationRoundFinished.length === 16 / Math.pow(2, event.currentRound)) { // TODO: Replace with relative number to allow different bracket sizes / double elimination
+		await eventRepository.update(eventId, {
+			currentRound: event.currentRound + 1
+		});
+		console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
+		return true;
+	}
+	
+	console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
+	return false; // TODO: Might be incorrect
+}
 
 export async function increaseRound(eventId: string): Promise<boolean> {
 	const dataSource = await ensureDbConnected();
@@ -61,56 +136,15 @@ export async function increaseRound(eventId: string): Promise<boolean> {
 		}
 	});
 
-	// Try to change to next phase / round if all previous matches are finished
+	// Handle different event states
 	if (event.state === EventState.SWISS_ROUND) {
-		if (!(currentSwissRoundFinished.length * 2 === teams.length || (currentSwissRoundFinished.length * 2) + 1 === teams.length)){
-			console.log("Not all matches finished in swiss round");
-			return false;
-		}
-		await addPointsToTeams(eventId); // TODO: Temporary
-		if (event.currentRound === maxRounds) {
-			await eventRepository.update(eventId, {
-				state: EventState.ELIMINATION_ROUND,
-				currentRound: 0
-			});
-			console.log("SWISS_ROUND -> ELIMINATION_ROUND");
-			return true;
-		} else {
-			await eventRepository.update(eventId, {
-				currentRound: event.currentRound + 1
-			});
-			console.log("SWISS_ROUND -> SWISS_ROUND");
-			return true;
-		}
-	} else if (event.state === EventState.ELIMINATION_ROUND) { // TODO: Also check that no elim rounds have been created yet - also check if all finished
-		if (event.currentRound === 0) {
-			console.log("Creating initial bracket");
-			await calcMedianBuchholzPoints(eventId); // TODO: Temporary
-			const qualifiedTeams = await getQualifiedTeams(eventId);
-			console.log(qualifiedTeams);
-			return true;
-		} else if (currentEliminationRoundFinished.length === 16 / Math.pow(2, event.currentRound)) { // TODO: Replace with relative number to allow different bracket sizes / double elimination
-			await eventRepository.update(eventId, {
-				currentRound: event.currentRound + 1
-			});
-			console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
-			return true;
-		}
-		console.log("ELIMINATION_ROUND -> ELIMINATION_ROUND");
-		return false; // TODO: Might be incorrect
+		return await handleSwissRoundState(eventId, event, teams, currentSwissRoundFinished, maxRounds);
+	} else if (event.state === EventState.ELIMINATION_ROUND) {
+		return await handleEliminationRoundState(eventId, event, currentEliminationRoundFinished);
 	} else if (event.state === EventState.TEAM_FINDING) {
-		await eventRepository.update(eventId, {
-			state: EventState.CODING_PHASE
-		});
-		console.log("TEAM_FINDING -> CODING_PHASE");
-		return true;
+		return await handleTeamFindingState(eventId);
 	} else if (event.state === EventState.CODING_PHASE) {
-		await eventRepository.update(eventId, {
-				state: EventState.SWISS_ROUND,
-				currentRound: 0
-			});
-		console.log("CODING_PHASE -> SWISS_ROUND");
-		return true;
+		return await handleCodingPhaseState(eventId);
 	} else if (event.state === EventState.FINISHED) {
 		console.log("FINISHED");
 		return false;

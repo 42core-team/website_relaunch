@@ -74,6 +74,12 @@ async function handleSwissRoundState(eventId: string, event: EventEntity, teams:
 async function handleEliminationRoundState(eventId: string, event: EventEntity, currentEliminationRoundFinished: MatchEntity[]): Promise<boolean> {
 	const dataSource = await ensureDbConnected();
 	const eventRepository = dataSource.getRepository(EventEntity);
+
+	const eventInfo = await eventRepository.findOne({
+		where: { id: eventId }
+	});
+
+	if (!eventInfo) return false;
 	
 	// Handle initial bracket creation
 	if (event.currentRound === 0) {
@@ -84,7 +90,7 @@ async function handleEliminationRoundState(eventId: string, event: EventEntity, 
 		return true;
 	} 
 	// Handle advancing to next elimination round
-	else if (currentEliminationRoundFinished.length === 16 / Math.pow(2, event.currentRound)) { // TODO: Replace with relative number to allow different bracket sizes / double elimination
+	else if (currentEliminationRoundFinished.length === eventInfo.treeFormat / Math.pow(2, event.currentRound)) {
 		await eventRepository.update(eventId, {
 			currentRound: event.currentRound + 1
 		});
@@ -206,6 +212,13 @@ export async function addPointsToTeams(eventId: string): Promise<boolean> {
 export async function getQualifiedTeams(eventId: string): Promise<TeamEntity[]> {
 	const dataSource = await ensureDbConnected();
 	const TeamRepository = dataSource.getRepository(TeamEntity);
+	const EventRepository = dataSource.getRepository(EventEntity);
+
+	const event = await EventRepository.findOne({
+		where: { id: eventId }
+	});
+
+	if (!event) return [];
 
 	const teams = await TeamRepository.find({
 		where: {

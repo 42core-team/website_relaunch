@@ -1,6 +1,7 @@
 import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, OneToMany, UpdateDateColumn} from "typeorm";
 import {TeamEntity} from "@/entities/team.entity";
 import { EventEntity } from "./event.entity";
+import { UserEventPermissionEntity } from "./user-event-permission.entity";
 
 @Entity('users')
 export class UserEntity {
@@ -39,4 +40,11 @@ export class UserEntity {
 
     @ManyToMany(() => EventEntity, event => event.users)
     events: EventEntity[]
+
+    @OneToMany('UserEventPermissionEntity', (permission: UserEventPermissionEntity) => permission.user)
+    permissions: UserEventPermissionEntity[];
+
+    @Column({ default: false })
+    canCreateEvent: boolean;
+
 }

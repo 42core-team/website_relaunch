@@ -4,6 +4,7 @@ import {MatchEntity} from "@/entities/match.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {EventEntity} from "@/entities/event.entity";
+import {UserEventPermissionEntity} from "@/entities/user-event-permission.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
     schema: process.env.DB_SCHEMA || "public",
     synchronize: true,
     logging: false,
-    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity],
+    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity, UserEventPermissionEntity],
 });
 
 // Use a promise to track initialization status

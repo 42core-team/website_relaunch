@@ -31,7 +31,10 @@ export class EventEntity {
     type: EventType;
 
     @Column({ nullable: true })
-    repoTemplate: string;
+    repoTemplateOwner: string;
+    
+    @Column({ nullable: true })
+    repoTemplateName: string;
 
     @Column({default: ""})
     location: string

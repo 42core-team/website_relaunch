@@ -1,3 +1,5 @@
+'use client'
+
 import {
     Table,
     TableHeader,
@@ -5,21 +7,51 @@ import {
     TableColumn,
     TableRow,
     TableCell,
+    Button
 } from "@heroui/react";
 import { title } from '@/components/primitives';
-import { getEvents, Event } from '@/app/actions/event';
+import { getEvents, Event, canUserCreateEvent } from '@/app/actions/event';
 import Link from 'next/link';
 import EventsTable from "@/app/events/EventTable";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default async function EventsPage() {
-    let events: Event[] = [];
-    let error: string | null = null;
+export default function EventsPage() {
+    const { data: session } = useSession();
+    const [events, setEvents] = useState<Event[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const router = useRouter();
 
-    try {
-        events = await getEvents(50);
-    } catch (err) {
-        error = 'Failed to fetch events';
-        console.error('Error fetching events:', err);
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const [fetchedEvents, hasPermission] = await Promise.all([
+                    getEvents(50),
+                    canUserCreateEvent()
+                ]);
+                
+                setEvents(fetchedEvents);
+                setCanCreate(hasPermission);
+            } catch (err) {
+                setError('Failed to fetch events');
+                console.error('Error fetching data:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        
+        fetchData();
+    }, []);
+
+    const handleCreateEvent = () => {
+        router.push('/events/create');
+    };
+
+    if (isLoading) {
+        return <div className="text-center">Loading events...</div>;
     }
 
     if (error) {
@@ -35,6 +67,11 @@ export default async function EventsPage() {
                 <p className="text-lg text-default-600">
                     Discover and join upcoming coding competitions
                 </p>
+                {canCreate && (
+                    <Button color="primary" onPress={handleCreateEvent}>
+                        Create Event
+                    </Button>
+                )}
             </div>
             <div className="mt-8">
                 <EventsTable events={events} />

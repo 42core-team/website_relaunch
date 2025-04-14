@@ -126,15 +126,24 @@ export async function createTeam(name: string, eventId: string, userId: string):
     
     const savedTeam = await teamRepository.save(newTeam);
     
-    const repo = await repositoryApi.createRepo({
-        name: event.name + "-" + savedTeam.name + "-" + savedTeam.id,
-        private: true,
-    }, process.env.NEXT_PUBLIC_GITHUB_ORG || "");
+    // Use event's template if available, otherwise use default template
+    const templateOwner = event.repoTemplateOwner || "42core-team";
+    const templateRepo = event.repoTemplateName || "rush02-development";
 
-    savedTeam.repo = repo.name;
-    await teamRepository.save(savedTeam);
-    await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.username, "pull");
-    await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.githubAccessToken);
+    try {
+        const repo = await repositoryApi.createRepoFromTemplate(templateOwner, templateRepo, {
+            owner: process.env.NEXT_PUBLIC_GITHUB_ORG || "",
+            name: event.name + "-" + savedTeam.name + "-" + savedTeam.id,
+            private: true,
+        });
+
+        savedTeam.repo = repo.name;
+        await teamRepository.save(savedTeam);
+        await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.username, "pull");
+        await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.githubAccessToken);
+    } catch (error) {
+        console.error("Error creating repository from template:", error);
+    }
 
     return {
         id: savedTeam.id,

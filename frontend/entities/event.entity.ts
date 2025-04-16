@@ -2,6 +2,7 @@ import {Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, Prim
 import {TeamEntity} from "./team.entity";
 import { UserEntity } from "./users.entity";
 import { UserEventPermissionEntity } from "./user-event-permission.entity";
+import { EventType } from "@/entities/eventTypes";
 
 export enum EventState{
     TEAM_FINDING = "TEAM_FINDING",
@@ -9,11 +10,6 @@ export enum EventState{
     SWISS_ROUND = "SWISS_ROUND",
     ELIMINATION_ROUND = "ELIMINATION_ROUND",
     FINISHED = "FINISHED"
-}
-
-export enum EventType {
-    REGULAR = "REGULAR",
-    RUSH = "RUSH"
 }
 
 @Entity('events')

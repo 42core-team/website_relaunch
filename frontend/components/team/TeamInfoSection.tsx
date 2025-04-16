@@ -2,7 +2,9 @@ import { useParams } from "next/navigation";
 import { Button, Avatar, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Chip } from "@heroui/react";
 import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getEventById } from "@/app/actions/event";
+import { EventType } from "@/entities/eventTypes";
 
 interface TeamInfoSectionProps {
     myTeam: Team, 
@@ -25,6 +27,22 @@ export const TeamInfoSection = ({
         onClose: onConfirmClose
     } = useDisclosure();
     const [leaveError, setLeaveError] = useState<string | null>(null);
+    const [eventType, setEventType] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        const loadEventType = async () => {
+            const event = await getEventById(eventId);
+            setEventType(event?.event_type);
+        };
+        loadEventType();
+    }, [eventId]);
+
+    const getRepoUrl = () => {
+        const orgName = eventType === "RUSH" 
+            ? process.env.NEXT_PUBLIC_RUSH_ORG 
+            : process.env.NEXT_PUBLIC_GITHUB_ORG;
+        return `https://github.com/${orgName}/${myTeam.repo}`;
+    };
 
     const handleConfirmLeave = async () => {
         setLeaveError(null);
@@ -51,7 +69,7 @@ export const TeamInfoSection = ({
                     <p className="font-medium">
                         {myTeam.repo ? (
                             <a 
-                                href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_ORG}/${myTeam.repo}`}
+                                href={getRepoUrl()}
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-primary hover:underline"

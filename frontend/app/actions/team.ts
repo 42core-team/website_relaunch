@@ -4,7 +4,8 @@ import { ensureDbConnected } from "@/initializer/database";
 import { TeamEntity } from "@/entities/team.entity";
 import { UserEntity } from "@/entities/users.entity";
 import { EventEntity } from "@/entities/event.entity";
-import { repositoryApi, userApi } from "@/initializer/github";
+import { EventType } from "@/entities/eventTypes";
+import { repositoryApi, userApi, rushRepositoryApi, rushUserApi } from "@/initializer/github";
 
 export interface Team {
     id: string;
@@ -131,16 +132,22 @@ export async function createTeam(name: string, eventId: string, userId: string):
     const templateRepo = event.repoTemplateName || "rush02-development";
 
     try {
-        const repo = await repositoryApi.createRepoFromTemplate(templateOwner, templateRepo, {
-            owner: process.env.NEXT_PUBLIC_GITHUB_ORG || "",
+        // Use different repo API and organization based on event type
+        const isRushEvent = event.type === EventType.RUSH;
+        const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
+        const uApi = isRushEvent ? rushUserApi : userApi;
+        const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
+
+        const repo = await repoApi.createRepoFromTemplate(templateOwner, templateRepo, {
+            owner: orgName || "",
             name: event.name + "-" + savedTeam.name + "-" + savedTeam.id,
             private: true,
         });
 
         savedTeam.repo = repo.name;
         await teamRepository.save(savedTeam);
-        await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.username, "pull");
-        await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", repo.name, user.githubAccessToken);
+        await repoApi.addCollaborator(orgName || "", repo.name, user.username, "pull");
+        await uApi.acceptRepositoryInvitationByRepo(orgName || "", repo.name, user.githubAccessToken);
     } catch (error) {
         console.error("Error creating repository from template:", error);
     }
@@ -169,7 +176,7 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         // Find team and user
         const team = await teamRepository.findOne({
             where: { id: teamId },
-            relations: ['users']
+            relations: ['users', 'event']
         });
         
         const user = await userRepository.findOne({ where: { id: userId } });
@@ -184,14 +191,19 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         
         team.users = team.users.filter(u => u.id !== userId);
         
+        // Determine if it's a rush event and select appropriate API and org
+        const isRushEvent = team.event?.type === EventType.RUSH;
+        const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
+        const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
+        
         if (team.users.length === 0) {
             if (team.repo) {
-                await repositoryApi.deleteRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo);
+                await repoApi.deleteRepo(orgName || "", team.repo);
             }
             await teamRepository.remove(team);
         } else {
             if (team.repo) {
-                await repositoryApi.removeCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.username);
+                await repoApi.removeCollaborator(orgName || "", team.repo, user.username);
             }
             await teamRepository.save(team);
         }
@@ -377,7 +389,7 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         
         const team = await teamRepository.findOne({
             where: { id: teamId },
-            relations: ['users', 'teamInvites']
+            relations: ['users', 'teamInvites', 'event']
         });
         
         const user = await userRepository.findOne({
@@ -401,8 +413,14 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
         team.users.push(user);
 
         if (team.repo) {
-            await repositoryApi.addCollaborator(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.username, "pull");
-            await userApi.acceptRepositoryInvitationByRepo(process.env.NEXT_PUBLIC_GITHUB_ORG || "", team.repo, user.githubAccessToken);
+            // Determine if it's a rush event and select appropriate API and org
+            const isRushEvent = team.event?.type === EventType.RUSH;
+            const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
+            const uApi = isRushEvent ? rushUserApi : userApi;
+            const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
+            
+            await repoApi.addCollaborator(orgName || "", team.repo, user.username, "pull");
+            await uApi.acceptRepositoryInvitationByRepo(orgName || "", team.repo, user.githubAccessToken);
         }
         
         await teamRepository.save(team);

@@ -1,7 +1,8 @@
 'use server'
 
 import {ensureDbConnected} from "@/initializer/database";
-import {EventEntity, EventState, EventType} from "@/entities/event.entity";
+import { EventEntity, EventState } from "@/entities/event.entity";
+import { EventType } from "@/entities/eventTypes";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {MatchEntity, MatchPhase, MatchState} from "@/entities/match.entity";

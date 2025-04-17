@@ -451,7 +451,7 @@ interface EventCreateParams {
     minTeamSize: number;
     maxTeamSize: number;
     treeFormat?: number;
-    eventType?: string;
+    eventType: string;
     repoTemplateOwner?: string;
     repoTemplateName?: string;
 }

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Input, Textarea, Card, Select, SelectItem, Chip } from "@heroui/react";
 import { title } from '@/components/primitives';
 import { createEvent, canUserCreateEvent } from "@/app/actions/event";
-import {EventType} from "@/entities/event.entity";
+import { EventType } from "@/entities/eventTypes";
 
 export default function CreateEventPage() {
     const { status } = useSession();
@@ -20,7 +20,7 @@ export default function CreateEventPage() {
     const [minTeamSize, setMinTeamSize] = useState(1);
     const [maxTeamSize, setMaxTeamSize] = useState(4);
     const [treeFormat, setTreeFormat] = useState(16);
-    const [eventType, setEventType] = useState<string>(EventType.REGULAR);
+    const [eventType, setEventType] = useState<string>(EventType.REGULAR.toString());
     const [repoTemplateOwner, setRepoTemplateOwner] = useState("");
     const [repoTemplateName, setRepoTemplateName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +67,7 @@ export default function CreateEventPage() {
                 minTeamSize,
                 maxTeamSize,
                 treeFormat,
-                eventType,
+                eventType: eventType.toString(),
                 repoTemplateOwner: repoTemplateOwner || undefined,
                 repoTemplateName: repoTemplateName || undefined,
             });
@@ -117,7 +117,7 @@ export default function CreateEventPage() {
                         </label>
                         <Select 
                             value={eventType}
-                            onChange={(value) => setEventType(value.toString())}
+                            onChange={(e) => setEventType(e.target.value)}
                             placeholder="Select event type"
                         >
                             <SelectItem key="REGULAR" value="REGULAR">Regular Event</SelectItem>

@@ -11,6 +11,7 @@ import {SingleElimination, Swiss} from "tournament-pairings";
 import {Match, Player} from 'tournament-pairings/interfaces';
 import {getServerSession} from "next-auth/next";
 import {authOptions} from "@/app/utils/authOptions";
+import {UserEventPermissionEntity, PermissionRole} from "@/entities/user-event-permission.entity";
 
 export interface Event {
     id: string;
@@ -462,6 +463,7 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         const dataSource = await ensureDbConnected();
         const eventRepository = dataSource.getRepository(EventEntity);
         const userRepository = dataSource.getRepository(UserEntity);
+        const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
         
         // Get current user from session
         const session = await getServerSession(authOptions);
@@ -535,6 +537,13 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         newEvent.users = [user]; // Add the creator as a user of the event
         
         const savedEvent = await eventRepository.save(newEvent);
+        
+        // Create admin permission for the user creating the event
+        const userPermission = new UserEventPermissionEntity();
+        userPermission.user = user;
+        userPermission.event = savedEvent;
+        userPermission.role = PermissionRole.ADMIN;
+        await permissionRepository.save(userPermission);
         
         // Return the created event
         return {

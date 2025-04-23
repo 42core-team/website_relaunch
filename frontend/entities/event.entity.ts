@@ -3,14 +3,7 @@ import {TeamEntity} from "./team.entity";
 import { UserEntity } from "./users.entity";
 import { UserEventPermissionEntity } from "./user-event-permission.entity";
 import { EventType } from "@/entities/eventTypes";
-
-export enum EventState{
-    TEAM_FINDING = "TEAM_FINDING",
-    CODING_PHASE = "CODING_PHASE",
-    SWISS_ROUND = "SWISS_ROUND",
-    ELIMINATION_ROUND = "ELIMINATION_ROUND",
-    FINISHED = "FINISHED"
-}
+import {EventState} from "@/entities/eventState";
 
 @Entity('events')
 export class EventEntity {

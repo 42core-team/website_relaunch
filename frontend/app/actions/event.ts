@@ -1,7 +1,8 @@
 'use server'
 
 import {ensureDbConnected} from "@/initializer/database";
-import {EventEntity, EventState} from "@/entities/event.entity";
+import {EventEntity} from "@/entities/event.entity";
+import {EventState} from "@/entities/eventState";
 import {EventType} from "@/entities/eventTypes";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
@@ -347,6 +348,10 @@ export async function shouldShowJoinNotice(userId: string, eventId: string): Pro
 export async function isEventAdmin(userId: string, eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();
     const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
+
+    if(!userId || !eventId) {
+        return false;
+    }
 
     return await permissionRepository.existsBy({
         user: {id: userId},

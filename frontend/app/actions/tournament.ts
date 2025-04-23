@@ -1,7 +1,8 @@
 'use server'
 
 import { ensureDbConnected } from "@/initializer/database";
-import { EventEntity, EventState } from "@/entities/event.entity";
+import { EventEntity } from "@/entities/event.entity";
+import {EventState} from "@/entities/eventState";
 import { getMaxSwissRounds, calculateNextGroupPhaseMatches, createSingleEliminationBracket } from "@/app/actions/event";
 import { TeamEntity } from "@/entities/team.entity";
 import { MatchEntity, MatchPhase, MatchState } from "@/entities/match.entity";

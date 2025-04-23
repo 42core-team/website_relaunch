@@ -85,6 +85,77 @@ export async function getTeam(userId: string, eventId: string): Promise<Team | n
   }
 }
 
+export async function lockEvent(eventId: string){
+    try {
+        const dataSource = await ensureDbConnected();
+        const eventRepository = dataSource.getRepository(EventEntity);
+        const event = await eventRepository.findOne({ where: { id: eventId }, relations: {
+            teams: true
+            } });
+
+        if (!event) {
+            throw new Error("Event not found");
+        }
+
+        await Promise.all(event.teams.map(async (team) => lockTeamRepository(team.id)))
+
+        event.locked = true;
+        await eventRepository.save(event);
+    } catch (err) {
+        console.error('Error locking event:', err);
+    }
+}
+
+export async function lockTeamRepository(teamId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+
+        const team = await teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['users', 'event']
+        });
+
+        if (!team) {
+            return { success: false, message: "Team not found" };
+        }
+
+        if (!team.repo) {
+            return { success: false, message: "Team has no repository" };
+        }
+
+        if (team.locked) {
+            return { success: true, message: "Repository is already locked" };
+        }
+
+        // Determine if it's a rush event and select appropriate API
+        const isRushEvent = team.event?.type === EventType.RUSH;
+        const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
+        const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
+
+        // Get all collaborators
+        const collaborators = await repoApi.listCollaborators(orgName || "", team.repo);
+
+        // Set all collaborators to read-only permissions
+        const updatePromises = collaborators
+            .filter(user => user.login !== "github-actions[bot]") // Keep GitHub Actions permissions
+            .map(user =>
+                repoApi.updateCollaboratorPermission(orgName || "", team.repo!, user.login, "pull")
+            );
+
+        await Promise.all(updatePromises);
+
+        // Update team status in database
+        team.locked = true;
+        await teamRepository.save(team);
+
+        return { success: true, message: "Repository locked successfully" };
+    } catch (err) {
+        console.error('Error locking team repository:', err);
+        return { success: false, message: "An error occurred while locking the repository" };
+    }
+}
+
 export async function createTeam(name: string, eventId: string, userId: string): Promise<Team | { error: string }> {
     const existingTeam = await getTeam(userId, eventId);
     if (existingTeam)

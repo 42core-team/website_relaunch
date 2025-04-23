@@ -7,7 +7,6 @@ import ReactFlow, {
     Node,
     Edge,
     Background,
-    MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -116,8 +115,8 @@ export default function GraphView({ matches }: {
                     fitView
                     fitViewOptions={{ padding: 0.3 }}
                     nodesConnectable={false}
-                    minZoom={0.2}
-                    maxZoom={1.5}
+                    minZoom={0.0002}
+                    maxZoom={5.5}
                 >
                     <Background color="#f0f0f0" gap={16} />
                 </ReactFlow>

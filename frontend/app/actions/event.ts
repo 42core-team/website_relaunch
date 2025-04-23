@@ -1,8 +1,8 @@
 'use server'
 
 import {ensureDbConnected} from "@/initializer/database";
-import { EventEntity, EventState } from "@/entities/event.entity";
-import { EventType } from "@/entities/eventTypes";
+import {EventEntity, EventState} from "@/entities/event.entity";
+import {EventType} from "@/entities/eventTypes";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {MatchEntity, MatchPhase, MatchState} from "@/entities/match.entity";
@@ -61,7 +61,7 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     const eventRepository = dataSource.getRepository(EventEntity);
 
     const event = await eventRepository.findOne({
-        where: { id: eventId },
+        where: {id: eventId},
         relations: ['teams']
     });
 
@@ -72,7 +72,7 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         where: {
             phase: MatchPhase.ELIMINATION,
             teams: {
-                event: { id: eventId }
+                event: {id: eventId}
             }
         },
         relations: ['teams', 'winner']
@@ -89,8 +89,8 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
 
         // Get teams ordered by score for seeding
         const teams = await teamsRepository.find({
-            where: { event: { id: eventId } },
-            order: { score: 'DESC'},
+            where: {event: {id: eventId}},
+            order: {score: 'DESC'},
             take: 16
         });
 
@@ -250,7 +250,7 @@ export async function calculateNextGroupPhaseMatches(eventId: string): Promise<b
             }
         }
     })
-    const maxRounds= await getMaxSwissRounds(teams.length)
+    const maxRounds = await getMaxSwissRounds(teams.length)
     if (event.currentRound >= maxRounds)
         return false;
 
@@ -342,6 +342,17 @@ export async function shouldShowJoinNotice(userId: string, eventId: string): Pro
     const isStartDateInFuture = startDate > new Date();
 
     return isStartDateInFuture;
+}
+
+export async function isEventAdmin(userId: string, eventId: string): Promise<boolean> {
+    const dataSource = await ensureDbConnected();
+    const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
+
+    return await permissionRepository.existsBy({
+        user: {id: userId},
+        event: {id: eventId},
+        role: PermissionRole.ADMIN
+    });
 }
 
 // Get all events
@@ -464,56 +475,56 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         const eventRepository = dataSource.getRepository(EventEntity);
         const userRepository = dataSource.getRepository(UserEntity);
         const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
-        
+
         // Get current user from session
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return { error: "User not authenticated" };
+            return {error: "User not authenticated"};
         }
-        
+
         // Check if user has permission to create events
-        const user = await userRepository.findOne({ where: { id: session.user.id } });
+        const user = await userRepository.findOne({where: {id: session.user.id}});
         if (!user || !user.canCreateEvent) {
-            return { error: "You don't have permission to create events" };
+            return {error: "You don't have permission to create events"};
         }
-        
+
         // Validate dates
         const startDate = new Date(eventData.startDate);
         const endDate = new Date(eventData.endDate);
-        
+
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            return { error: "Invalid date format" };
+            return {error: "Invalid date format"};
         }
-        
+
         if (startDate >= endDate) {
-            return { error: "End date must be after start date" };
+            return {error: "End date must be after start date"};
         }
-        
+
         if (startDate < new Date()) {
-            return { error: "Start date cannot be in the past" };
+            return {error: "Start date cannot be in the past"};
         }
-        
+
         // Validate team sizes
         if (eventData.minTeamSize <= 0 || eventData.maxTeamSize <= 0) {
-            return { error: "Team sizes must be positive" };
+            return {error: "Team sizes must be positive"};
         }
-        
+
         if (eventData.minTeamSize > eventData.maxTeamSize) {
-            return { error: "Minimum team size cannot be greater than maximum team size" };
+            return {error: "Minimum team size cannot be greater than maximum team size"};
         }
-        
+
         // Validate tree format
         const treeFormat = eventData.treeFormat || 16;
         if (treeFormat !== 16) {
-            return { error: "Only tournament size of 16 is supported at this time" };
+            return {error: "Only tournament size of 16 is supported at this time"};
         }
-        
+
         // Validate repo template (both owner and name must be provided if either is)
-        if ((eventData.repoTemplateOwner && !eventData.repoTemplateName) || 
+        if ((eventData.repoTemplateOwner && !eventData.repoTemplateName) ||
             (!eventData.repoTemplateOwner && eventData.repoTemplateName)) {
-            return { error: "Both repository template owner and name must be provided" };
+            return {error: "Both repository template owner and name must be provided"};
         }
-        
+
         // Create new event
         const newEvent = new EventEntity();
         newEvent.name = eventData.name;
@@ -527,24 +538,24 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         newEvent.currentRound = 0;
         newEvent.type = eventData.eventType === "RUSH" ? EventType.RUSH : EventType.REGULAR;
         newEvent.treeFormat = treeFormat;
-        
+
         // Set repository template owner and name if provided
         if (eventData.repoTemplateOwner && eventData.repoTemplateName) {
             newEvent.repoTemplateOwner = eventData.repoTemplateOwner;
             newEvent.repoTemplateName = eventData.repoTemplateName;
         }
-        
+
         newEvent.users = [user]; // Add the creator as a user of the event
-        
+
         const savedEvent = await eventRepository.save(newEvent);
-        
+
         // Create admin permission for the user creating the event
         const userPermission = new UserEventPermissionEntity();
         userPermission.user = user;
         userPermission.event = savedEvent;
         userPermission.role = PermissionRole.ADMIN;
         await permissionRepository.save(userPermission);
-        
+
         // Return the created event
         return {
             id: savedEvent.id,
@@ -563,7 +574,7 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         };
     } catch (error) {
         console.error('Error creating event:', error);
-        return { error: "An unexpected error occurred" };
+        return {error: "An unexpected error occurred"};
     }
 }
 
@@ -572,15 +583,15 @@ export async function canUserCreateEvent(): Promise<boolean> {
     try {
         const dataSource = await ensureDbConnected();
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         // Get current user from session
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
             return false;
         }
-        
+
         // Check if user has permission to create events
-        const user = await userRepository.findOne({ where: { id: session.user.id } });
+        const user = await userRepository.findOne({where: {id: session.user.id}});
         return user?.canCreateEvent || false;
     } catch (error) {
         console.error('Error checking event creation permission:', error);

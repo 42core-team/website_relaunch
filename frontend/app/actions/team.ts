@@ -99,8 +99,6 @@ export async function lockEvent(eventId: string){
 
         await Promise.all(event.teams.map(async (team) => lockTeamRepository(team.id)))
 
-        event.locked = true;
-        await eventRepository.save(event);
     } catch (err) {
         console.error('Error locking event:', err);
     }

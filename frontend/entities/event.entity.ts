@@ -1,14 +1,9 @@
 import {Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 import {TeamEntity} from "./team.entity";
 import { UserEntity } from "./users.entity";
-
-export enum EventState{
-    TEAM_FINDING = "TEAM_FINDING",
-    CODING_PHASE = "CODING_PHASE",
-    SWISS_ROUND = "SWISS_ROUND",
-    ELIMINATION_ROUND = "ELIMINATION_ROUND",
-    FINISHED = "FINISHED"
-}
+import { UserEventPermissionEntity } from "./user-event-permission.entity";
+import { EventType } from "@/entities/eventTypes";
+import {EventState} from "@/entities/eventState";
 
 @Entity('events')
 export class EventEntity {
@@ -21,6 +16,15 @@ export class EventEntity {
     @Column({default: ""})
     description: string;
 
+    @Column({type: "enum", enum: EventType, default: EventType.REGULAR})
+    type: EventType;
+
+    @Column({ nullable: true })
+    repoTemplateOwner: string;
+    
+    @Column({ nullable: true })
+    repoTemplateName: string;
+
     @Column({default: ""})
     location: string
 
@@ -30,6 +34,9 @@ export class EventEntity {
     @Column()
     maxTeamSize: number;
 
+    @Column({default: 16})
+    treeFormat: number;
+
     @Column({type: "timestamp"})
     startDate: Date;
 
@@ -38,6 +45,9 @@ export class EventEntity {
 
     @Column({type: "enum", enum: EventState, default: EventState.TEAM_FINDING})
     state: EventState;
+
+    @Column({default: 0})
+    currentRound: number;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -51,4 +61,7 @@ export class EventEntity {
 
     @OneToMany(() => TeamEntity, team => team.event, {onDelete: "CASCADE"})
     teams: TeamEntity[];
+
+    @OneToMany(() => UserEventPermissionEntity, permission => permission.event)
+    permissions: UserEventPermissionEntity[];
 }

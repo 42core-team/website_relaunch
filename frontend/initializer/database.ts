@@ -4,7 +4,7 @@ import {MatchEntity} from "@/entities/match.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {TeamEntity} from "@/entities/team.entity";
 import {EventEntity} from "@/entities/event.entity";
-
+import {UserEventPermissionEntity} from "@/entities/user-event-permission.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -16,29 +16,30 @@ export const AppDataSource = new DataSource({
     schema: process.env.DB_SCHEMA || "public",
     synchronize: true,
     logging: false,
-    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity],
+    entities: [MatchEntity, UserEntity, TeamEntity, EventEntity, UserEventPermissionEntity],
 });
 
-export async function initializeDb() {
-    try {
-        if(AppDataSource.isConnected)
-            return;
-        await AppDataSource.initialize();
-        console.log("Connected to database");
-    } catch (error) {
-        console.error("Error connecting to database:", error);
-        throw error;
+// Use a promise to track initialization status
+let initializationPromise: Promise<DataSource> | null = null;
+
+export async function ensureDbConnected(): Promise<DataSource> {
+    if (AppDataSource.isInitialized) {
+        return AppDataSource;
     }
-}
 
-let initialized = false;
-
-export async function ensureDbConnected() {
-    if (!initialized) {
-        await initializeDb();
-        initialized = true;
+    if (!initializationPromise) {
+        initializationPromise = AppDataSource.initialize()
+            .then(dataSource => {
+                console.log("Connected to database");
+                return dataSource;
+            })
+            .catch(error => {
+                // Reset the promise so initialization can be retried
+                initializationPromise = null;
+                console.error("Error connecting to database:", error);
+                throw error;
+            });
     }
-    return AppDataSource;
-}
 
-ensureDbConnected()
+    return initializationPromise;
+}

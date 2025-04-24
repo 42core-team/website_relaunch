@@ -10,10 +10,15 @@ import {
 } from "typeorm";
 import {TeamEntity} from "@/entities/team.entity";
 
-export enum MatchState{
+export enum MatchState {
     PLANNED = "PLANNED",
-    READY = "READY",
+    READY = "READY", // In progress?
     FINISHED = "FINISHED"
+}
+
+export enum MatchPhase {
+    SWISS = "SWISS",
+    ELIMINATION = "ELIMINATION"
 }
 
 @Entity("matches")
@@ -30,6 +35,9 @@ export class MatchEntity{
     @JoinColumn()
     @OneToOne(() => TeamEntity)
     winner: TeamEntity;
+
+    @Column({type: "enum", enum: MatchPhase, default: MatchPhase.SWISS})
+    phase: MatchPhase;
 
     @ManyToMany(() => TeamEntity, team => team.matches)
     @JoinTable()

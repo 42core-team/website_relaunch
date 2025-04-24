@@ -1,22 +1,30 @@
 'use client';
-import { Link } from "@heroui/react";
-import { usePathname } from "next/navigation";
+import {Link} from "@heroui/react";
+import {usePathname} from "next/navigation";
 
 interface EventNavbarProps {
-    eventId: string;
-    isUserRegistered?: boolean;
+    eventId: string,
+    isUserRegistered?: boolean,
+    isEventAdmin?: boolean
 }
 
-export default function EventNavbar({ eventId, isUserRegistered = false }: EventNavbarProps) {
+export default function EventNavbar({eventId, isUserRegistered = false, isEventAdmin = false}: EventNavbarProps) {
     const pathname = usePathname();
-    
-    const navItems = [
-        { name: 'Info', path: `/events/${eventId}` },
-        ...(isUserRegistered ? [{ name: 'My Team', path: `/events/${eventId}/my-team` }] : []),
-        { name: 'Teams', path: `/events/${eventId}/teams` },
-        { name: 'Group Phase', path: `/events/${eventId}/groups` },
-        { name: 'Tournament Tree', path: `/events/${eventId}/bracket` },
+
+    let navItems = [
+        {name: 'Info', path: `/events/${eventId}`},
+        ...(isUserRegistered ? [{name: 'My Team', path: `/events/${eventId}/my-team`}] : []),
+        {name: 'Teams', path: `/events/${eventId}/teams`},
+        {name: 'Group Phase', path: `/events/${eventId}/groups`},
+        {name: 'Tournament Tree', path: `/events/${eventId}/bracket`},
     ];
+
+    if(isEventAdmin) {
+        navItems = [
+            ...navItems,
+            {name: 'Dashboard', path: `/events/${eventId}/dashboard`},
+        ];
+    }
 
     return (
         <div className="w-full border-t border-divider">
@@ -26,8 +34,8 @@ export default function EventNavbar({ eventId, isUserRegistered = false }: Event
                         key={item.path}
                         href={item.path}
                         className={`text-base hover:text-primary transition-colors ${
-                            pathname === item.path 
-                                ? 'text-primary font-medium border-b-2 border-primary pb-1' 
+                            pathname === item.path
+                                ? 'text-primary font-medium border-b-2 border-primary pb-1'
                                 : 'text-foreground-500'
                         }`}
                     >

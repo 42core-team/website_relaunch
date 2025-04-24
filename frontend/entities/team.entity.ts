@@ -28,6 +28,9 @@ export class TeamEntity {
     @Column({default: 0})
     score: number
 
+    @Column({nullable: true})
+    buchholzPoints: number
+
     @ManyToOne(() => EventEntity, event => event.teams)
     event: EventEntity
 
@@ -37,6 +40,9 @@ export class TeamEntity {
 
     @ManyToMany(() => MatchEntity, match => match.teams)
     matches: MatchEntity[]
+
+    @Column({default: false})
+    hadBye: boolean
 
     @JoinTable()
     @ManyToMany(() => UserEntity, user => user.teamInvites)

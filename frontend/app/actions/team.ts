@@ -390,7 +390,11 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
 
         const user = await userRepository.findOne({
             where: {id: userId},
-            relations: ['teams']
+            relations: {
+                teams: {
+                    event: true
+                }
+            }
         });
 
         if (!team || !user) {

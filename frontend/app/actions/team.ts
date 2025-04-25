@@ -1,11 +1,14 @@
 'use server'
 
-import { ensureDbConnected } from "@/initializer/database";
-import { TeamEntity } from "@/entities/team.entity";
-import { UserEntity } from "@/entities/users.entity";
-import { EventEntity } from "@/entities/event.entity";
-import { EventType } from "@/entities/eventTypes";
-import { repositoryApi, userApi, rushRepositoryApi, rushUserApi } from "@/initializer/github";
+import {ensureDbConnected} from "@/initializer/database";
+import {TeamEntity} from "@/entities/team.entity";
+import {UserEntity} from "@/entities/users.entity";
+import {EventEntity} from "@/entities/event.entity";
+import {EventType} from "@/entities/eventTypes";
+import {repositoryApi, userApi, rushRepositoryApi, rushUserApi} from "@/initializer/github";
+import {getServerSession} from "next-auth/next";
+import {authOptions} from "@/app/utils/authOptions";
+import {isEventAdmin} from "@/app/actions/event";
 
 export interface Team {
     id: string;
@@ -45,7 +48,7 @@ export interface TeamInviteWithDetails {
 export async function getTeamById(teamId: string): Promise<Team | null> {
     const dataSource = await ensureDbConnected();
     const teamRepository = dataSource.getRepository(TeamEntity);
-    const team = await teamRepository.findOne({ where: { id: teamId } });
+    const team = await teamRepository.findOne({where: {id: teamId}});
     return team ? {
         id: team.id,
         name: team.name,
@@ -57,41 +60,48 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
 }
 
 export async function getTeam(userId: string, eventId: string): Promise<Team | null> {
-  try {
-    const dataSource = await ensureDbConnected();
-    const teamRepository = dataSource.getRepository(TeamEntity);
-    
-    const team = await teamRepository
-        .createQueryBuilder('team')
-        .innerJoin('team.users', 'user')
-        .innerJoin('team.event', 'event')
-        .where('user.id = :userId', { userId })
-        .andWhere('event.id = :eventId', { eventId })
-        .getOne();
-    
-    if (!team) return null;
-    
-    return {
-      id: team.id,
-      name: team.name,
-      repo: team.repo || '',
-      locked: team.locked,
-      createdAt: team.createdAt,
-      updatedAt: team.updatedAt
-    };
-  } catch (err) {
-    console.error('Error getting team:', err);
-    return null;
-  }
+    try {
+        const dataSource = await ensureDbConnected();
+        const teamRepository = dataSource.getRepository(TeamEntity);
+
+        const team = await teamRepository
+            .createQueryBuilder('team')
+            .innerJoin('team.users', 'user')
+            .innerJoin('team.event', 'event')
+            .where('user.id = :userId', {userId})
+            .andWhere('event.id = :eventId', {eventId})
+            .getOne();
+
+        if (!team) return null;
+
+        return {
+            id: team.id,
+            name: team.name,
+            repo: team.repo || '',
+            locked: team.locked,
+            createdAt: team.createdAt,
+            updatedAt: team.updatedAt
+        };
+    } catch (err) {
+        console.error('Error getting team:', err);
+        return null;
+    }
 }
 
-export async function lockEvent(eventId: string){
+export async function lockEvent(eventId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !await isEventAdmin(session.user.id, eventId)) {
+        return {error: "User not authenticated"};
+    }
+
     try {
         const dataSource = await ensureDbConnected();
         const eventRepository = dataSource.getRepository(EventEntity);
-        const event = await eventRepository.findOne({ where: { id: eventId }, relations: {
-            teams: true
-            } });
+        const event = await eventRepository.findOne({
+            where: {id: eventId}, relations: {
+                teams: true
+            }
+        });
 
         if (!event) {
             throw new Error("Event not found");
@@ -104,26 +114,26 @@ export async function lockEvent(eventId: string){
     }
 }
 
-export async function lockTeamRepository(teamId: string): Promise<{ success: boolean; message?: string }> {
+async function lockTeamRepository(teamId: string): Promise<{ success: boolean; message?: string }> {
     try {
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
 
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['users', 'event']
         });
 
         if (!team) {
-            return { success: false, message: "Team not found" };
+            return {success: false, message: "Team not found"};
         }
 
         if (!team.repo) {
-            return { success: false, message: "Team has no repository" };
+            return {success: false, message: "Team has no repository"};
         }
 
         if (team.locked) {
-            return { success: true, message: "Repository is already locked" };
+            return {success: true, message: "Repository is already locked"};
         }
 
         // Determine if it's a rush event and select appropriate API
@@ -147,10 +157,10 @@ export async function lockTeamRepository(teamId: string): Promise<{ success: boo
         team.locked = true;
         await teamRepository.save(team);
 
-        return { success: true, message: "Repository locked successfully" };
+        return {success: true, message: "Repository locked successfully"};
     } catch (err) {
         console.error('Error locking team repository:', err);
-        return { success: false, message: "An error occurred while locking the repository" };
+        return {success: false, message: "An error occurred while locking the repository"};
     }
 }
 
@@ -158,44 +168,44 @@ export async function createTeam(name: string, eventId: string, userId: string):
     const existingTeam = await getTeam(userId, eventId);
     if (existingTeam)
         return existingTeam;
-    
+
     const dataSource = await ensureDbConnected();
     const teamRepository = dataSource.getRepository(TeamEntity);
     const userRepository = dataSource.getRepository(UserEntity);
     const eventRepository = dataSource.getRepository(EventEntity);
-    
+
     // Get user and event entities
-    const user = await userRepository.findOne({ where: { id: userId } });
-    const event = await eventRepository.findOne({ where: { id: eventId } });
-    
+    const user = await userRepository.findOne({where: {id: userId}});
+    const event = await eventRepository.findOne({where: {id: eventId}});
+
     if (!user || !event) {
         throw new Error("User or event not found");
     }
-    
+
     // Check if a team with the same name (case insensitive) exists for this event
     const teamsInEvent = await teamRepository
         .createQueryBuilder('team')
         .innerJoin('team.event', 'event')
-        .where('event.id = :eventId', { eventId })
+        .where('event.id = :eventId', {eventId})
         .getMany();
-    
+
     const teamNameExists = teamsInEvent.some(
         team => team.name.toLowerCase() === name.toLowerCase()
     );
-    
+
     if (teamNameExists) {
-        return { error: `A team with the name "${name}" already exists for this event.` };
+        return {error: `A team with the name "${name}" already exists for this event.`};
     }
-    
+
     // Create new team
     const newTeam = teamRepository.create({
         name,
         event,
         users: [user]
     });
-    
+
     const savedTeam = await teamRepository.save(newTeam);
-    
+
     // Use event's template if available, otherwise use default template
     const templateOwner = event.repoTemplateOwner || "42core-team";
     const templateRepo = event.repoTemplateName || "rush02-development";
@@ -241,30 +251,30 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         // Find team and user
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['users', 'event']
         });
-        
-        const user = await userRepository.findOne({ where: { id: userId } });
-        
+
+        const user = await userRepository.findOne({where: {id: userId}});
+
         if (!team || !user) {
             return false;
         }
-        
+
         if (team.locked) {
             return false;
         }
-        
+
         team.users = team.users.filter(u => u.id !== userId);
-        
+
         // Determine if it's a rush event and select appropriate API and org
         const isRushEvent = team.event?.type === EventType.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
-        
+
         if (team.users.length === 0) {
             if (team.repo) {
                 await repoApi.deleteRepo(orgName || "", team.repo);
@@ -276,7 +286,7 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
             }
             await teamRepository.save(team);
         }
-        
+
         return true;
     } catch (err) {
         console.error('Error leaving team:', err);
@@ -293,16 +303,16 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
     try {
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
-        
+
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['users']
         });
-        
+
         if (!team || !team.users || team.users.length === 0) {
             return [];
         }
-        
+
         return team.users.map(user => ({
             id: user.id,
             name: user.name,
@@ -327,26 +337,26 @@ export async function searchUsersForInvite(teamId: string, eventId: string, sear
         const dataSource = await ensureDbConnected();
         const userRepository = dataSource.getRepository(UserEntity);
         const teamRepository = dataSource.getRepository(TeamEntity);
-        
+
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['teamInvites', 'users']
         });
-        
+
         if (!team) {
             throw new Error("Team not found");
         }
-        
+
         const users = await userRepository.createQueryBuilder('user')
-            .innerJoin('user.events', 'event', 'event.id = :eventId', { eventId })
-            .where('user.name ILIKE :query OR user.username ILIKE :query', { query: `%${searchQuery}%` })
+            .innerJoin('user.events', 'event', 'event.id = :eventId', {eventId})
+            .where('user.name ILIKE :query OR user.username ILIKE :query', {query: `%${searchQuery}%`})
             .getMany();
-        
+
         const teamUserIds = team.users.map(u => u.id);
         const invitedUserIds = team.teamInvites.map(u => u.id);
-        
+
         const filteredUsers = users.filter(user => !teamUserIds.includes(user.id));
-        
+
         // Return users with isInvited flag set for those who already have invites
         return filteredUsers.map(user => ({
             id: user.id,
@@ -372,40 +382,40 @@ export async function sendTeamInvite(teamId: string, userId: string): Promise<bo
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['teamInvites', 'event', 'users']
         });
-        
+
         const user = await userRepository.findOne({
-            where: { id: userId },
+            where: {id: userId},
             relations: ['teams']
         });
-        
+
         if (!team || !user) {
             return false;
         }
-        
+
         if (team.locked) {
             return false;
         }
-        
+
         if (team.users.some(u => u.id === userId)) {
             return false;
         }
-        
+
         if (team.teamInvites.some(u => u.id === userId)) {
             return false;
         }
-        
+
         if (user.teams.some(t => t.event.id === team.event.id)) {
             return false;
         }
-        
+
         team.teamInvites.push(user);
         await teamRepository.save(team);
-        
+
         return true;
     } catch (err) {
         console.error('Error sending team invite:', err);
@@ -422,16 +432,16 @@ export async function getUserPendingInvites(userId: string): Promise<TeamInviteW
     try {
         const dataSource = await ensureDbConnected();
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         const user = await userRepository.findOne({
-            where: { id: userId },
+            where: {id: userId},
             relations: ['teamInvites']
         });
-        
+
         if (!user || !user.teamInvites || user.teamInvites.length === 0) {
             return [];
         }
-        
+
         return user.teamInvites.map(team => ({
             id: team.id,
             teamId: team.id,
@@ -450,34 +460,37 @@ export async function getUserPendingInvites(userId: string): Promise<TeamInviteW
  * @param userId ID of the user accepting the invite
  * @returns Object with success status and optional message
  */
-export async function acceptTeamInvite(teamId: string, userId: string): Promise<{ success: boolean, message?: string }> {
+export async function acceptTeamInvite(teamId: string, userId: string): Promise<{
+    success: boolean,
+    message?: string
+}> {
     try {
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['users', 'teamInvites', 'event']
         });
-        
+
         const user = await userRepository.findOne({
-            where: { id: userId },
+            where: {id: userId},
             relations: ['teams']
         });
-        
+
         if (!team || !user) {
-            return { success: false, message: "Team or user not found" };
+            return {success: false, message: "Team or user not found"};
         }
-        
+
         if (team.locked) {
-            return { success: false, message: "This team is locked and not accepting new members" };
+            return {success: false, message: "This team is locked and not accepting new members"};
         }
-        
+
         if (user.teams.some(t => t.event.id === team.event.id)) {
-            return { success: false, message: "You are already in a team for this event" };
+            return {success: false, message: "You are already in a team for this event"};
         }
-        
+
         team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
         team.users.push(user);
 
@@ -487,17 +500,17 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
             const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
             const uApi = isRushEvent ? rushUserApi : userApi;
             const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
-            
+
             await repoApi.addCollaborator(orgName || "", team.repo, user.username, "pull");
             await uApi.acceptRepositoryInvitationByRepo(orgName || "", team.repo, user.githubAccessToken);
         }
-        
+
         await teamRepository.save(team);
-        
-        return { success: true };
+
+        return {success: true};
     } catch (err) {
         console.error('Error accepting team invite:', err);
-        return { success: false, message: "An error occurred while accepting the invite" };
+        return {success: false, message: "An error occurred while accepting the invite"};
     }
 }
 
@@ -507,33 +520,36 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
  * @param userId ID of the user declining the invite
  * @returns Object with success status and optional message
  */
-export async function declineTeamInvite(teamId: string, userId: string): Promise<{ success: boolean, message?: string }> {
+export async function declineTeamInvite(teamId: string, userId: string): Promise<{
+    success: boolean,
+    message?: string
+}> {
     try {
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
         const userRepository = dataSource.getRepository(UserEntity);
-        
+
         const team = await teamRepository.findOne({
-            where: { id: teamId },
+            where: {id: teamId},
             relations: ['teamInvites']
         });
-        
+
         const user = await userRepository.findOne({
-            where: { id: userId }
+            where: {id: userId}
         });
-        
+
         if (!team || !user) {
-            return { success: false, message: "Team or user not found" };
+            return {success: false, message: "Team or user not found"};
         }
-        
+
         team.teamInvites = team.teamInvites.filter(u => u.id !== userId);
-        
+
         await teamRepository.save(team);
-        
-        return { success: true };
+
+        return {success: true};
     } catch (err) {
         console.error('Error declining team invite:', err);
-        return { success: false, message: "An error occurred while declining the invite" };
+        return {success: false, message: "An error occurred while declining the invite"};
     }
 }
 
@@ -546,14 +562,14 @@ export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
     try {
         const dataSource = await ensureDbConnected();
         const teamRepository = dataSource.getRepository(TeamEntity);
-        
+
         const teams = await teamRepository
             .createQueryBuilder('team')
             .innerJoin('team.event', 'event')
             .leftJoinAndSelect('team.users', 'users')
-            .where('event.id = :eventId', { eventId })
+            .where('event.id = :eventId', {eventId})
             .getMany();
-        
+
         return teams.map(team => ({
             id: team.id,
             name: team.name,

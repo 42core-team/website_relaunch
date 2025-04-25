@@ -49,7 +49,7 @@ export class GitHubApiClient {
         });
 
         // Handle rate limiting
-        if (response.status === 403 || response.status === 429) {
+        if ((response.status === 403 || response.status === 429) && this.isRateLimited(response.headers)) {
           const resetTime = this.getRateLimitResetTime(response.headers);
           const waitTime = this.calculateWaitTime(resetTime);
           

@@ -314,19 +314,12 @@ export async function isUserRegisteredForEvent(userId: string, eventId: string):
     const dataSource = await ensureDbConnected();
     const userRepository = dataSource.getRepository(UserEntity);
 
-    // Check if user is directly linked to the event
-    const userPartOfEvent = await userRepository
-        .createQueryBuilder('user')
-        .innerJoin('user.events', 'event')
-        .where('user.id = :userId', {userId})
-        .andWhere('event.id = :eventId', {eventId})
-        .getOne();
-
-    if (userPartOfEvent) {
-        return true;
-    }
-
-    return false;
+    return userRepository.existsBy({
+        id: userId,
+        events: {
+            id: eventId
+        }
+    });
 }
 
 export async function shouldShowJoinNotice(userId: string, eventId: string): Promise<boolean> {
@@ -349,7 +342,7 @@ export async function isEventAdmin(userId: string, eventId: string): Promise<boo
     const dataSource = await ensureDbConnected();
     const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
 
-    if(!userId || !eventId) {
+    if (!userId || !eventId) {
         return false;
     }
 

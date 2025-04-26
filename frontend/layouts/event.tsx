@@ -4,6 +4,7 @@ import React from "react";
 import {getEventById, isEventAdmin, isUserRegisteredForEvent, shouldShowJoinNotice} from "@/app/actions/event";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/utils/authOptions";
+import {EventType} from "@/entities/eventTypes";
 
 export default async function EventLayout({
                                               children,
@@ -33,13 +34,20 @@ export default async function EventLayout({
     if (!event) {
         return <div>Event not found</div>;
     }
+    
+    const isRushEvent = event.event_type === EventType.RUSH;
 
     return (
         <div className="relative flex flex-col h-screen">
             {showJoinNotice && userId && (
                 <EventJoinNotice eventId={eventId} userId={userId}/>
             )}
-            <EventNavbar eventId={eventId} isUserRegistered={isUserRegistered} isEventAdmin={isEventAdminState}/>
+            <EventNavbar 
+                eventId={eventId} 
+                isUserRegistered={isUserRegistered} 
+                isEventAdmin={isEventAdminState}
+                isRushEvent={isRushEvent}
+            />
             <main className="container mx-auto max-w-7xl px-6 flex-grow">
                 {children}
             </main>

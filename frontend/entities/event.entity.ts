@@ -55,7 +55,7 @@ export class EventEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @JoinTable()
+    @JoinTable({name: 'events_users'})
     @ManyToMany(() => UserEntity, user => user.events)
     users: UserEntity[];
 

@@ -40,7 +40,7 @@ export class MatchEntity{
     phase: MatchPhase;
 
     @ManyToMany(() => TeamEntity, team => team.matches)
-    @JoinTable()
+    @JoinTable({name: 'matches_teams'})
     teams: TeamEntity[];
 
     @CreateDateColumn()

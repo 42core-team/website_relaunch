@@ -34,7 +34,7 @@ export class TeamEntity {
     @ManyToOne(() => EventEntity, event => event.teams)
     event: EventEntity
 
-    @JoinTable()
+    @JoinTable({name: 'teams_users'})
     @ManyToMany(() => UserEntity, user => user.teams)
     users: UserEntity[]
 
@@ -44,7 +44,7 @@ export class TeamEntity {
     @Column({default: false})
     hadBye: boolean
 
-    @JoinTable()
+    @JoinTable({name: 'teams_invites_users'})
     @ManyToMany(() => UserEntity, user => user.teamInvites)
     teamInvites: UserEntity[]
 

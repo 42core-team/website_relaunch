@@ -4,7 +4,7 @@ import {motion} from "framer-motion";
 import {Link} from "@heroui/link";
 import {button as buttonStyles} from "@heroui/theme";
 
-import {GithubIcon} from "@/components/icons";
+import {GithubIcon, WikiIcon} from "@/components/icons";
 import {CoreLogoWhite} from "../components/social";
 
 export default function IndexPage() {
@@ -30,6 +30,7 @@ export default function IndexPage() {
                         })}
                         href="https://wiki.coregame.de"
                     >
+                        <WikiIcon size={20}/>
                         Documentation
                     </Link>
                     <Link

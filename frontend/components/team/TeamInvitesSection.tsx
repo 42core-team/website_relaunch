@@ -1,30 +1,30 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@heroui/react";
-import { useSession } from "next-auth/react";
-import { 
-    TeamInviteWithDetails, 
-    getUserPendingInvites, 
-    acceptTeamInvite, 
-    declineTeamInvite 
+import {useState, useEffect} from "react";
+import {useRouter} from "next/navigation";
+import {Button} from "@heroui/react";
+import {useSession} from "next-auth/react";
+import {
+    TeamInviteWithDetails,
+    getUserPendingInvites,
+    acceptTeamInvite,
+    declineTeamInvite
 } from "@/app/actions/team";
 
 export const TeamInvitesSection = () => {
     const [invites, setInvites] = useState<TeamInviteWithDetails[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [actionStates, setActionStates] = useState<Record<string, { isAccepting: boolean, isDeclining: boolean, message?: string }>>({});
-    const { data: session } = useSession();
+    const [actionStates, setActionStates] = useState<Record<string, {
+        isAccepting: boolean,
+        isDeclining: boolean,
+        message?: string
+    }>>({});
+    const {data: session} = useSession();
     const router = useRouter();
 
     useEffect(() => {
-        async function fetchInvites() {
-            if (!session?.user?.id) {
-                console.error("User not authenticated");
-                setIsLoading(false);
-                return;
-            }
 
+        async function fetchInvites() {
             try {
+                // @ts-ignore
                 const userInvites = await getUserPendingInvites(session.user.id);
                 setInvites(userInvites);
             } catch (error) {
@@ -34,7 +34,10 @@ export const TeamInvitesSection = () => {
             }
         }
 
-        fetchInvites();
+        if (session?.user?.id){
+            setIsLoading(true)
+            fetchInvites().finally(() => setIsLoading(false));
+        }
     }, [session]);
 
     const handleAcceptInvite = async (teamId: string) => {
@@ -45,25 +48,25 @@ export const TeamInvitesSection = () => {
 
         setActionStates(prev => ({
             ...prev,
-            [teamId]: { ...prev[teamId], isAccepting: true, message: undefined }
+            [teamId]: {...prev[teamId], isAccepting: true, message: undefined}
         }));
 
         try {
             const result = await acceptTeamInvite(teamId, session.user.id);
-            
+
             if (result.success) {
                 // Remove from invites list if accepted
                 setInvites(prev => prev.filter(invite => invite.teamId !== teamId));
-                
+
                 window.location.reload();
             } else {
                 // Show error message
                 setActionStates(prev => ({
                     ...prev,
-                    [teamId]: { 
-                        ...prev[teamId], 
-                        isAccepting: false, 
-                        message: result.message 
+                    [teamId]: {
+                        ...prev[teamId],
+                        isAccepting: false,
+                        message: result.message
                     }
                 }));
             }
@@ -71,10 +74,10 @@ export const TeamInvitesSection = () => {
             console.error("Error accepting invite:", error);
             setActionStates(prev => ({
                 ...prev,
-                [teamId]: { 
-                    ...prev[teamId], 
-                    isAccepting: false, 
-                    message: "An error occurred" 
+                [teamId]: {
+                    ...prev[teamId],
+                    isAccepting: false,
+                    message: "An error occurred"
                 }
             }));
         }
@@ -88,12 +91,12 @@ export const TeamInvitesSection = () => {
 
         setActionStates(prev => ({
             ...prev,
-            [teamId]: { ...prev[teamId], isDeclining: true, message: undefined }
+            [teamId]: {...prev[teamId], isDeclining: true, message: undefined}
         }));
 
         try {
             const result = await declineTeamInvite(teamId, session.user.id);
-            
+
             if (result.success) {
                 // Remove from invites list
                 setInvites(prev => prev.filter(invite => invite.teamId !== teamId));
@@ -101,10 +104,10 @@ export const TeamInvitesSection = () => {
                 // Show error message
                 setActionStates(prev => ({
                     ...prev,
-                    [teamId]: { 
-                        ...prev[teamId], 
-                        isDeclining: false, 
-                        message: result.message 
+                    [teamId]: {
+                        ...prev[teamId],
+                        isDeclining: false,
+                        message: result.message
                     }
                 }));
             }
@@ -112,10 +115,10 @@ export const TeamInvitesSection = () => {
             console.error("Error declining invite:", error);
             setActionStates(prev => ({
                 ...prev,
-                [teamId]: { 
-                    ...prev[teamId], 
-                    isDeclining: false, 
-                    message: "An error occurred" 
+                [teamId]: {
+                    ...prev[teamId],
+                    isDeclining: false,
+                    message: "An error occurred"
                 }
             }));
         }

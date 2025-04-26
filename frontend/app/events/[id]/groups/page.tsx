@@ -2,10 +2,22 @@ import GraphView from "@/app/events/[id]/groups/graphView";
 import Actions from "@/app/events/[id]/groups/actions";
 import {ensureDbConnected} from "@/initializer/database";
 import {MatchEntity, MatchPhase} from "@/entities/match.entity";
+import { notFound } from 'next/navigation';
+import { EventEntity } from "@/entities/event.entity";
+import { EventType } from "@/entities/eventTypes";
 
 export default async function page({ params }: { params: Promise<{ id: string }> }){
     const connection = await ensureDbConnected();
     const eventId = (await params).id;
+    
+    const event = await connection.getRepository(EventEntity).findOne({
+        where: { id: eventId }
+    });
+    
+    if (event?.type === EventType.RUSH) {
+        return notFound();
+    }
+    
     const matches = await connection.getRepository(MatchEntity).find({
         where: {
             phase: MatchPhase.SWISS,

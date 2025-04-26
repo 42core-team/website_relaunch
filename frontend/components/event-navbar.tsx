@@ -5,19 +5,26 @@ import {usePathname} from "next/navigation";
 interface EventNavbarProps {
     eventId: string,
     isUserRegistered?: boolean,
-    isEventAdmin?: boolean
+    isEventAdmin?: boolean,
+    isRushEvent?: boolean
 }
 
-export default function EventNavbar({eventId, isUserRegistered = false, isEventAdmin = false}: EventNavbarProps) {
+export default function EventNavbar({eventId, isUserRegistered = false, isEventAdmin = false, isRushEvent = false}: EventNavbarProps) {
     const pathname = usePathname();
 
     let navItems = [
         {name: 'Info', path: `/events/${eventId}`},
         ...(isUserRegistered ? [{name: 'My Team', path: `/events/${eventId}/my-team`}] : []),
         {name: 'Teams', path: `/events/${eventId}/teams`},
-        {name: 'Group Phase', path: `/events/${eventId}/groups`},
-        {name: 'Tournament Tree', path: `/events/${eventId}/bracket`},
     ];
+    
+    if (!isRushEvent) {
+        navItems = [
+            ...navItems,
+            {name: 'Group Phase', path: `/events/${eventId}/groups`},
+            {name: 'Tournament Tree', path: `/events/${eventId}/bracket`},
+        ];
+    }
 
     if(isEventAdmin) {
         navItems = [

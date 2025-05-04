@@ -29,8 +29,9 @@ export async function ensureDbConnected(): Promise<DataSource> {
 
     if (!initializationPromise) {
         initializationPromise = AppDataSource.initialize()
-            .then(dataSource => {
+            .then(async dataSource => {
                 console.log("Connected to database");
+                await AppDataSource.runMigrations();
                 return dataSource;
             })
             .catch(error => {

@@ -1,18 +1,11 @@
 'use server'
 
-import {ensureDbConnected} from "@/initializer/database";
-import {EventEntity} from "@/entities/event.entity";
-import {EventState} from "@/entities/eventState";
-import {EventType} from "@/entities/eventTypes";
-import {UserEntity} from "@/entities/users.entity";
-import {TeamEntity} from "@/entities/team.entity";
-import {MatchEntity, MatchPhase, MatchState} from "@/entities/match.entity";
 import {SingleElimination, Swiss} from "tournament-pairings";
 // @ts-ignore
 import {Match, Player} from 'tournament-pairings/interfaces';
 import {getServerSession} from "next-auth/next";
 import {authOptions} from "@/app/utils/authOptions";
-import {UserEventPermissionEntity, PermissionRole} from "@/entities/user-event-permission.entity";
+import { prisma } from "@/initializer/database";
 
 export interface Event {
     id: string;
@@ -31,23 +24,21 @@ export interface Event {
 }
 
 export async function getTeamsToAvoid(teamId: string): Promise<string[]> {
-    const dataSource = await ensureDbConnected();
-    const matchRepository = dataSource.getRepository(MatchEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const pastMatches = await matchRepository.find({
+    const pastMatches = await prisma.matches.findMany({
         where: {
             teams: {
                 id: teamId
             }
         },
-        relations: {
+        include: {
             teams: true
         }
-    })
+    });
 
-    const pastOpponents = pastMatches.map(p => p.teams.map(t => t.id)).flat();
-    return pastOpponents.filter(id => id !== teamId);
+    //ToDo:
+    // const pastOpponents = pastMatches.map(p => p.teams?.map(t => t.id)).flat();
+    // return pastOpponents.filter(id => id !== teamId);
+    return [];
 }
 
 export async function getMaxSwissRounds(teams: number): Promise<number> {
@@ -56,14 +47,11 @@ export async function getMaxSwissRounds(teams: number): Promise<number> {
 
 // To be deprecated
 export async function createSingleEliminationBracket(eventId: string): Promise<boolean> {
-    const dataSource = await ensureDbConnected();
-    const teamsRepository = dataSource.getRepository(TeamEntity);
-    const matchRepository = dataSource.getRepository(MatchEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const event = await eventRepository.findOne({
+    const event = await prisma.events.findFirst({
         where: {id: eventId},
-        relations: ['teams']
+        include: {
+            teams: true,
+        },
     });
 
     if (!event) return false;
@@ -595,4 +583,4 @@ export async function canUserCreateEvent(): Promise<boolean> {
         console.error('Error checking event creation permission:', error);
         return false;
     }
-} 
+}

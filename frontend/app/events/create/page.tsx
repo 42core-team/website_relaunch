@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -126,12 +126,8 @@ export default function CreateEventPage() {
               onChange={(e) => setEventType(e.target.value)}
               placeholder="Select event type"
             >
-              <SelectItem key="REGULAR" value="REGULAR">
-                Regular Event
-              </SelectItem>
-              <SelectItem key="RUSH" value="RUSH">
-                Rush Event
-              </SelectItem>
+              <SelectItem key="REGULAR">Regular Event</SelectItem>
+              <SelectItem key="RUSH">Rush Event</SelectItem>
             </Select>
           </div>
 
@@ -220,9 +216,7 @@ export default function CreateEventPage() {
               placeholder="Select tournament size"
               disableAnimation
             >
-              <SelectItem key="16" value="16">
-                16 Teams
-              </SelectItem>
+              <SelectItem key="16">16 Teams</SelectItem>
             </Select>
           </div>
 

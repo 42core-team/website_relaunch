@@ -19,7 +19,6 @@
     ]
   },
   "dependencies": {
-    "@auth/core": "^0.39.0",
     "@heroui/button": "2.2.9",
     "@heroui/code": "2.2.6",
     "@heroui/input": "2.4.9",
@@ -36,13 +35,10 @@
     "@react-aria/visually-hidden": "3.8.18",
     "clsx": "2.1.1",
     "framer-motion": "^11.13.1",
-    "intl-messageformat": "^10.5.0",
     "next": "^15.1.6",
     "next-auth": "^4.24.7",
     "next-themes": "^0.4.4",
-    "pg": "^8.13.3",
     "react": "18.3.1",
-    "react-dom": "18.3.1",
     "reactflow": "^11.11.4",
     "tournament-pairings": "^1.7.0"
   },
@@ -50,7 +46,6 @@
     "@iconify/react": "^5.2.0",
     "@types/node": "20.5.7",
     "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
     "autoprefixer": "10.4.19",
     "husky": "^8.0.0",
     "lint-staged": "^15.5.2",

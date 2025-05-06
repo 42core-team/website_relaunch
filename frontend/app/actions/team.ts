@@ -262,18 +262,20 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
             return false;
         }
 
-        const updatedMembers = team.members.filter(member => member.usersId !== userId);
-
         // Determine if it's a rush event and select appropriate API and org
         const isRushEvent = team.event?.type === events_type_enum.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
 
-        if (team.members.length === 0) {
+        if (team.members.length <= 1) {
             if (team.repo) {
                 await repoApi.deleteRepo(orgName || "", team.repo);
             }
-            await prisma.team.delete({ where: { id: teamId } });
+            await prisma.team.delete(
+                {
+                    where: { id: teamId },
+                }
+            );
         } else {
             if (team.repo) {
                 await repoApi.removeCollaborator(orgName || "", team.repo, user.username);

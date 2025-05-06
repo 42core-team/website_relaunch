@@ -54,8 +54,8 @@ model EventUser {
   eventsId String
   usersId  String
 
-  event Event @relation(fields: [eventsId], references: [id])
-  user  User  @relation(fields: [usersId], references: [id])
+  event Event @relation(fields: [eventsId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [usersId], references: [id], onDelete: Cascade)
 
   @@id([eventsId, usersId])
 }
@@ -79,8 +79,8 @@ model MatchesTeams {
   matchesId String
   teamsId   String
 
-  match Match @relation(fields: [matchesId], references: [id])
-  team  Team  @relation(fields: [teamsId], references: [id])
+  match Match @relation(fields: [matchesId], references: [id], onDelete: Cascade)
+  team  Team  @relation(fields: [teamsId], references: [id], onDelete: Cascade)
 
   @@id([matchesId, teamsId])
 }
@@ -97,7 +97,7 @@ model Team {
   buchholzPoints Int
   hadBye         Boolean
 
-  event      Event            @relation(fields: [eventId], references: [id])
+  event      Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   invites    TeamInviteUser[]
   members    TeamUser[]
   matchWins  Match[]          @relation("MatchWinner")
@@ -108,8 +108,8 @@ model TeamInviteUser {
   teamsId String
   usersId String
 
-  team Team @relation(fields: [teamsId], references: [id])
-  user User @relation(fields: [usersId], references: [id])
+  team Team @relation(fields: [teamsId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [usersId], references: [id], onDelete: Cascade)
 
   @@id([teamsId, usersId])
 }
@@ -118,8 +118,8 @@ model TeamUser {
   teamsId String
   usersId String
 
-  team Team @relation(fields: [teamsId], references: [id])
-  user User @relation(fields: [usersId], references: [id])
+  team Team @relation(fields: [teamsId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [usersId], references: [id], onDelete: Cascade)
 
   @@id([teamsId, usersId])
 }
@@ -132,8 +132,8 @@ model UserEventPermission {
   userId    String
   eventId   String
 
-  user  User  @relation(fields: [userId], references: [id])
-  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
 }

@@ -140,38 +140,38 @@ CREATE INDEX "Match_round_idx" ON "Match"("round");
 CREATE UNIQUE INDEX "UserEventPermission_userId_eventId_key" ON "UserEventPermission"("userId", "eventId");
 
 -- AddForeignKey
-ALTER TABLE "EventUser" ADD CONSTRAINT "EventUser_eventsId_fkey" FOREIGN KEY ("eventsId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventUser" ADD CONSTRAINT "EventUser_eventsId_fkey" FOREIGN KEY ("eventsId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EventUser" ADD CONSTRAINT "EventUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventUser" ADD CONSTRAINT "EventUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MatchesTeams" ADD CONSTRAINT "MatchesTeams_matchesId_fkey" FOREIGN KEY ("matchesId") REFERENCES "Match"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MatchesTeams" ADD CONSTRAINT "MatchesTeams_matchesId_fkey" FOREIGN KEY ("matchesId") REFERENCES "Match"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MatchesTeams" ADD CONSTRAINT "MatchesTeams_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MatchesTeams" ADD CONSTRAINT "MatchesTeams_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Team" ADD CONSTRAINT "Team_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Team" ADD CONSTRAINT "Team_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TeamInviteUser" ADD CONSTRAINT "TeamInviteUser_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TeamInviteUser" ADD CONSTRAINT "TeamInviteUser_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TeamInviteUser" ADD CONSTRAINT "TeamInviteUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TeamInviteUser" ADD CONSTRAINT "TeamInviteUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TeamUser" ADD CONSTRAINT "TeamUser_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TeamUser" ADD CONSTRAINT "TeamUser_teamsId_fkey" FOREIGN KEY ("teamsId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TeamUser" ADD CONSTRAINT "TeamUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TeamUser" ADD CONSTRAINT "TeamUser_usersId_fkey" FOREIGN KEY ("usersId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserEventPermission" ADD CONSTRAINT "UserEventPermission_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UserEventPermission" ADD CONSTRAINT "UserEventPermission_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserEventPermission" ADD CONSTRAINT "UserEventPermission_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UserEventPermission" ADD CONSTRAINT "UserEventPermission_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

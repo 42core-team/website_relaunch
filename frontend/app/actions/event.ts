@@ -364,8 +364,8 @@ export async function shouldShowJoinNotice(
   const event = await getEventById(eventId);
   if (!event) return false;
 
-  const startDate = new Date(event.start_date);
-  return startDate > new Date();
+  const endDate = new Date(event.end_date);
+  return endDate > new Date();
 }
 
 export async function isEventAdmin(

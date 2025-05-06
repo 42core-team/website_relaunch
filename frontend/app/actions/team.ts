@@ -174,6 +174,7 @@ export async function createTeam(name: string, eventId: string, userId: string):
                 equals: name,
                 mode: 'insensitive',
             },
+            eventId: eventId,
         }
     })
 

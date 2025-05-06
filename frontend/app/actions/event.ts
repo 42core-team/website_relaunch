@@ -379,23 +379,22 @@ export async function getEvents(limit: number = 50): Promise<Event[]> {
 }
 
 export async function getTeamsCountForEvent(eventId: string): Promise<number> {
-    const count = await prisma.team.count({
-        where: { eventId: eventId },
+    return prisma.team.count({
+        where: {eventId: eventId},
     });
-
-    return count;
 }
 
 // Get total participants count for an event
 export async function getParticipantsCountForEvent(eventId: string): Promise<number> {
-    const result = await prisma.team.aggregate({
-        where: { eventId: eventId },
-        _count: {
-            _all: true,
-        },
+    return prisma.user.count({
+        where: {
+            eventUsers: {
+                some: {
+                    eventsId: eventId,
+                }
+            },
+        }
     });
-
-    return result._count._all || 0;
 }
 
 // Join a user to an event

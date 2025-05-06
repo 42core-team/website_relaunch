@@ -1,17 +1,10 @@
 'use client'
 
 import {
-    Table,
-    TableHeader,
-    TableBody,
-    TableColumn,
-    TableRow,
-    TableCell,
     Button
 } from "@heroui/react";
 import { title } from '@/components/primitives';
 import { getEvents, Event, canUserCreateEvent } from '@/app/actions/event';
-import Link from 'next/link';
 import EventsTable from "@/app/events/EventTable";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";

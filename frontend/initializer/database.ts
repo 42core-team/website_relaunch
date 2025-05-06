@@ -1,5 +1,5 @@
-import {PrismaClient} from "@/generated/prisma";
+import { PrismaClient } from "@/generated/prisma";
 
 export const prisma = new PrismaClient({
-    log: ['info', 'warn', 'error'],
-})
+  log: ["info", "warn", "error"],
+});

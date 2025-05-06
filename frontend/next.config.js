@@ -4,8 +4,8 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'nextuipro.nyc3.cdn.digitaloceanspaces.com',
+        protocol: "https",
+        hostname: "nextuipro.nyc3.cdn.digitaloceanspaces.com",
       },
     ],
   },
@@ -14,6 +14,6 @@ const nextConfig = {
     // even if your project has ESLint errors.
     // ignoreDuringBuilds: true,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

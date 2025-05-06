@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: 'Original';
-    src: url('/original.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "Original";
+  src: url("/original.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 .image-rendering-pixel {

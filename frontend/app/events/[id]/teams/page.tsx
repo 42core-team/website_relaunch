@@ -1,43 +1,43 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { 
-  Card, 
-  Input, 
+import { useEffect, useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  Card,
+  Input,
   Table,
-  TableHeader, 
-  TableColumn, 
-  TableBody, 
-  TableRow, 
-  TableCell, 
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   Spinner,
-  SortDescriptor
-} from '@heroui/react';
-import { SearchIcon } from '@/components/icons';
-import { getTeamsForEvent, Team } from '@/app/actions/team';
+  SortDescriptor,
+} from "@heroui/react";
+import { SearchIcon } from "@/components/icons";
+import { getTeamsForEvent, Team } from "@/app/actions/team";
 
 export default function TeamsPage() {
   const { id: eventId } = useParams();
   const router = useRouter();
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterValue, setFilterValue] = useState('');
+  const [filterValue, setFilterValue] = useState("");
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: 'name',
-    direction: 'ascending'
+    column: "name",
+    direction: "ascending",
   });
 
   useEffect(() => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        
+
         // Fetch teams
         const teamsData = await getTeamsForEvent(eventId as string);
         setTeams(teamsData);
       } catch (error) {
-        console.error('Error fetching teams data:', error);
+        console.error("Error fetching teams data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -51,26 +51,28 @@ export default function TeamsPage() {
   // Search filter
   const filteredTeams = useMemo(() => {
     if (!filterValue.trim()) return teams;
-    
-    return teams.filter(team => 
-      team.name.toLowerCase().includes(filterValue.toLowerCase()) ||
-      (team.repo && team.repo.toLowerCase().includes(filterValue.toLowerCase()))
+
+    return teams.filter(
+      (team) =>
+        team.name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        (team.repo &&
+          team.repo.toLowerCase().includes(filterValue.toLowerCase())),
     );
   }, [teams, filterValue]);
 
   // Sorting
   const sortedTeams = useMemo(() => {
     if (!sortDescriptor.column) return filteredTeams;
-    
+
     return [...filteredTeams].sort((a, b) => {
       const first = a[sortDescriptor.column as keyof Team];
       const second = b[sortDescriptor.column as keyof Team];
-      
+
       if (first === undefined || second === undefined) return 0;
-      
+
       const cmp = first < second ? -1 : first > second ? 1 : 0;
-      
-      return sortDescriptor.direction === 'descending' ? -cmp : cmp;
+
+      return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [filteredTeams, sortDescriptor]);
 
@@ -106,28 +108,36 @@ export default function TeamsPage() {
               />
             </div>
           </div>
-          
-          <Table 
+
+          <Table
             aria-label="Teams table"
             onSortChange={handleSortChange}
             sortDescriptor={sortDescriptor}
           >
             <TableHeader>
-              <TableColumn key="name" allowsSorting>Name</TableColumn>
-              <TableColumn key="membersCount" allowsSorting>Members</TableColumn>
-              <TableColumn key="createdAt" allowsSorting>Created</TableColumn>
+              <TableColumn key="name" allowsSorting>
+                Name
+              </TableColumn>
+              <TableColumn key="membersCount" allowsSorting>
+                Members
+              </TableColumn>
+              <TableColumn key="createdAt" allowsSorting>
+                Created
+              </TableColumn>
             </TableHeader>
             <TableBody emptyContent="No teams found" items={sortedTeams}>
               {(team) => (
                 <TableRow
-                  key={team.id} 
+                  key={team.id}
                   className="cursor-pointer hover:bg-default-100 transition-colors"
                   onClick={() => handleRowClick(team.id)}
                 >
                   <TableCell>{team.name}</TableCell>
                   <TableCell>{team.membersCount}</TableCell>
                   <TableCell>
-                    {team.createdAt ? new Date(team.createdAt).toLocaleDateString() : 'N/A'}
+                    {team.createdAt
+                      ? new Date(team.createdAt).toLocaleDateString()
+                      : "N/A"}
                   </TableCell>
                 </TableRow>
               )}
@@ -137,4 +147,4 @@ export default function TeamsPage() {
       </Card>
     </div>
   );
-} 
+}

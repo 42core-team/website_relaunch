@@ -2,7 +2,8 @@ export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
   name: "CORE",
-  description: "CORE game is a competitive coding challenge where you design and program your own bots to battle it out in a dynamic 2D arena.",
+  description:
+    "CORE game is a competitive coding challenge where you design and program your own bots to battle it out in a dynamic 2D arena.",
   navItems: [
     {
       label: "Home",
@@ -36,6 +37,6 @@ export const siteConfig = {
     },
   ],
   links: {
-    github: "https://github.com/42core-team"
+    github: "https://github.com/42core-team",
   },
 };

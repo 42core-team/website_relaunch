@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { title } from "@/components/primitives";
@@ -119,7 +119,9 @@ export default function AboutPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Meet Our Team
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <motion.div

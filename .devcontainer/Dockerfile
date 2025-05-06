@@ -13,7 +13,7 @@ ENV DEVCONTAINER=true
 
 # Set environment variables for non-interactive installations and Go paths
 ENV DEBIAN_FRONTEND=noninteractive \
-    GOLANG_VERSION=1.22.1 \
+    GOLANG_VERSION=1.24.2 \
     PATH=$PATH:/usr/local/go/bin
 
 # Update package list and install necessary dependencies

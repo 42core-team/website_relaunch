@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Match API
+  description: API for managing and interacting with matches.
+paths:
+  /v1/match/{id}:
+    post:
+      operationId: playAMatch
+      description: Checks if a specific match with the given UUID can be played.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "202":
+          description: Match can be created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Match is in the wrong state and cannot be created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      tags:
+        - match
+      summary: Play a match
+  /v1/match:
+    post:
+      operationId: checkForPlayableMatches
+      description: Checks the database for not played matches.
+      security:
+        - BearerAuth: []
+      responses:
+        "202":
+          $ref: "#/components/responses/Accepted"
+      tags:
+        - match
+      parameters: []
+      summary: Check for playable matches
+  /v1/match/{id}/logs:
+    get:
+      operationId: getLogsOfContainer
+      description: Returns all logs of the specified container.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: container
+          in: query
+          required: false
+          description: The container to fetch logs for (e.g., game, bot-teamUUID).
+          schema:
+            type: string
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Logs retrieved successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          description: Logs are already deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      tags:
+        - match
+      summary: Get logs of container
+  /v1/match/{id}/logs/containers:
+    get:
+      operationId: getContainersOfMatch
+      description: Returns a list of available containers for the specified match.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: List of available containers retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  containers:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - id
+                  - containers
+        "404":
+          $ref: "#/components/responses/NotFound"
+      tags:
+        - match
+      summary: Get containers of match
+  /health:
+    get:
+      operationId: health
+      summary: health
+      responses:
+        "200":
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+      parameters: []
+  /v1/match/{id}/result:
+    post:
+      operationId: submitResult
+      description: Posts the results of a match.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        "200":
+          description: Match results posted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      tags:
+        - match
+      summary: Submit result
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: core_
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully.
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: An error occurred.
+  responses:
+    NotFound:
+      description: The server cannot find the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Accepted:
+      description: The request has been accepted for processing, but the processing
+        has not been completed. The request might be processed later.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+  parameters:
+    id:
+      name: id
+      in: path
+      description: UUID of the match.
+      schema:
+        type: string
+        format: uuid
+      explode: false
+      style: simple
+      allowReserved: false
+      allowEmptyValue: true
+tags:
+  - name: match
+    description: ""
+servers:
+  - url: http://localhost:9000
+    description: To test in your local environment

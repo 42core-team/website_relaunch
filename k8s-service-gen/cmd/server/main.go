@@ -17,7 +17,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	api.RegisterHandlers(e, apiServer)
+	api.RegisterHandlers(e, api.NewStrictHandler(apiServer, nil))
 
 	e.Logger.Fatal(e.Start(cfg.Addr))
 }

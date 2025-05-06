@@ -438,8 +438,8 @@ export async function searchUsersForInvite(
           },
           {
             OR: [
-              { name: { search: searchQuery } },
-              { username: { search: searchQuery } },
+              { name: { contains: searchQuery, mode: "insensitive" } },
+              { username: { contains: searchQuery, mode: "insensitive" } },
             ],
           },
         ],

@@ -1,7 +1,7 @@
 'use server'
 
 import {prisma} from "@/initializer/database";
-import {Team as PrismaTeam, User as PrismaUser, Event as PrismaEvent} from "@/generated/prisma";
+import {Team as PrismaTeam, User as PrismaUser, Event as PrismaEvent, events_type_enum} from "@/generated/prisma";
 import {repositoryApi, userApi, rushRepositoryApi, rushUserApi} from "@/initializer/github";
 import {getServerSession} from "next-auth/next";
 import {authOptions} from "@/app/utils/authOptions";
@@ -127,7 +127,7 @@ async function lockTeamRepository(team: PrismaTeam, members: PrismaUser[], event
         }
 
         // Determine if it's a rush event and select appropriate API
-        const isRushEvent = event.type === EventType.RUSH;
+        const isRushEvent = event.type === events_type_enum.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
 
@@ -208,7 +208,7 @@ export async function createTeam(name: string, eventId: string, userId: string):
 
     try {
         // Use different repo API and organization based on event type
-        const isRushEvent = event.type === EventType.RUSH;
+        const isRushEvent = event.type === events_type_enum.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const uApi = isRushEvent ? rushUserApi : userApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
@@ -265,7 +265,7 @@ export async function leaveTeam(teamId: string, userId: string): Promise<boolean
         const updatedMembers = team.members.filter(member => member.usersId !== userId);
 
         // Determine if it's a rush event and select appropriate API and org
-        const isRushEvent = team.event?.type === EventType.RUSH;
+        const isRushEvent = team.event?.type === events_type_enum.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
 
@@ -536,7 +536,7 @@ export async function acceptTeamInvite(teamId: string, userId: string): Promise<
 
         if (team.repo) {
             // Determine if it's a rush event and select appropriate API and org
-            const isRushEvent = team.event.type === EventType.RUSH;
+            const isRushEvent = team.event.type === events_type_enum.RUSH;
             const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
             const uApi = isRushEvent ? rushUserApi : userApi;
             const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;

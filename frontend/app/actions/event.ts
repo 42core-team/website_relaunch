@@ -1,11 +1,13 @@
 'use server'
 
 import {SingleElimination, Swiss} from "tournament-pairings";
-// @ts-ignore
-import {Match, Player} from 'tournament-pairings/interfaces';
-import {getServerSession} from "next-auth/next";
 import {authOptions} from "@/app/utils/authOptions";
 import { prisma } from "@/initializer/database";
+import { events_state_enum, Match, matches_phase_enum, matches_state_enum, Team } from "@/generated/prisma";
+// @ts-ignore
+import {Player} from 'tournament-pairings/interfaces';
+import {getServerSession} from "next-auth/next";
+import { match } from "assert";
 
 export interface Event {
     id: string;
@@ -24,21 +26,21 @@ export interface Event {
 }
 
 export async function getTeamsToAvoid(teamId: string): Promise<string[]> {
-    const pastMatches = await prisma.matches.findMany({
+    const pastMatches = await prisma.match.findMany({
         where: {
-            teams: {
-                id: teamId
+            matchTeams: {
+                some: {
+                    teamsId: teamId
+                }
             }
         },
         include: {
-            teams: true
-        }
+            matchTeams: true,
+        },
     });
 
-    //ToDo:
-    // const pastOpponents = pastMatches.map(p => p.teams?.map(t => t.id)).flat();
-    // return pastOpponents.filter(id => id !== teamId);
-    return [];
+    const pastOpponents = pastMatches.map(p => p.matchTeams?.map(t => t.teamsId)).flat();
+    return pastOpponents.filter(id => id !== teamId);
 }
 
 export async function getMaxSwissRounds(teams: number): Promise<number> {
@@ -47,8 +49,8 @@ export async function getMaxSwissRounds(teams: number): Promise<number> {
 
 // To be deprecated
 export async function createSingleEliminationBracket(eventId: string): Promise<boolean> {
-    const event = await prisma.events.findFirst({
-        where: {id: eventId},
+    const event = await prisma.event.findFirst({
+        where: { id: eventId },
         include: {
             teams: true,
         },
@@ -57,14 +59,21 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     if (!event) return false;
 
     // Check if elimination bracket already exists
-    const existingMatches = await matchRepository.find({
+    const existingMatches = await prisma.match.findMany({
         where: {
-            phase: MatchPhase.ELIMINATION,
-            teams: {
-                event: {id: eventId}
-            }
+            phase: matches_phase_enum.ELIMINATION,
+            matchTeams: {
+                some: {
+                    team: {
+                        eventId: eventId,
+                    },
+                },
+            },
         },
-        relations: ['teams', 'winner']
+        include: {
+            matchTeams: true,
+            winner: true,
+        },
     });
 
     // CASE 1: No elimination matches yet - create initial bracket
@@ -77,10 +86,10 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         }
 
         // Get teams ordered by score for seeding
-        const teams = await teamsRepository.find({
-            where: {event: {id: eventId}},
-            order: {score: 'DESC'},
-            take: 16
+        const teams = await prisma.team.findMany({
+            where: { eventId: eventId },
+            orderBy: { score: 'desc' },
+            take: 16,
         });
 
         if (teams.length < 2) return false;
@@ -90,57 +99,66 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
             id: team.id,
             name: team.name,
             score: team.score,
-            receivedBye: team.hadBye
+            receivedBye: team.hadBye,
         }));
 
         // Generate single elimination bracket
         const matches = SingleElimination(players);
 
         // Create match entities
-        const matchEntities: MatchEntity[] = [];
+        const matchEntities: Match[] = [];
 
         matches.forEach((match, index) => {
             const roundNumber = Math.ceil(Math.log2(matches.length + 1)) - Math.floor(Math.log2(index + 1));
 
-            const newMatch = new MatchEntity();
-            newMatch.state = MatchState.PLANNED;
-            newMatch.round = roundNumber;
-            newMatch.phase = MatchPhase.ELIMINATION;
-            newMatch.teams = [];
+            const newMatch: Match = {
+                id: '', // Provide appropriate default or generated ID
+                state: matches_state_enum.PLANNED,
+                round: 0, // Replace with the correct round number
+                phase: matches_phase_enum.ELIMINATION,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                winnerId: null // Adjust based on your logic
+            };
+
+            const teams: Team[] = [];
 
             // Add teams if they're not byes
             if (match.player1) {
                 const team1 = teams.find(t => t.id === match.player1);
-                if (team1) newMatch.teams.push(team1);
+                if (team1) teams.push(team1);
             }
 
             if (match.player2) {
                 const team2 = teams.find(t => t.id === match.player2);
-                if (team2) newMatch.teams.push(team2);
+                if (team2) teams.push(team2);
             }
 
             // If a match has only one team, it's a bye - set winner immediately
-            if (newMatch.teams.length === 1) {
-                newMatch.winner = newMatch.teams[0];
-                newMatch.state = MatchState.FINISHED;
+            if (teams.length === 1) {
+                newMatch.winnerId = teams[0].id;
+                newMatch.state = matches_state_enum.FINISHED;
             }
 
             matchEntities.push(newMatch);
         });
 
         // Save match entities
-        await matchRepository.save(matchEntities);
+        await prisma.match.createMany({
+            data: matchEntities,
+        });
 
         // Update event state
-        await eventRepository.update(eventId, {
-            state: EventState.ELIMINATION_ROUND,
-            currentRound: 1
+        await prisma.event.update({
+            where: { id: eventId },
+            data: {
+                state: events_state_enum.ELIMINATION_ROUND,
+                currentRound: 1,
+            },
         });
 
         return true;
     }
-
-    console.log("fhjewriofjewiofjweoifjewoifejwio")
 
     // CASE 2: Elimination matches exist - advance winners
 
@@ -150,14 +168,14 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     // Get finished matches from current round that have winners
     const finishedMatches = existingMatches.filter(
         match => match.round === currentRound &&
-            match.state === MatchState.FINISHED &&
+            match.state === matches_state_enum.FINISHED &&
             match.winner
     );
 
     // Get next round matches
     const nextRoundMatches = existingMatches.filter(
         match => match.round === currentRound - 1 &&
-            match.state === MatchState.PLANNED
+            match.state === matches_state_enum.PLANNED
     );
 
     // If no next round matches, tournament is complete
@@ -167,8 +185,9 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
 
         if (finalMatch?.winner) {
             // Tournament is complete, update event state
-            await eventRepository.update(eventId, {
-                state: EventState.FINISHED
+            await prisma.event.update({
+                where: { id: eventId },
+                data: { state: matches_state_enum.FINISHED },
             });
         }
 
@@ -199,30 +218,37 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         const winners = feedingMatches.map(m => m.winner).filter(Boolean);
 
         // Add winners to next match
-        nextMatch.teams = winners;
+        nextMatch.matchTeams = winners
+            .filter(winner => winner?.id !== undefined)
+            .map(winner => ({
+                matchesId: nextMatch.id,
+                teamsId: winner!.id,
+            }));
 
         // If we have two teams, match is ready to play
         if (winners.length === 2) {
-            nextMatch.state = MatchState.READY;
+            nextMatch.state = matches_state_enum.READY;
         }
         // If we have only one winner and no other matches feed in, they win by default
         else if (winners.length === 1) {
             nextMatch.winner = winners[0];
-            nextMatch.state = MatchState.FINISHED;
+            nextMatch.state = matches_state_enum.FINISHED;
         }
     }
 
     // Save updated matches
-    await matchRepository.save(nextRoundMatches);
+    await prisma.match.updateMany({
+        data: nextRoundMatches,
+    });
 
     // Update event's current round
-    await eventRepository.update(eventId, {
-        currentRound: event.currentRound + 1
+    await prisma.event.update({
+        where: { id: eventId },
+        data: { currentRound: event.currentRound + 1 },
     });
 
     return true;
 }
-
 
 export async function calculateNextGroupPhaseMatches(eventId: string): Promise<boolean> {
     const dataSource = await ensureDbConnected();

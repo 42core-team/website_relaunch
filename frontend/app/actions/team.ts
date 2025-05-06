@@ -1,6 +1,7 @@
 'use server'
 
-import {ensureDbConnected} from "@/initializer/database";
+import {prisma} from "@/initializer/database";
+import {Team as PrismaTeam, User as PrismaUser, Event as PrismaEvent} from "@/generated/prisma";
 import {TeamEntity} from "@/entities/team.entity";
 import {UserEntity} from "@/entities/users.entity";
 import {EventEntity} from "@/entities/event.entity";
@@ -46,9 +47,10 @@ export interface TeamInviteWithDetails {
 }
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
-    const dataSource = await ensureDbConnected();
-    const teamRepository = dataSource.getRepository(TeamEntity);
-    const team = await teamRepository.findOne({where: {id: teamId}});
+    const team = await prisma.team.findUnique({
+        where: { id: teamId },
+    });
+
     return team ? {
         id: team.id,
         name: team.name,
@@ -61,16 +63,16 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
 
 export async function getTeam(userId: string, eventId: string): Promise<Team | null> {
     try {
-        const dataSource = await ensureDbConnected();
-        const teamRepository = dataSource.getRepository(TeamEntity);
-
-        const team = await teamRepository
-            .createQueryBuilder('team')
-            .innerJoin('team.users', 'user')
-            .innerJoin('team.event', 'event')
-            .where('user.id = :userId', {userId})
-            .andWhere('event.id = :eventId', {eventId})
-            .getOne();
+        const team = await prisma.team.findFirst({
+            where: {
+                members: {
+                    some: {
+                        usersId: userId
+                    }
+                },
+                eventId: eventId,
+            }
+        });
 
         if (!team) return null;
 
@@ -95,39 +97,31 @@ export async function lockEvent(eventId: string) {
     }
 
     try {
-        const dataSource = await ensureDbConnected();
-        const eventRepository = dataSource.getRepository(EventEntity);
-        const event = await eventRepository.findOne({
-            where: {id: eventId}, relations: {
-                teams: true
+        const teams = await prisma.team.findMany({
+            where: {
+                eventId: eventId,
+                locked: false
+            },
+            include: {
+                members: {
+                    include: {
+                        user: true
+                    }
+                },
+                event: true
             }
         });
 
-        if (!event) {
-            throw new Error("Event not found");
-        }
-
-        await Promise.all(event.teams.map(async (team) => lockTeamRepository(team.id)))
-
+        await Promise.all(teams.map(async (team) => {
+            return await lockTeamRepository(team, team.members.map(member => member.user), team.event);
+        }));
     } catch (err) {
         console.error('Error locking event:', err);
     }
 }
 
-async function lockTeamRepository(teamId: string): Promise<{ success: boolean; message?: string }> {
+async function lockTeamRepository(team: PrismaTeam, members: PrismaUser[], event: PrismaEvent): Promise<{ success: boolean; message?: string }> {
     try {
-        const dataSource = await ensureDbConnected();
-        const teamRepository = dataSource.getRepository(TeamEntity);
-
-        const team = await teamRepository.findOne({
-            where: {id: teamId},
-            relations: ['users', 'event']
-        });
-
-        if (!team) {
-            return {success: false, message: "Team not found"};
-        }
-
         if (!team.repo) {
             return {success: false, message: "Team has no repository"};
         }
@@ -137,25 +131,26 @@ async function lockTeamRepository(teamId: string): Promise<{ success: boolean; m
         }
 
         // Determine if it's a rush event and select appropriate API
-        const isRushEvent = team.event?.type === EventType.RUSH;
+        const isRushEvent = event.type === EventType.RUSH;
         const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
         const orgName = isRushEvent ? process.env.NEXT_PUBLIC_RUSH_ORG : process.env.NEXT_PUBLIC_GITHUB_ORG;
 
         // Get all collaborators
-        const collaborators = await repoApi.listCollaborators(orgName || "", team.repo);
+        const collaborators = await members.map(member => member.username);
 
         // Set all collaborators to read-only permissions
-        const updatePromises = collaborators
-            .filter(user => user.login !== "github-actions[bot]") // Keep GitHub Actions permissions
-            .map(user =>
-                repoApi.updateCollaboratorPermission(orgName || "", team.repo!, user.login, "pull")
-            );
+        const updatePromises = collaborators.map(async (collaborator) => {
+            await repoApi.updateCollaboratorPermission(orgName || "", team.repo, collaborator, "pull");
+        });
 
         await Promise.all(updatePromises);
 
         // Update team status in database
-        team.locked = true;
-        await teamRepository.save(team);
+
+        await prisma.team.update({
+            where: { id: team.id },
+            data: { locked: true }
+        })
 
         return {success: true, message: "Repository locked successfully"};
     } catch (err) {
@@ -169,46 +164,51 @@ export async function createTeam(name: string, eventId: string, userId: string):
     if (existingTeam)
         return existingTeam;
 
-    const dataSource = await ensureDbConnected();
-    const teamRepository = dataSource.getRepository(TeamEntity);
-    const userRepository = dataSource.getRepository(UserEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-
     // Get user and event entities
-    const user = await userRepository.findOne({where: {id: userId}});
-    const event = await eventRepository.findOne({where: {id: eventId}});
+    const user = await prisma.user.findUnique({where: {id: userId}});
+    const event = await prisma.event.findUnique({where: {id: eventId}});
 
     if (!user || !event) {
         throw new Error("User or event not found");
     }
 
-    // Check if a team with the same name (case insensitive) exists for this event
-    const teamsInEvent = await teamRepository
-        .createQueryBuilder('team')
-        .innerJoin('team.event', 'event')
-        .where('event.id = :eventId', {eventId})
-        .getMany();
+    const teamNameExistsCount = await prisma.team.count({
+        where: {
+            name: {
+                equals: name,
+                mode: 'insensitive',
+            },
+        }
+    })
 
-    const teamNameExists = teamsInEvent.some(
-        team => team.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (teamNameExists) {
+    if (teamNameExistsCount) {
         return {error: `A team with the name "${name}" already exists for this event.`};
     }
 
-    // Create new team
-    const newTeam = teamRepository.create({
-        name,
-        event,
-        users: [user]
-    });
-
-    const savedTeam = await teamRepository.save(newTeam);
+    const savedTeam = await prisma.team.create({
+        data: {
+            name: name,
+            eventId: eventId,
+            locked: false,
+            repo: '',
+            score: 0,
+            buchholzPoints: 0,
+            hadBye: false,
+            members: {
+                create: [
+                  {
+                    user: {
+                      connect: { id: userId },
+                    },
+                  },
+                ],
+              },
+            },
+          });
 
     // Use event's template if available, otherwise use default template
-    const templateOwner = event.repoTemplateOwner || "42core-team";
-    const templateRepo = event.repoTemplateName || "rush02-development";
+    const templateOwner = event.repoTemplateOwner;
+    const templateRepo = event.repoTemplateName;
 
     try {
         // Use different repo API and organization based on event type
@@ -224,8 +224,11 @@ export async function createTeam(name: string, eventId: string, userId: string):
         });
 
         savedTeam.repo = repo.name;
-        await teamRepository.save(savedTeam);
-        await repoApi.addCollaborator(orgName || "", repo.name, user.username, "pull");
+        await prisma.team.update({
+            where: { id: savedTeam.id },
+            data: { repo: repo.name }
+        });
+        await repoApi.addCollaborator(orgName || "", repo.name, user.username, "push");
         await uApi.acceptRepositoryInvitationByRepo(orgName || "", repo.name, user.githubAccessToken);
     } catch (error) {
         console.error("Error creating repository from template:", error);

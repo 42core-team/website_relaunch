@@ -9,161 +9,162 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model events {
-  id                     String                   @id(map: "PK_40731c7151fe4be3116e45ddf73") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name                   String                   @db.VarChar
-  description            String                   @default("") @db.VarChar
-  location               String                   @default("") @db.VarChar
-  minTeamSize            Int
-  maxTeamSize            Int
-  startDate              DateTime                 @db.Timestamp(6)
-  endDate                DateTime                 @db.Timestamp(6)
-  state                  events_state_enum        @default(TEAM_FINDING)
-  createdAt              DateTime                 @default(now()) @db.Timestamp(6)
-  updatedAt              DateTime                 @default(now()) @db.Timestamp(6)
-  type                   events_type_enum         @default(REGULAR)
-  repoTemplateOwner      String?                  @db.VarChar
-  repoTemplateName       String?                  @db.VarChar
-  treeFormat             Int                      @default(16)
-  currentRound           Int                      @default(0)
-  events_users           events_users[]
-  teams                  teams[]
-  user_event_permissions user_event_permissions[]
+model User {
+  id                String   @id @default(uuid())
+  githubId          String   @unique
+  githubAccessToken String
+  email             String   @unique
+  username          String   @unique
+  name              String
+  profilePicture    String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  canCreateEvent    Boolean
+
+  eventUsers      EventUser[]
+  userPermissions UserEventPermission[]
+  invitedToTeams  TeamInviteUser[]
+  memberOfTeams   TeamUser[]
 }
 
-model events_users {
-  eventsId String @db.Uuid
-  usersId  String @db.Uuid
-  events   events @relation(fields: [eventsId], references: [id], onDelete: Cascade, map: "FK_1be1fcf23efa4587e59aeea2508")
-  users    users  @relation(fields: [usersId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_a8ec0c8bb2d204ad78348fea1e1")
+model Event {
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  location          String
+  minTeamSize       Int
+  maxTeamSize       Int
+  startDate         DateTime
+  endDate           DateTime
+  state             events_state_enum
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  type              events_type_enum
+  repoTemplateOwner String
+  repoTemplateName  String
+  treeFormat        Int
+  currentRound      Int
 
-  @@id([eventsId, usersId], map: "PK_45fc40a9656b63fffcbe1256604")
-  @@index([eventsId], map: "IDX_1be1fcf23efa4587e59aeea250")
-  @@index([usersId], map: "IDX_a8ec0c8bb2d204ad78348fea1e")
+  teams           Team[]
+  eventUsers      EventUser[]
+  userPermissions UserEventPermission[]
 }
 
-model matches {
-  id            String             @id(map: "PK_8a22c7b2e0828988d51256117f4") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  state         matches_state_enum
-  round         Int
-  createdAt     DateTime           @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime           @default(now()) @db.Timestamp(6)
-  winnerId      String?            @unique(map: "REL_eb5e9984be5b3bd5c8e3ef2d9e") @db.Uuid
-  phase         matches_phase_enum @default(SWISS)
-  teams         teams?             @relation(fields: [winnerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_eb5e9984be5b3bd5c8e3ef2d9ec")
-  matches_teams matches_teams[]
+model EventUser {
+  eventsId String
+  usersId  String
+
+  event Event @relation(fields: [eventsId], references: [id])
+  user  User  @relation(fields: [usersId], references: [id])
+
+  @@id([eventsId, usersId])
 }
 
-model matches_teams {
-  matchesId String  @db.Uuid
-  teamsId   String  @db.Uuid
-  teams     teams   @relation(fields: [teamsId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_200c5a21dd735d2f334bbb0aba3")
-  matches   matches @relation(fields: [matchesId], references: [id], onDelete: Cascade, map: "FK_5158327e24c6e29e9d2144d0b9b")
+model Match {
+  id        String             @id @default(uuid())
+  state     matches_state_enum
+  round     Int
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  phase     matches_phase_enum
+  winnerId  String?
 
-  @@id([matchesId, teamsId], map: "PK_36ace1702ab545be7ba5bab63e2")
-  @@index([teamsId], map: "IDX_200c5a21dd735d2f334bbb0aba")
-  @@index([matchesId], map: "IDX_5158327e24c6e29e9d2144d0b9")
+  winner     Team?          @relation("MatchWinner", fields: [winnerId], references: [id])
+  matchTeams MatchesTeams[]
+
+  @@index([round])
 }
 
-model migrations {
-  id        Int    @id(map: "PK_8c82d7f526340ab734260ea46be") @default(autoincrement())
-  timestamp BigInt
-  name      String @db.VarChar
+model MatchesTeams {
+  matchesId String
+  teamsId   String
+
+  match Match @relation(fields: [matchesId], references: [id])
+  team  Team  @relation(fields: [teamsId], references: [id])
+
+  @@id([matchesId, teamsId])
 }
 
-model teams {
-  id                  String                @id(map: "PK_7e5523774a38b08a6236d322403") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name                String                @db.VarChar
-  locked              Boolean               @default(false)
-  repo                String?               @db.VarChar
-  score               Int                   @default(0)
-  createdAt           DateTime              @default(now()) @db.Timestamp(6)
-  updatedAt           DateTime              @default(now()) @db.Timestamp(6)
-  eventId             String?               @db.Uuid
-  buchholzPoints      Int?
-  hadBye              Boolean               @default(false)
-  matches             matches?
-  matches_teams       matches_teams[]
-  events              events?               @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f01dc07b27e3edecf109d539cd1")
-  teams_invites_users teams_invites_users[]
-  teams_users         teams_users[]
+model Team {
+  id             String   @id @default(uuid())
+  name           String
+  locked         Boolean
+  repo           String
+  score          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  eventId        String
+  buchholzPoints Int
+  hadBye         Boolean
+
+  event      Event            @relation(fields: [eventId], references: [id])
+  invites    TeamInviteUser[]
+  members    TeamUser[]
+  matchWins  Match[]          @relation("MatchWinner")
+  matchTeams MatchesTeams[]
 }
 
-model teams_invites_users {
-  teamsId String @db.Uuid
-  usersId String @db.Uuid
-  teams   teams  @relation(fields: [teamsId], references: [id], onDelete: Cascade, map: "FK_26b95583e861674f5a5631b3f5d")
-  users   users  @relation(fields: [usersId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9898d19dbe2b91604456d7a55f2")
+model TeamInviteUser {
+  teamsId String
+  usersId String
 
-  @@id([teamsId, usersId], map: "PK_f3be81b71190b697f5b1359456e")
-  @@index([teamsId], map: "IDX_26b95583e861674f5a5631b3f5")
-  @@index([usersId], map: "IDX_9898d19dbe2b91604456d7a55f")
+  team Team @relation(fields: [teamsId], references: [id])
+  user User @relation(fields: [usersId], references: [id])
+
+  @@id([teamsId, usersId])
 }
 
-model teams_users {
-  teamsId String @db.Uuid
-  usersId String @db.Uuid
-  teams   teams  @relation(fields: [teamsId], references: [id], onDelete: Cascade, map: "FK_083b899d60a19c4fd682fc5db37")
-  users   users  @relation(fields: [usersId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_0e26a42aaf7fa4086e423694e4c")
+model TeamUser {
+  teamsId String
+  usersId String
 
-  @@id([teamsId, usersId], map: "PK_961ac69159467aaabfcd702c2ab")
-  @@index([teamsId], map: "IDX_083b899d60a19c4fd682fc5db3")
-  @@index([usersId], map: "IDX_0e26a42aaf7fa4086e423694e4")
+  team Team @relation(fields: [teamsId], references: [id])
+  user User @relation(fields: [usersId], references: [id])
+
+  @@id([teamsId, usersId])
 }
 
-model user_event_permissions {
-  id        String                           @id(map: "PK_70ceb6ae37a0e7a80034e63594d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  role      user_event_permissions_role_enum @default(USER)
-  createdAt DateTime                         @default(now()) @db.Timestamp(6)
-  updatedAt DateTime                         @default(now()) @db.Timestamp(6)
-  userId    String?                          @db.Uuid
-  eventId   String?                          @db.Uuid
-  events    events?                          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_be10180bb75847f4c41e5057fed")
-  users     users?                           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_e189e82ce2e91fb825dba7a78a6")
-}
+model UserEventPermission {
+  id        String                           @id @default(uuid())
+  role      user_event_permissions_role_enum
+  createdAt DateTime                         @default(now())
+  updatedAt DateTime                         @updatedAt
+  userId    String
+  eventId   String
 
-model users {
-  id                     String                   @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  githubId               String                   @db.VarChar
-  githubAccessToken      String                   @db.VarChar
-  email                  String                   @db.VarChar
-  username               String                   @db.VarChar
-  name                   String                   @db.VarChar
-  profilePicture         String?                  @db.VarChar
-  createdAt              DateTime                 @default(now()) @db.Timestamp(6)
-  updatedAt              DateTime                 @default(now()) @db.Timestamp(6)
-  canCreateEvent         Boolean                  @default(false)
-  events_users           events_users[]
-  teams_invites_users    teams_invites_users[]
-  teams_users            teams_users[]
-  user_event_permissions user_event_permissions[]
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
 }
 
 enum events_state_enum {
-  TEAM_FINDING
-  CODING_PHASE
-  SWISS_ROUND
-  ELIMINATION_ROUND
-  FINISHED
+  PLANNED
+  ONGOING
+  COMPLETED
+  CANCELLED
 }
 
 enum events_type_enum {
-  REGULAR
-  RUSH
-}
-
-enum matches_phase_enum {
-  SWISS
-  ELIMINATION
+  TOURNAMENT
+  HACKATHON
+  WORKSHOP
 }
 
 enum matches_state_enum {
-  PLANNED
-  READY
-  FINISHED
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum matches_phase_enum {
+  GROUP
+  KNOCKOUT
+  FINAL
 }
 
 enum user_event_permissions_role_enum {
-  USER
   ADMIN
+  ORGANIZER
+  PARTICIPANT
 }

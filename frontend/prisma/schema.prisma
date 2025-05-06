@@ -139,32 +139,31 @@ model UserEventPermission {
 }
 
 enum events_state_enum {
-  PLANNED
-  ONGOING
-  COMPLETED
-  CANCELLED
+  TEAM_FINDING
+  CODING_PHASE
+  SWISS_ROUND
+  ELIMINATION_ROUND
+  FINISHED
 }
 
 enum events_type_enum {
-  TOURNAMENT
-  HACKATHON
-  WORKSHOP
+  REGULAR
+  RUSH
 }
 
 enum matches_state_enum {
-  PENDING
-  COMPLETED
-  CANCELLED
+  PLANNED
+  READY
+  ONGOING
+  FINISHED
 }
 
 enum matches_phase_enum {
-  GROUP
-  KNOCKOUT
-  FINAL
+  SWISS
+  ELIMINATION
 }
 
 enum user_event_permissions_role_enum {
+  USER
   ADMIN
-  ORGANIZER
-  PARTICIPANT
 }

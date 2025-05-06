@@ -1,11 +1,9 @@
 'use client';
-import { MatchEntity } from "@/entities/match.entity";
 import { useEffect } from 'react';
 import ReactFlow, {
     useNodesState,
     useEdgesState,
     Node,
-    Edge,
     Background,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -14,7 +12,6 @@ const MATCH_WIDTH = 200;
 const MATCH_HEIGHT = 80;
 const ROUND_SPACING = 280;
 const VERTICAL_SPACING = 100;
-const PADDING = 50;
 
 type SerializedMatch = {
     id: string;

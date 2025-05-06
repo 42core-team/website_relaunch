@@ -158,8 +158,6 @@ async function lockTeamRepository(
       ? process.env.NEXT_PUBLIC_RUSH_ORG
       : process.env.NEXT_PUBLIC_GITHUB_ORG;
 
-
-
     // Get all collaborators
     const collaborators = members.map((member) => member.username);
 
@@ -200,12 +198,14 @@ export async function createTeam(
   const existingTeam = await getTeam(userId, eventId);
   if (existingTeam) return existingTeam;
 
-  const isValidName = /^[a-zA-Z0-9-_]+$/.test(name) && !/^[-_]/.test(name) && !/[-_]$/.test(name);
-    if (!isValidName) {
-        return {
-        error: "Invalid team name. Only alphanumeric characters, dashes, and underscores are allowed.",
-        };
-    }
+  const isValidName =
+    /^[a-zA-Z0-9-_]+$/.test(name) && !/^[-_]/.test(name) && !/[-_]$/.test(name);
+  if (!isValidName) {
+    return {
+      error:
+        "Invalid team name. Only alphanumeric characters, dashes, and underscores are allowed.",
+    };
+  }
 
   // Get user and event entities
   const user = await prisma.user.findUnique({ where: { id: userId } });

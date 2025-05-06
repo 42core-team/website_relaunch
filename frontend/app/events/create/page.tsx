@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Input, Textarea, Card, Select, SelectItem, Chip } from "@heroui/react";
 import { title } from '@/components/primitives';
 import { createEvent, canUserCreateEvent } from "@/app/actions/event";
-import { EventType } from "@/entities/eventTypes";
+import { events_type_enum } from "@/generated/prisma";
 
 export default function CreateEventPage() {
     const { status } = useSession();
@@ -20,7 +20,7 @@ export default function CreateEventPage() {
     const [minTeamSize, setMinTeamSize] = useState(1);
     const [maxTeamSize, setMaxTeamSize] = useState(4);
     const [treeFormat, setTreeFormat] = useState(16);
-    const [eventType, setEventType] = useState<string>(EventType.REGULAR.toString());
+    const [eventType, setEventType] = useState<string>(events_type_enum.REGULAR.toString());
     const [repoTemplateOwner, setRepoTemplateOwner] = useState("");
     const [repoTemplateName, setRepoTemplateName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -68,8 +68,8 @@ export default function CreateEventPage() {
                 maxTeamSize,
                 treeFormat,
                 eventType: eventType.toString(),
-                repoTemplateOwner: repoTemplateOwner || undefined,
-                repoTemplateName: repoTemplateName || undefined,
+                repoTemplateOwner: repoTemplateOwner,
+                repoTemplateName: repoTemplateName,
             });
 
             if ('error' in result) {

@@ -1,36 +1,43 @@
 import GraphView from "@/app/events/[id]/groups/graphView";
 import Actions from "@/app/events/[id]/groups/actions";
-import {ensureDbConnected} from "@/initializer/database";
-import {MatchEntity, MatchPhase} from "@/entities/match.entity";
 import { notFound } from 'next/navigation';
-import { EventEntity } from "@/entities/event.entity";
-import { EventType } from "@/entities/eventTypes";
+import { prisma } from "@/initializer/database";
+import {events_type_enum, Match, matches_phase_enum} from "@/generated/prisma";
 
 export default async function page({ params }: { params: Promise<{ id: string }> }){
-    const connection = await ensureDbConnected();
     const eventId = (await params).id;
     
-    const event = await connection.getRepository(EventEntity).findOne({
+    const event = await prisma.event.findUnique({
         where: { id: eventId }
     });
     
-    if (event?.type === EventType.RUSH) {
+    if (event?.type === events_type_enum.RUSH) {
         return notFound();
     }
     
-    const matches = await connection.getRepository(MatchEntity).find({
+    const matches = await prisma.match.findMany({
         where: {
-            phase: MatchPhase.SWISS,
-            teams: {
-                event: {
-                    id: eventId
-                }
-            }
+            phase: matches_phase_enum.SWISS,
+            matchTeams: {
+                some: {
+                    team: {
+                        eventId: eventId
+                    },
+                },
+            },
         },
-        relations: {
-            teams: true,
-            winner: true
-        }
+        include: {
+            matchTeams: {
+                include: {
+                    team: {
+                        select: {
+                            name: true,
+                        }
+                    }
+                },
+            },
+            winner: true,
+        },
     });
 
     const serializedMatches = matches.map(match => ({
@@ -41,10 +48,10 @@ export default async function page({ params }: { params: Promise<{ id: string }>
             id: match.winner.id,
             name: match.winner.name,
         } : null,
-        teams: match.teams ? match.teams.map(team => ({
-            id: team.id,
-            name: team.name,
-        })) : [],
+        teams: match.matchTeams.map(team => ({
+            id: team.teamsId,
+            name: team.team.name,
+        })),
         createdAt: match.createdAt,
         updatedAt: match.updatedAt
     }));
@@ -56,7 +63,7 @@ export default async function page({ params }: { params: Promise<{ id: string }>
             </div>
             <h1>Group phase</h1>
             <p>Group phase is the first phase of the tournament where teams are divided into groups and play against each other.</p>
-            <GraphView matches={serializedMatches as MatchEntity[]} />
+            {/*<GraphView matches={serializedMatches as Match} />*/}
         </div>
     )
 }

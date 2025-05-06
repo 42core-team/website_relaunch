@@ -1,18 +1,12 @@
 'use server'
 
-import {ensureDbConnected} from "@/initializer/database";
-import {EventEntity} from "@/entities/event.entity";
-import {EventState} from "@/entities/eventState";
-import {EventType} from "@/entities/eventTypes";
-import {UserEntity} from "@/entities/users.entity";
-import {TeamEntity} from "@/entities/team.entity";
-import {MatchEntity, MatchPhase, MatchState} from "@/entities/match.entity";
 import {SingleElimination, Swiss} from "tournament-pairings";
-// @ts-ignore
-import {Match, Player} from 'tournament-pairings/interfaces';
-import {getServerSession} from "next-auth/next";
 import {authOptions} from "@/app/utils/authOptions";
-import {UserEventPermissionEntity, PermissionRole} from "@/entities/user-event-permission.entity";
+import { prisma } from "@/initializer/database";
+import { events_state_enum, events_type_enum, Match, matches_phase_enum, matches_state_enum, Team, user_event_permissions_role_enum } from "@/generated/prisma";
+// @ts-ignore
+import {Player} from 'tournament-pairings/interfaces';
+import {getServerSession} from "next-auth/next";
 
 export interface Event {
     id: string;
@@ -31,22 +25,20 @@ export interface Event {
 }
 
 export async function getTeamsToAvoid(teamId: string): Promise<string[]> {
-    const dataSource = await ensureDbConnected();
-    const matchRepository = dataSource.getRepository(MatchEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const pastMatches = await matchRepository.find({
+    const pastMatches = await prisma.match.findMany({
         where: {
-            teams: {
-                id: teamId
+            matchTeams: {
+                some: {
+                    teamsId: teamId
+                }
             }
         },
-        relations: {
-            teams: true
-        }
-    })
+        include: {
+            matchTeams: true,
+        },
+    });
 
-    const pastOpponents = pastMatches.map(p => p.teams.map(t => t.id)).flat();
+    const pastOpponents = pastMatches.map(p => p.matchTeams?.map(t => t.teamsId)).flat();
     return pastOpponents.filter(id => id !== teamId);
 }
 
@@ -56,27 +48,31 @@ export async function getMaxSwissRounds(teams: number): Promise<number> {
 
 // To be deprecated
 export async function createSingleEliminationBracket(eventId: string): Promise<boolean> {
-    const dataSource = await ensureDbConnected();
-    const teamsRepository = dataSource.getRepository(TeamEntity);
-    const matchRepository = dataSource.getRepository(MatchEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const event = await eventRepository.findOne({
-        where: {id: eventId},
-        relations: ['teams']
+    const event = await prisma.event.findFirst({
+        where: { id: eventId },
+        include: {
+            teams: true,
+        },
     });
 
     if (!event) return false;
 
     // Check if elimination bracket already exists
-    const existingMatches = await matchRepository.find({
+    const existingMatches = await prisma.match.findMany({
         where: {
-            phase: MatchPhase.ELIMINATION,
-            teams: {
-                event: {id: eventId}
-            }
+            phase: matches_phase_enum.ELIMINATION,
+            matchTeams: {
+                some: {
+                    team: {
+                        eventId: eventId,
+                    },
+                },
+            },
         },
-        relations: ['teams', 'winner']
+        include: {
+            matchTeams: true,
+            winner: true,
+        },
     });
 
     // CASE 1: No elimination matches yet - create initial bracket
@@ -89,10 +85,10 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         }
 
         // Get teams ordered by score for seeding
-        const teams = await teamsRepository.find({
-            where: {event: {id: eventId}},
-            order: {score: 'DESC'},
-            take: 16
+        const teams = await prisma.team.findMany({
+            where: { eventId: eventId },
+            orderBy: { score: 'desc' },
+            take: 16,
         });
 
         if (teams.length < 2) return false;
@@ -102,57 +98,66 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
             id: team.id,
             name: team.name,
             score: team.score,
-            receivedBye: team.hadBye
+            receivedBye: team.hadBye,
         }));
 
         // Generate single elimination bracket
         const matches = SingleElimination(players);
 
         // Create match entities
-        const matchEntities: MatchEntity[] = [];
+        const matchEntities: Match[] = [];
 
         matches.forEach((match, index) => {
             const roundNumber = Math.ceil(Math.log2(matches.length + 1)) - Math.floor(Math.log2(index + 1));
 
-            const newMatch = new MatchEntity();
-            newMatch.state = MatchState.PLANNED;
-            newMatch.round = roundNumber;
-            newMatch.phase = MatchPhase.ELIMINATION;
-            newMatch.teams = [];
+            const newMatch: Match = {
+                id: '', // Provide appropriate default or generated ID
+                state: matches_state_enum.PLANNED,
+                round: 0, // Replace with the correct round number
+                phase: matches_phase_enum.ELIMINATION,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                winnerId: null // Adjust based on your logic
+            };
+
+            const teams: Team[] = [];
 
             // Add teams if they're not byes
             if (match.player1) {
                 const team1 = teams.find(t => t.id === match.player1);
-                if (team1) newMatch.teams.push(team1);
+                if (team1) teams.push(team1);
             }
 
             if (match.player2) {
                 const team2 = teams.find(t => t.id === match.player2);
-                if (team2) newMatch.teams.push(team2);
+                if (team2) teams.push(team2);
             }
 
             // If a match has only one team, it's a bye - set winner immediately
-            if (newMatch.teams.length === 1) {
-                newMatch.winner = newMatch.teams[0];
-                newMatch.state = MatchState.FINISHED;
+            if (teams.length === 1) {
+                newMatch.winnerId = teams[0].id;
+                newMatch.state = matches_state_enum.FINISHED;
             }
 
             matchEntities.push(newMatch);
         });
 
         // Save match entities
-        await matchRepository.save(matchEntities);
+        await prisma.match.createMany({
+            data: matchEntities,
+        });
 
         // Update event state
-        await eventRepository.update(eventId, {
-            state: EventState.ELIMINATION_ROUND,
-            currentRound: 1
+        await prisma.event.update({
+            where: { id: eventId },
+            data: {
+                state: events_state_enum.ELIMINATION_ROUND,
+                currentRound: 1,
+            },
         });
 
         return true;
     }
-
-    console.log("fhjewriofjewiofjweoifjewoifejwio")
 
     // CASE 2: Elimination matches exist - advance winners
 
@@ -162,14 +167,14 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
     // Get finished matches from current round that have winners
     const finishedMatches = existingMatches.filter(
         match => match.round === currentRound &&
-            match.state === MatchState.FINISHED &&
+            match.state === matches_state_enum.FINISHED &&
             match.winner
     );
 
     // Get next round matches
     const nextRoundMatches = existingMatches.filter(
         match => match.round === currentRound - 1 &&
-            match.state === MatchState.PLANNED
+            match.state === matches_state_enum.PLANNED
     );
 
     // If no next round matches, tournament is complete
@@ -179,8 +184,9 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
 
         if (finalMatch?.winner) {
             // Tournament is complete, update event state
-            await eventRepository.update(eventId, {
-                state: EventState.FINISHED
+            await prisma.event.update({
+                where: { id: eventId },
+                data: { state: matches_state_enum.FINISHED },
             });
         }
 
@@ -211,85 +217,89 @@ export async function createSingleEliminationBracket(eventId: string): Promise<b
         const winners = feedingMatches.map(m => m.winner).filter(Boolean);
 
         // Add winners to next match
-        nextMatch.teams = winners;
+        nextMatch.matchTeams = winners
+            .filter(winner => winner?.id !== undefined)
+            .map(winner => ({
+                matchesId: nextMatch.id,
+                teamsId: winner!.id,
+            }));
 
         // If we have two teams, match is ready to play
         if (winners.length === 2) {
-            nextMatch.state = MatchState.READY;
+            nextMatch.state = matches_state_enum.READY;
         }
         // If we have only one winner and no other matches feed in, they win by default
         else if (winners.length === 1) {
             nextMatch.winner = winners[0];
-            nextMatch.state = MatchState.FINISHED;
+            nextMatch.state = matches_state_enum.FINISHED;
         }
     }
 
     // Save updated matches
-    await matchRepository.save(nextRoundMatches);
+    await prisma.match.updateMany({
+        data: nextRoundMatches,
+    });
 
     // Update event's current round
-    await eventRepository.update(eventId, {
-        currentRound: event.currentRound + 1
+    await prisma.event.update({
+        where: { id: eventId },
+        data: { currentRound: event.currentRound + 1 },
     });
 
     return true;
 }
 
-
 export async function calculateNextGroupPhaseMatches(eventId: string): Promise<boolean> {
-    const dataSource = await ensureDbConnected();
-    const teamsRepository = dataSource.getRepository(TeamEntity);
-    const eventRepository = dataSource.getRepository(EventEntity);
-    const matchRepository = dataSource.getRepository(MatchEntity);
-    const event = await getEventById(eventId);
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        include: { teams: true },
+    });
     if (!event) return false;
 
-    const teams = await teamsRepository.find({
-        where: {
-            event: {
-                id: eventId
-            }
-        }
-    })
-    const maxRounds = await getMaxSwissRounds(teams.length)
-    if (event.currentRound >= maxRounds)
-        return false;
+    const teams = event.teams;
+    const maxRounds = await getMaxSwissRounds(teams.length);
+    if (event.currentRound >= maxRounds) return false;
 
     const nextRound = event.currentRound + 1;
-    const matchableTeams: Player[] = await Promise.all(teams.map(async (team: TeamEntity): Promise<Player> => {
+    const matchableTeams: Player[] = await Promise.all(teams.map(async (team) => {
         const teamsToAvoid = await getTeamsToAvoid(team.id);
         return {
             id: team.id,
             score: team.score,
             avoid: teamsToAvoid,
-            receivedBye: team.hadBye
-        }
-    }))
+            receivedBye: team.hadBye,
+        };
+    }));
 
     const matches = Swiss(matchableTeams, nextRound, true);
     const newMatches = matches.map(match => {
-        const newMatch = new MatchEntity();
-        newMatch.state = MatchState.PLANNED
-        newMatch.round = nextRound;
-        newMatch.phase = MatchPhase.SWISS
-        newMatch.teams = [];
-        [match.player1, match.player2].forEach((player) => {
-            const team = teams.find(t => t.id === player);
-            if (team) {
-                newMatch.teams.push(team);
-            }
-        })
-        return newMatch;
-    })
+        return {
+            state: matches_state_enum.PLANNED,
+            round: nextRound,
+            phase: matches_phase_enum.SWISS,
+            matchTeams: [
+                match.player1 ? { teamsId: match.player1 } : null,
+                match.player2 ? { teamsId: match.player2 } : null,
+            ].filter(Boolean),
+        };
+    });
 
-    await matchRepository.save(newMatches);
-    return true
+    await prisma.match.createMany({
+        data: newMatches,
+    });
+
+    await prisma.event.update({
+        where: { id: eventId },
+        data: { currentRound: nextRound },
+    });
+
+    return true;
 }
 
 export async function getEventById(eventId: string): Promise<Event | null> {
-    const dataSource = await ensureDbConnected();
-    const eventRepository = dataSource.getRepository(EventEntity);
-    const event = await eventRepository.findOne({where: {id: eventId}});
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+    });
 
     if (!event) return null;
 
@@ -306,61 +316,49 @@ export async function getEventById(eventId: string): Promise<Event | null> {
         event_type: event.type,
         tree_format: event.treeFormat,
         repo_template_owner: event.repoTemplateOwner,
-        repo_template_name: event.repoTemplateName
+        repo_template_name: event.repoTemplateName,
     };
 }
 
 export async function isUserRegisteredForEvent(userId: string, eventId: string): Promise<boolean> {
-    const dataSource = await ensureDbConnected();
-    const userRepository = dataSource.getRepository(UserEntity);
-
-    return userRepository.existsBy({
-        id: userId,
-        events: {
-            id: eventId
-        }
+    const count = await prisma.eventUser.count({
+        where: {
+            usersId: userId,
+            eventsId: eventId,
+        },
     });
+
+    return count > 0;
 }
 
 export async function shouldShowJoinNotice(userId: string, eventId: string): Promise<boolean> {
     const isRegistered = await isUserRegisteredForEvent(userId, eventId);
-    if (isRegistered)
-        return false;
+    if (isRegistered) return false;
 
     const event = await getEventById(eventId);
-    if (!event) {
-        return false;
-    }
+    if (!event) return false;
 
     const startDate = new Date(event.start_date);
-    const isStartDateInFuture = startDate > new Date();
-
-    return isStartDateInFuture;
+    return startDate > new Date();
 }
 
 export async function isEventAdmin(userId: string, eventId: string): Promise<boolean> {
-    const dataSource = await ensureDbConnected();
-    const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
-
-    if (!userId || !eventId) {
-        return false;
-    }
-
-    return await permissionRepository.existsBy({
-        user: {id: userId},
-        event: {id: eventId},
-        role: PermissionRole.ADMIN
+    const count = await prisma.userEventPermission.count({
+        where: {
+            userId: userId,
+            eventId: eventId,
+            role: user_event_permissions_role_enum.ADMIN,
+        },
     });
+
+    return count > 0;
 }
 
 // Get all events
 export async function getEvents(limit: number = 50): Promise<Event[]> {
-    const dataSource = await ensureDbConnected();
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const events = await eventRepository.find({
-        order: {startDate: 'ASC'},
-        take: limit
+    const events = await prisma.event.findMany({
+        orderBy: { startDate: 'asc' },
+        take: limit,
     });
 
     return events.map(event => ({
@@ -376,73 +374,41 @@ export async function getEvents(limit: number = 50): Promise<Event[]> {
         event_type: event.type,
         tree_format: event.treeFormat,
         repo_template_owner: event.repoTemplateOwner,
-        repo_template_name: event.repoTemplateName
+        repo_template_name: event.repoTemplateName,
     }));
 }
 
 export async function getTeamsCountForEvent(eventId: string): Promise<number> {
-    const dataSource = await ensureDbConnected();
-    const eventRepository = dataSource.getRepository(EventEntity);
-
-    const event = await eventRepository.findOne({
-        where: {id: eventId},
-        relations: ['teams']
+    return prisma.team.count({
+        where: {eventId: eventId},
     });
-
-    return event?.teams?.length || 0;
 }
 
 // Get total participants count for an event
 export async function getParticipantsCountForEvent(eventId: string): Promise<number> {
-    const dataSource = await ensureDbConnected();
-    const teamRepository = dataSource.getRepository(TeamEntity);
-
-    const result = await teamRepository
-        .createQueryBuilder('team')
-        .innerJoin('team.event', 'event')
-        .innerJoin('team.users', 'user')
-        .where('event.id = :eventId', {eventId})
-        .select('COUNT(DISTINCT user.id)', 'count')
-        .getRawOne();
-
-    return parseInt(result?.count || '0', 10);
+    return prisma.user.count({
+        where: {
+            eventUsers: {
+                some: {
+                    eventsId: eventId,
+                }
+            },
+        }
+    });
 }
 
 // Join a user to an event
 export async function joinEvent(userId: string, eventId: string): Promise<boolean> {
     try {
-        const dataSource = await ensureDbConnected();
-        const eventRepository = dataSource.getRepository(EventEntity);
-        const userRepository = dataSource.getRepository(UserEntity);
-
         const isRegistered = await shouldShowJoinNotice(userId, eventId);
-        if (!isRegistered) {
-            return false;
-        }
+        if (!isRegistered) return false;
 
-        // Get user and event
-        const user = await userRepository.findOne({
-            where: {id: userId},
-            relations: ['events']
+        await prisma.eventUser.create({
+            data: {
+                usersId: userId,
+                eventsId: eventId,
+            },
         });
-
-        const event = await eventRepository.findOne({
-            where: {id: eventId},
-            relations: ['users']
-        });
-
-        if (!user || !event) {
-            console.error('User or event not found');
-            return false;
-        }
-
-        // Add user to event
-        if (!event.users) {
-            event.users = [];
-        }
-
-        event.users.push(user);
-        await eventRepository.save(event);
 
         return true;
     } catch (error) {
@@ -462,18 +428,13 @@ interface EventCreateParams {
     maxTeamSize: number;
     treeFormat?: number;
     eventType: string;
-    repoTemplateOwner?: string;
-    repoTemplateName?: string;
+    repoTemplateOwner: string;
+    repoTemplateName: string;
 }
 
 // Create a new event
 export async function createEvent(eventData: EventCreateParams): Promise<Event | { error: string }> {
     try {
-        const dataSource = await ensureDbConnected();
-        const eventRepository = dataSource.getRepository(EventEntity);
-        const userRepository = dataSource.getRepository(UserEntity);
-        const permissionRepository = dataSource.getRepository(UserEventPermissionEntity);
-
         // Get current user from session
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
@@ -481,7 +442,9 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         }
 
         // Check if user has permission to create events
-        const user = await userRepository.findOne({where: {id: session.user.id}});
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+        });
         if (!user || !user.canCreateEvent) {
             return {error: "You don't have permission to create events"};
         }
@@ -524,51 +487,45 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
         }
 
         // Create new event
-        const newEvent = new EventEntity();
-        newEvent.name = eventData.name;
-        newEvent.description = eventData.description || "";
-        newEvent.location = eventData.location || "";
-        newEvent.startDate = startDate;
-        newEvent.endDate = endDate;
-        newEvent.minTeamSize = eventData.minTeamSize;
-        newEvent.maxTeamSize = eventData.maxTeamSize;
-        newEvent.state = EventState.TEAM_FINDING;
-        newEvent.currentRound = 0;
-        newEvent.type = eventData.eventType === "RUSH" ? EventType.RUSH : EventType.REGULAR;
-        newEvent.treeFormat = treeFormat;
-
-        // Set repository template owner and name if provided
-        if (eventData.repoTemplateOwner && eventData.repoTemplateName) {
-            newEvent.repoTemplateOwner = eventData.repoTemplateOwner;
-            newEvent.repoTemplateName = eventData.repoTemplateName;
-        }
-
-        newEvent.users = [user]; // Add the creator as a user of the event
-
-        const savedEvent = await eventRepository.save(newEvent);
-
-        // Create admin permission for the user creating the event
-        const userPermission = new UserEventPermissionEntity();
-        userPermission.user = user;
-        userPermission.event = savedEvent;
-        userPermission.role = PermissionRole.ADMIN;
-        await permissionRepository.save(userPermission);
+        const newEvent = await prisma.event.create({
+            data: {
+                name: eventData.name,
+                description: eventData.description || "",
+                location: eventData.location || "",
+                startDate: startDate,
+                endDate: endDate,
+                minTeamSize: eventData.minTeamSize,
+                maxTeamSize: eventData.maxTeamSize,
+                state: events_state_enum.TEAM_FINDING,
+                currentRound: 0,
+                type: eventData.eventType === "RUSH" ? events_type_enum.RUSH : events_type_enum.REGULAR,
+                treeFormat: treeFormat,
+                repoTemplateOwner: eventData.repoTemplateOwner,
+                repoTemplateName: eventData.repoTemplateName,
+                userPermissions: {
+                    create: {
+                        userId: user.id,
+                        role: user_event_permissions_role_enum.ADMIN,
+                    },
+                },
+            },
+        });
 
         // Return the created event
         return {
-            id: savedEvent.id,
-            name: savedEvent.name,
-            description: savedEvent.description,
-            location: savedEvent.location,
-            start_date: savedEvent.startDate.toISOString(),
-            end_date: savedEvent.endDate.toISOString(),
-            min_team_size: savedEvent.minTeamSize,
-            max_team_size: savedEvent.maxTeamSize,
-            currentRound: savedEvent.currentRound,
-            event_type: savedEvent.type,
-            tree_format: savedEvent.treeFormat,
-            repo_template_owner: savedEvent.repoTemplateOwner,
-            repo_template_name: savedEvent.repoTemplateName
+            id: newEvent.id,
+            name: newEvent.name,
+            description: newEvent.description,
+            location: newEvent.location,
+            start_date: newEvent.startDate.toISOString(),
+            end_date: newEvent.endDate.toISOString(),
+            min_team_size: newEvent.minTeamSize,
+            max_team_size: newEvent.maxTeamSize,
+            currentRound: newEvent.currentRound,
+            event_type: newEvent.type,
+            tree_format: newEvent.treeFormat,
+            repo_template_owner: newEvent.repoTemplateOwner,
+            repo_template_name: newEvent.repoTemplateName,
         };
     } catch (error) {
         console.error('Error creating event:', error);
@@ -576,12 +533,8 @@ export async function createEvent(eventData: EventCreateParams): Promise<Event |
     }
 }
 
-// Check if the current user has permission to create events
 export async function canUserCreateEvent(): Promise<boolean> {
     try {
-        const dataSource = await ensureDbConnected();
-        const userRepository = dataSource.getRepository(UserEntity);
-
         // Get current user from session
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
@@ -589,10 +542,12 @@ export async function canUserCreateEvent(): Promise<boolean> {
         }
 
         // Check if user has permission to create events
-        const user = await userRepository.findOne({where: {id: session.user.id}});
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+        });
         return user?.canCreateEvent || false;
     } catch (error) {
         console.error('Error checking event creation permission:', error);
         return false;
     }
-} 
+}

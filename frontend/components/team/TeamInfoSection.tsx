@@ -4,7 +4,6 @@ import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
 import { useState, useEffect } from "react";
 import { getEventById } from "@/app/actions/event";
-import { EventType } from "@/entities/eventTypes";
 
 interface TeamInfoSectionProps {
     myTeam: Team, 

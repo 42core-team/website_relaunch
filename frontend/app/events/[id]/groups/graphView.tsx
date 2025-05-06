@@ -1,15 +1,14 @@
 'use client';
-import {MatchEntity} from "@/entities/match.entity";
 import {useEffect} from 'react';
 import ReactFlow, {
     useNodesState,
     Node,
-    Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import {Match} from "@/generated/prisma";
 
 export default function GraphView({matches}: {
-    matches: MatchEntity[]
+    matches: Match[]
 }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
@@ -20,7 +19,7 @@ export default function GraphView({matches}: {
             if (!acc[match.round]) acc[match.round] = [];
             acc[match.round].push(match);
             return acc;
-        }, {} as Record<number, MatchEntity[]>);
+        }, {} as Record<number, Match[]>);
 
         const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
 
@@ -58,14 +57,14 @@ export default function GraphView({matches}: {
                 let matchLabel = "";
                 let winnerInfo = "";
 
-                if (match.teams && match.teams.length > 0) {
-                    matchLabel = match.teams.map(team => team.name || "Team").join(" vs ");
-                    if (match.winner && match.state === 'FINISHED') {
-                        winnerInfo = `Winner: ${match.winner.name}`;
-                    }
-                } else {
-                    matchLabel = `Match ${matchIndex + 1}`;
-                }
+                // if (match.teams && match.teams.length > 0) {
+                //     matchLabel = match.teams.map(team => team.name || "Team").join(" vs ");
+                //     if (match.winner && match.state === 'FINISHED') {
+                //         winnerInfo = `Winner: ${match.winner.name}`;
+                //     }
+                // } else {
+                //     matchLabel = `Match ${matchIndex + 1}`;
+                // }
 
                 newNodes.push({
                     id: nodeId,

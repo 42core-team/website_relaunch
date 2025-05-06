@@ -4,7 +4,7 @@ import React from "react";
 import {getEventById, isEventAdmin, isUserRegisteredForEvent, shouldShowJoinNotice} from "@/app/actions/event";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/utils/authOptions";
-import {EventType} from "@/entities/eventTypes";
+import { events_type_enum } from "@/generated/prisma";
 
 export default async function EventLayout({
                                               children,
@@ -35,7 +35,7 @@ export default async function EventLayout({
         return <div>Event not found</div>;
     }
     
-    const isRushEvent = event.event_type === EventType.RUSH;
+    const isRushEvent = event.event_type === events_type_enum.RUSH;
 
     return (
         <div className="relative flex flex-col h-screen">

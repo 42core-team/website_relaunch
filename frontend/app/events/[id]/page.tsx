@@ -1,63 +1,18 @@
-"use client";
-
-import { Card } from "@heroui/react";
-import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import EventLayout from "@/layouts/event";
+import { Card } from "@/components/clientHeroui";
 import {
   getEventById,
   getTeamsCountForEvent,
   getParticipantsCountForEvent,
-  Event,
 } from "@/app/actions/event";
 
-interface Stats {
-  totalParticipants: number;
-  totalTeams: number;
-}
+export default async function EventPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-export default function EventPage() {
-  const id = useParams().id;
-
-  const [event, setEvent] = useState<Event | null>(null);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchEventStats() {
-      if (!id) return;
-
-      try {
-        const eventData = await getEventById(id as string);
-        setEvent(eventData);
-
-        const teamsCount = await getTeamsCountForEvent(id as string);
-        const participantsCount = await getParticipantsCountForEvent(
-          id as string,
-        );
-
-        setStats({
-          totalParticipants: participantsCount,
-          totalTeams: teamsCount,
-        });
-      } catch (error) {
-        console.error("Error fetching event stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchEventStats();
-  }, [id]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <p>Loading event stats...</p>
-      </div>
-    );
-  }
-
+  const event = await getEventById(id);
   if (!event) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -66,6 +21,9 @@ export default function EventPage() {
     );
   }
 
+  const teamsCount = await getTeamsCountForEvent(id);
+  const participantsCount = await getParticipantsCountForEvent(id);
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">{event.name}</h1>
@@ -73,12 +31,12 @@ export default function EventPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Participants</h3>
-          <p className="text-3xl font-bold">{stats?.totalParticipants}</p>
+          <p className="text-3xl font-bold">{participantsCount}</p>
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Teams</h3>
-          <p className="text-3xl font-bold">{stats?.totalTeams}</p>
+          <p className="text-3xl font-bold">{teamsCount}</p>
         </Card>
 
         <Card className="p-6">

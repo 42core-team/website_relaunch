@@ -717,22 +717,68 @@ export async function declineTeamInvite(
  * @returns Array of teams
  */
 export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
-  try {
-    const teams = await prisma.team.findMany({
-      where: { eventId },
-      include: { members: true },
-    });
+  const teams = await prisma.team.findMany({
+    where: { eventId },
+    include: { members: true },
+  });
 
-    return teams.map((team) => ({
-      id: team.id,
-      name: team.name,
-      repo: team.repo || "",
-      membersCount: team.members.length,
-      createdAt: team.createdAt,
-      updatedAt: team.updatedAt,
-    }));
-  } catch (err) {
-    console.error("Error getting teams for event:", err);
-    return [];
+  return teams.map((team) => ({
+    id: team.id,
+    name: team.name,
+    repo: team.repo || "",
+    membersCount: team.members.length,
+    createdAt: team.createdAt,
+    updatedAt: team.updatedAt,
+  }));
+}
+
+export async function getTeamsForEventTable(
+  eventId: string,
+  searchTeamName: string | undefined = undefined,
+  sortColumn: "name" | "createdAt" | "membersCount" | undefined = "name",
+  sortDirection: "asc" | "desc" = "asc",
+) {
+  let whereName: any;
+  if (searchTeamName === undefined) {
+    whereName = undefined;
+  } else {
+    whereName = {
+      contains: searchTeamName,
+      mode: "insensitive",
+    };
   }
+  let orderBy: any;
+  if (sortColumn === undefined) {
+    orderBy = undefined;
+  } else if (sortColumn === "membersCount") {
+    orderBy = {
+      members: {
+        _count: sortDirection,
+      },
+    };
+  } else {
+    orderBy = {
+      [sortColumn]: sortDirection,
+    };
+  }
+
+  const teams = await prisma.team.findMany({
+    where: {
+      eventId,
+      name: whereName,
+    },
+    orderBy,
+    include: {
+      members: true,
+    },
+  });
+
+  return teams.map((team) => ({
+    id: team.id,
+    name: team.name,
+    repo: team.repo || "",
+    membersCount: team.members.length,
+    createdAt: team.createdAt,
+    updatedAt: team.updatedAt,
+  }));
 }

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Card } from "@/components/clientHeroui";
-import { getTeamsForEventTable, Team } from "@/app/actions/team";
+import { getTeamsForEventTable } from "@/app/actions/team";
 import TeamsSearchBar from "./TeamsSearchBar";
 import TeamsTable from "./TeamsTable";
 

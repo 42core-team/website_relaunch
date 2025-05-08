@@ -2,7 +2,7 @@
 
 import type { NavbarProps } from "@heroui/react";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Navbar,
   NavbarBrand,

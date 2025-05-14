@@ -2,11 +2,11 @@ import { GitHubApiClient } from "@/utils/github-api/client";
 import { UserApi, RepositoryApi } from "@/utils/github-api/endpoints";
 
 export const githubApi = new GitHubApiClient({
-    token: process.env.GITHUB_TOKEN,
+  token: process.env.GITHUB_TOKEN,
 });
 
 export const rushGithubApi = new GitHubApiClient({
-    token: process.env.GITHUB_RUSH_TOKEN,
+  token: process.env.GITHUB_RUSH_TOKEN,
 });
 
 export const userApi = new UserApi(githubApi);

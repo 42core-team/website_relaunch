@@ -1,11 +1,11 @@
-import { GitHubApiClient } from './client';
+import { GitHubApiClient } from "./client";
 import {
   GitHubRepository,
   GitHubIssue,
   GitHubUser,
   GitHubCollaboratorPermission,
-  GitHubRepositoryInvitation
-} from './response-types';
+  GitHubRepositoryInvitation,
+} from "./response-types";
 
 /**
  * Repository-related API endpoints
@@ -33,26 +33,29 @@ export class RepositoryApi {
    * @param org Optional organization name (if creating in an organization)
    * @returns Created repository data
    */
-  async createRepo(options: {
-    name: string;
-    description?: string;
-    homepage?: string;
-    private?: boolean;
-    has_issues?: boolean;
-    has_projects?: boolean;
-    has_wiki?: boolean;
-    has_downloads?: boolean;
-    team_id?: number;
-    auto_init?: boolean;
-    gitignore_template?: string;
-    license_template?: string;
-    allow_squash_merge?: boolean;
-    allow_merge_commit?: boolean;
-    allow_rebase_merge?: boolean;
-    allow_auto_merge?: boolean;
-    delete_branch_on_merge?: boolean;
-  }, org?: string): Promise<GitHubRepository> {
-    const endpoint = org ? `orgs/${org}/repos` : 'user/repos';
+  async createRepo(
+    options: {
+      name: string;
+      description?: string;
+      homepage?: string;
+      private?: boolean;
+      has_issues?: boolean;
+      has_projects?: boolean;
+      has_wiki?: boolean;
+      has_downloads?: boolean;
+      team_id?: number;
+      auto_init?: boolean;
+      gitignore_template?: string;
+      license_template?: string;
+      allow_squash_merge?: boolean;
+      allow_merge_commit?: boolean;
+      allow_rebase_merge?: boolean;
+      allow_auto_merge?: boolean;
+      delete_branch_on_merge?: boolean;
+    },
+    org?: string,
+  ): Promise<GitHubRepository> {
+    const endpoint = org ? `orgs/${org}/repos` : "user/repos";
     return this.client.post<GitHubRepository>(endpoint, options);
   }
 
@@ -72,11 +75,11 @@ export class RepositoryApi {
       description?: string;
       private?: boolean;
       include_all_branches?: boolean;
-    }
+    },
   ): Promise<GitHubRepository> {
     return this.client.post<GitHubRepository>(
       `repos/${templateOwner}/${templateRepo}/generate`,
-      options
+      options,
     );
   }
 
@@ -97,15 +100,19 @@ export class RepositoryApi {
    * @param options Query parameters
    * @returns List of issues
    */
-  async listIssues(owner: string, repo: string, options: {
-    state?: 'open' | 'closed' | 'all';
-    sort?: 'created' | 'updated' | 'comments';
-    direction?: 'asc' | 'desc';
-    per_page?: number;
-    page?: number;
-  } = {}): Promise<GitHubIssue[]> {
+  async listIssues(
+    owner: string,
+    repo: string,
+    options: {
+      state?: "open" | "closed" | "all";
+      sort?: "created" | "updated" | "comments";
+      direction?: "asc" | "desc";
+      per_page?: number;
+      page?: number;
+    } = {},
+  ): Promise<GitHubIssue[]> {
     return this.client.get<GitHubIssue[]>(`repos/${owner}/${repo}/issues`, {
-      params: options
+      params: options,
     });
   }
 
@@ -116,15 +123,22 @@ export class RepositoryApi {
    * @param options Query parameters
    * @returns List of collaborators
    */
-  async listCollaborators(owner: string, repo: string, options: {
-    affiliation?: 'outside' | 'direct' | 'all';
-    permission?: 'pull' | 'push' | 'admin' | 'maintain' | 'triage';
-    per_page?: number;
-    page?: number;
-  } = {}): Promise<GitHubUser[]> {
-    return this.client.get<GitHubUser[]>(`repos/${owner}/${repo}/collaborators`, {
-      params: options
-    });
+  async listCollaborators(
+    owner: string,
+    repo: string,
+    options: {
+      affiliation?: "outside" | "direct" | "all";
+      permission?: "pull" | "push" | "admin" | "maintain" | "triage";
+      per_page?: number;
+      page?: number;
+    } = {},
+  ): Promise<GitHubUser[]> {
+    return this.client.get<GitHubUser[]>(
+      `repos/${owner}/${repo}/collaborators`,
+      {
+        params: options,
+      },
+    );
   }
 
   /**
@@ -134,7 +148,11 @@ export class RepositoryApi {
    * @param username Username to check
    * @returns True if the user is a collaborator
    */
-  async isCollaborator(owner: string, repo: string, username: string): Promise<boolean> {
+  async isCollaborator(
+    owner: string,
+    repo: string,
+    username: string,
+  ): Promise<boolean> {
     try {
       await this.client.get(`repos/${owner}/${repo}/collaborators/${username}`);
       return true;
@@ -156,11 +174,14 @@ export class RepositoryApi {
     owner: string,
     repo: string,
     username: string,
-    permission: 'pull' | 'push' | 'admin' | 'maintain' | 'triage' = 'pull'
+    permission: "pull" | "push" | "admin" | "maintain" | "triage" = "pull",
   ): Promise<GitHubRepositoryInvitation> {
-    return this.client.put<GitHubRepositoryInvitation>(`repos/${owner}/${repo}/collaborators/${username}`, {
-      permission
-    });
+    return this.client.put<GitHubRepositoryInvitation>(
+      `repos/${owner}/${repo}/collaborators/${username}`,
+      {
+        permission,
+      },
+    );
   }
 
   /**
@@ -175,11 +196,14 @@ export class RepositoryApi {
     owner: string,
     repo: string,
     username: string,
-    permission: 'pull' | 'push' | 'admin' | 'maintain' | 'triage'
+    permission: "pull" | "push" | "admin" | "maintain" | "triage",
   ): Promise<GitHubRepositoryInvitation | void> {
-    return this.client.put<GitHubRepositoryInvitation | void>(`repos/${owner}/${repo}/collaborators/${username}`, {
-      permission
-    });
+    return this.client.put<GitHubRepositoryInvitation | void>(
+      `repos/${owner}/${repo}/collaborators/${username}`,
+      {
+        permission,
+      },
+    );
   }
 
   /**
@@ -189,8 +213,14 @@ export class RepositoryApi {
    * @param username Username to remove
    * @returns Response data
    */
-  async removeCollaborator(owner: string, repo: string, username: string): Promise<void> {
-    return this.client.delete<void>(`repos/${owner}/${repo}/collaborators/${username}`);
+  async removeCollaborator(
+    owner: string,
+    repo: string,
+    username: string,
+  ): Promise<void> {
+    return this.client.delete<void>(
+      `repos/${owner}/${repo}/collaborators/${username}`,
+    );
   }
 
   /**
@@ -203,10 +233,10 @@ export class RepositoryApi {
   async getCollaboratorPermissionLevel(
     owner: string,
     repo: string,
-    username: string
+    username: string,
   ): Promise<GitHubCollaboratorPermission> {
     return this.client.get<GitHubCollaboratorPermission>(
-      `repos/${owner}/${repo}/collaborators/${username}/permission`
+      `repos/${owner}/${repo}/collaborators/${username}/permission`,
     );
   }
 
@@ -217,13 +247,20 @@ export class RepositoryApi {
    * @param options Query parameters
    * @returns List of repository invitations
    */
-  async listInvitations(owner: string, repo: string, options: {
-    per_page?: number;
-    page?: number;
-  } = {}): Promise<GitHubRepositoryInvitation[]> {
-    return this.client.get<GitHubRepositoryInvitation[]>(`repos/${owner}/${repo}/invitations`, {
-      params: options
-    });
+  async listInvitations(
+    owner: string,
+    repo: string,
+    options: {
+      per_page?: number;
+      page?: number;
+    } = {},
+  ): Promise<GitHubRepositoryInvitation[]> {
+    return this.client.get<GitHubRepositoryInvitation[]>(
+      `repos/${owner}/${repo}/invitations`,
+      {
+        params: options,
+      },
+    );
   }
 
   /**
@@ -233,8 +270,14 @@ export class RepositoryApi {
    * @param invitationId Invitation ID to delete
    * @returns Response data
    */
-  async deleteInvitation(owner: string, repo: string, invitationId: number): Promise<void> {
-    return this.client.delete<void>(`repos/${owner}/${repo}/invitations/${invitationId}`);
+  async deleteInvitation(
+    owner: string,
+    repo: string,
+    invitationId: number,
+  ): Promise<void> {
+    return this.client.delete<void>(
+      `repos/${owner}/${repo}/invitations/${invitationId}`,
+    );
   }
 
   /**
@@ -244,12 +287,16 @@ export class RepositoryApi {
    * @param data Issue data
    * @returns Created issue
    */
-  async createIssue(owner: string, repo: string, data: {
-    title: string;
-    body?: string;
-    assignees?: string[];
-    labels?: string[];
-  }): Promise<GitHubIssue> {
+  async createIssue(
+    owner: string,
+    repo: string,
+    data: {
+      title: string;
+      body?: string;
+      assignees?: string[];
+      labels?: string[];
+    },
+  ): Promise<GitHubIssue> {
     return this.client.post<GitHubIssue>(`repos/${owner}/${repo}/issues`, data);
   }
 }
@@ -269,7 +316,7 @@ export class UserApi {
    * @returns User data
    */
   async getAuthenticatedUser(): Promise<GitHubUser> {
-    return this.client.get<GitHubUser>('user');
+    return this.client.get<GitHubUser>("user");
   }
 
   /**
@@ -287,15 +334,18 @@ export class UserApi {
    * @param options Query parameters
    * @returns List of repositories
    */
-  async listUserRepositories(username: string, options: {
-    type?: 'all' | 'owner' | 'member';
-    sort?: 'created' | 'updated' | 'pushed' | 'full_name';
-    direction?: 'asc' | 'desc';
-    per_page?: number;
-    page?: number;
-  } = {}): Promise<GitHubRepository[]> {
+  async listUserRepositories(
+    username: string,
+    options: {
+      type?: "all" | "owner" | "member";
+      sort?: "created" | "updated" | "pushed" | "full_name";
+      direction?: "asc" | "desc";
+      per_page?: number;
+      page?: number;
+    } = {},
+  ): Promise<GitHubRepository[]> {
     return this.client.get<GitHubRepository[]>(`users/${username}/repos`, {
-      params: options
+      params: options,
     });
   }
 
@@ -304,15 +354,20 @@ export class UserApi {
    * @param accessToken Optional access token to use for this request
    * @returns List of repository invitations
    */
-  async listRepositoryInvitations(accessToken?: string): Promise<GitHubRepositoryInvitation[]> {
+  async listRepositoryInvitations(
+    accessToken?: string,
+  ): Promise<GitHubRepositoryInvitation[]> {
     const headers: Record<string, string> = {};
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
+      headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    return this.client.get<GitHubRepositoryInvitation[]>('user/repository_invitations', {
-      headers
-    });
+    return this.client.get<GitHubRepositoryInvitation[]>(
+      "user/repository_invitations",
+      {
+        headers,
+      },
+    );
   }
 
   /**
@@ -321,15 +376,22 @@ export class UserApi {
    * @param accessToken Optional access token to use for this request
    * @returns Response data
    */
-  async acceptRepositoryInvitation(invitationId: number, accessToken?: string): Promise<void> {
+  async acceptRepositoryInvitation(
+    invitationId: number,
+    accessToken?: string,
+  ): Promise<void> {
     const headers: Record<string, string> = {};
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
+      headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    return this.client.patch<void>(`user/repository_invitations/${invitationId}`, {}, {
-      headers
-    });
+    return this.client.patch<void>(
+      `user/repository_invitations/${invitationId}`,
+      {},
+      {
+        headers,
+      },
+    );
   }
 
   /**
@@ -338,15 +400,21 @@ export class UserApi {
    * @param accessToken Optional access token to use for this request
    * @returns Response data
    */
-  async declineRepositoryInvitation(invitationId: number, accessToken?: string): Promise<void> {
+  async declineRepositoryInvitation(
+    invitationId: number,
+    accessToken?: string,
+  ): Promise<void> {
     const headers: Record<string, string> = {};
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
+      headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    return this.client.delete<void>(`user/repository_invitations/${invitationId}`, {
-      headers
-    });
+    return this.client.delete<void>(
+      `user/repository_invitations/${invitationId}`,
+      {
+        headers,
+      },
+    );
   }
 
   /**
@@ -361,8 +429,8 @@ export class UserApi {
       return 0;
     }
 
-    const acceptPromises = invitations.map(invitation =>
-      this.acceptRepositoryInvitation(invitation.id, accessToken)
+    const acceptPromises = invitations.map((invitation) =>
+      this.acceptRepositoryInvitation(invitation.id, accessToken),
     );
 
     await Promise.all(acceptPromises);
@@ -376,12 +444,17 @@ export class UserApi {
    * @param accessToken Optional access token to use for this request
    * @returns True if invitation was found and accepted, false otherwise
    */
-  async acceptRepositoryInvitationByRepo(owner: string, repo: string, accessToken?: string): Promise<boolean> {
+  async acceptRepositoryInvitationByRepo(
+    owner: string,
+    repo: string,
+    accessToken?: string,
+  ): Promise<boolean> {
     const invitations = await this.listRepositoryInvitations(accessToken);
 
-    const invitation = invitations.find(inv => 
-      inv.repository.owner.login.toLowerCase() === owner.toLowerCase() && 
-      inv.repository.name.toLowerCase() === repo.toLowerCase()
+    const invitation = invitations.find(
+      (inv) =>
+        inv.repository.owner.login.toLowerCase() === owner.toLowerCase() &&
+        inv.repository.name.toLowerCase() === repo.toLowerCase(),
     );
 
     if (invitation) {
@@ -391,4 +464,4 @@ export class UserApi {
 
     return false;
   }
-} 
+}

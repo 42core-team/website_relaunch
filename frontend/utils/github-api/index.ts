@@ -1,7 +1,7 @@
-export * from './client';
-export * from './types';
-export * from './endpoints';
-export * from './response-types';
+export * from "./client";
+export * from "./types";
+export * from "./endpoints";
+export * from "./response-types";
 
 // Usage example:
 /*
@@ -63,4 +63,4 @@ async function getUserInfo() {
     console.error('Error fetching user:', error);
   }
 }
-*/ 
+*/

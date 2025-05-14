@@ -5,7 +5,7 @@
 /**
  * HTTP methods supported by the GitHub API
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * Options for making a request to the GitHub API
@@ -15,17 +15,17 @@ export interface RequestOptions {
    * HTTP method to use for the request
    */
   method?: HttpMethod;
-  
+
   /**
    * Request headers
    */
   headers?: Record<string, string>;
-  
+
   /**
    * Request body (will be JSON stringified)
    */
   body?: any;
-  
+
   /**
    * Query parameters
    */
@@ -60,4 +60,4 @@ export interface RateLimitInfo {
   reset: number;
   used: number;
   resource: string;
-} 
+}

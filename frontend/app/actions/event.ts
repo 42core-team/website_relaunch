@@ -384,10 +384,9 @@ export async function isEventAdmin(
 }
 
 // Get all events
-export async function getEvents(limit: number = 50): Promise<Event[]> {
+export async function getEvents(): Promise<Event[]> {
   const events = await prisma.event.findMany({
     orderBy: { startDate: "asc" },
-    take: limit,
   });
 
   return events.map((event) => ({

@@ -1,11 +1,13 @@
-import { Button } from "@/components/clientHeroui";
+export const dynamic = "force-dynamic";
+
 import { title } from "@/components/primitives";
 import { getEvents, canUserCreateEvent } from "@/app/actions/event";
 import EventsTable from "@/app/events/EventTable";
+import { Button } from "@/components/clientHeroui";
 
 async function getData() {
   const [events, canCreate] = await Promise.all([
-    getEvents(50),
+    getEvents(),
     canUserCreateEvent(),
   ]);
 

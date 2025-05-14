@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import {
   Table,
   TableHeader,
@@ -60,12 +59,9 @@ export default function TeamsTable({
           <TableRow
             key={team.id}
             className="cursor-pointer hover:bg-default-100 transition-colors"
+            onClick={() => router.push(`/events/${eventId}/teams/${team.id}`)}
           >
-            <TableCell>
-              <Link href={`/events/${eventId}/teams/${team.id}`}>
-                {team.name}
-              </Link>
-            </TableCell>
+            <TableCell>{team.name}</TableCell>
             <TableCell>{team.membersCount}</TableCell>
             <TableCell>
               {team.createdAt

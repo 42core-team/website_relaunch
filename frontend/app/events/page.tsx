@@ -1,51 +1,21 @@
-"use client";
+export const dynamic = "force-dynamic";
 
-import { Button } from "@heroui/react";
 import { title } from "@/components/primitives";
-import { getEvents, Event, canUserCreateEvent } from "@/app/actions/event";
+import { getEvents, canUserCreateEvent } from "@/app/actions/event";
 import EventsTable from "@/app/events/EventTable";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/clientHeroui";
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [canCreate, setCanCreate] = useState(false);
-  const router = useRouter();
+async function getData() {
+  const [events, canCreate] = await Promise.all([
+    getEvents(),
+    canUserCreateEvent(),
+  ]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [fetchedEvents, hasPermission] = await Promise.all([
-          getEvents(50),
-          canUserCreateEvent(),
-        ]);
+  return { events, canCreate };
+}
 
-        setEvents(fetchedEvents);
-        setCanCreate(hasPermission);
-      } catch (err) {
-        setError("Failed to fetch events");
-        console.error("Error fetching data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  const handleCreateEvent = () => {
-    router.push("/events/create");
-  };
-
-  if (isLoading) {
-    return <div className="text-center">Loading events...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center text-red-600">{error}</div>;
-  }
+export default async function EventsPage() {
+  const { events, canCreate } = await getData();
 
   return (
     <>
@@ -57,7 +27,7 @@ export default function EventsPage() {
           Discover and join upcoming coding competitions
         </p>
         {canCreate && (
-          <Button color="primary" onPress={handleCreateEvent}>
+          <Button color="primary" as="a" href="/events/create">
             Create Event
           </Button>
         )}

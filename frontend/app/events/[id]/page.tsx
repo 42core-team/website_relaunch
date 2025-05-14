@@ -56,13 +56,13 @@ export default async function EventPage({
             <div>
               <h3 className="text-sm font-medium text-gray-500">Start Date</h3>
               <p className="mt-1">
-                {new Date(event.start_date).toLocaleDateString("de-DE")}
+                {new Date(event.start_date).toLocaleDateString()}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">End Date</h3>
               <p className="mt-1">
-                {new Date(event.end_date).toLocaleDateString("de-DE")}
+                {new Date(event.end_date).toLocaleDateString()}
               </p>
             </div>
           </div>

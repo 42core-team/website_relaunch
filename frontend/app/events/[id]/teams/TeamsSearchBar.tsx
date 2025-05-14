@@ -6,12 +6,8 @@ import { useState, useEffect } from "react";
 
 export default function TeamsSearchBar({
   initialValue,
-  sortColumn,
-  sortDirection,
 }: {
   initialValue: string;
-  sortColumn: string;
-  sortDirection: string;
 }) {
   const [value, setValue] = useState(initialValue);
   const router = useRouter();
@@ -22,13 +18,11 @@ export default function TeamsSearchBar({
       const params = new URLSearchParams(searchParams.toString());
       if (value) params.set("q", value);
       else params.delete("q");
-      params.set("sort", sortColumn);
-      params.set("dir", sortDirection);
       router.replace(`?${params.toString()}`);
     }, 400); // 400ms debounce
 
     return () => clearTimeout(handler);
-  }, [value, sortColumn, sortDirection]);
+  }, [value]);
 
   return (
     <div className="relative w-full sm:max-w-xs">

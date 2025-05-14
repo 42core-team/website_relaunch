@@ -2,7 +2,7 @@
 
 import type { NavbarProps } from "@heroui/react";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -84,12 +84,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           </NavbarItem>
           <NavbarItem>
             <Link
-              className={cn("text-default-500", {
-                "font-bold text-default-foreground":
-                  pathname === "/wiki/season1",
-              })}
+              className={"text-default-500"}
               href="https://wiki.coregame.de"
               size="sm"
+              isExternal
+              showAnchorIcon
             >
               Wiki
             </Link>

@@ -122,30 +122,12 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Meet Our Team
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <motion.div
               className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Image
-                src="/team/fschuber.jpg"
-                alt="Team member"
-                width={200}
-                height={200}
-                className="w-40 h-40 rounded-full object-cover mb-4"
-              />
-              <h3 className="text-xl font-semibold">Frederick Schubert</h3>
-              <p className="text-default-600">Member of the Core Team</p>
-            </motion.div>
-
-            <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0 }}
             >
               <Image
                 src="/team/jgotz.png"
@@ -155,31 +137,14 @@ export default function AboutPage() {
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
               <h3 className="text-xl font-semibold">Jonas Götz</h3>
-              <p className="text-default-600">Member of the Core Team</p>
+              <p className="text-default-600">Head of Server and Kubernetes</p>
             </motion.div>
 
             <motion.div
               className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Image
-                src="/team/jkauker.jpg"
-                alt="Team member"
-                width={200}
-                height={200}
-                className="w-40 h-40 rounded-full object-cover mb-4"
-              />
-              <h3 className="text-xl font-semibold">Jonas Kauker</h3>
-              <p className="text-default-600">Member of the Core Team</p>
-            </motion.div>
-
-            <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Image
                 src="/team/tpaesch.jpeg"
@@ -189,7 +154,24 @@ export default function AboutPage() {
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
               <h3 className="text-xl font-semibold">Theo Paesch</h3>
-              <p className="text-default-600">Member of the Core Team</p>
+              <p className="text-default-600">Event Management and Design</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Image
+                src="/team/fschuber.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Frederick Schubert</h3>
+              <p className="text-default-600">Server and Game</p>
             </motion.div>
 
             <motion.div
@@ -206,14 +188,14 @@ export default function AboutPage() {
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
               <h3 className="text-xl font-semibold">Florian Fischer</h3>
-              <p className="text-default-600">Member of the Core Team</p>
+              <p className="text-default-600">Visualizer</p>
             </motion.div>
 
             <motion.div
               className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
             >
               <Image
                 src="/team/pgrossma.jpeg"
@@ -223,7 +205,92 @@ export default function AboutPage() {
                 className="w-40 h-40 rounded-full object-cover mb-4"
               />
               <h3 className="text-xl font-semibold">Paul Großmann</h3>
-              <p className="text-default-600">Member of the Core Team</p>
+              <p className="text-default-600">Programs the rest</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Image
+                src="/team/jkauker.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Jonas Kauker</h3>
+              <p className="text-default-600">Wiki and Video</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <Image
+                src="https://cdn.intra.42.fr/users/f69eb7c83b6b91f6d84d6635cc33e953/medium_apregitz.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Anakin Pregitzer</h3>
+              <p className="text-default-600">Head of Rush</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+            >
+              <Image
+                src="https://cdn.intra.42.fr/users/c86f2d994f58da1df739af962abca534/medium_chuhlig.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Christopher Uhlig</h3>
+              <p className="text-default-600">Head of Balancing</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              <Image
+                src="https://cdn.intra.42.fr/users/349488861974386279579ba2bc9fc1db/medium_eebert.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Emil Ebert</h3>
+              <p className="text-default-600">Website</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+            >
+              <Image
+                src="https://cdn.intra.42.fr/users/12e74e15f7b4926f9b9c1e1554b6bcd9/medium_kmuhlbau.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Konrad Mühlbauer</h3>
+              <p className="text-default-600">Website</p>
             </motion.div>
           </div>
         </motion.div>

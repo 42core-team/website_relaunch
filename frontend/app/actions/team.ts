@@ -293,6 +293,10 @@ export async function createTeam(
     );
   } catch (error) {
     console.error("Error creating repository from template:", error);
+    return {
+      error:
+        "Error creating repository. If you recently changed your github username or your github account name, logout and back in again and try again.",
+    };
   }
 
   return {

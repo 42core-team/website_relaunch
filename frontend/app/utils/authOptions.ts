@@ -45,13 +45,10 @@ export const authOptions: NextAuthOptions = {
             data: {
               githubId: account.providerAccountId,
               githubAccessToken: account.access_token,
-              username:
-                existingUser.username || githubProfile?.login || user.name!,
-              name: existingUser.name || user.name! || githubProfile?.name!,
+              username: githubProfile?.login || existingUser.username,
+              name: githubProfile?.name || existingUser.name,
               profilePicture:
-                existingUser.profilePicture ||
-                user.image! ||
-                githubProfile?.avatar_url!,
+                githubProfile?.avatar_url || existingUser.profilePicture,
             },
           });
         }

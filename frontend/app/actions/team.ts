@@ -506,10 +506,6 @@ export async function sendTeamInvite(
       },
     });
 
-    if (!team.members.some((member) => member.usersId === authId)) {
-      return false;
-    }
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -530,6 +526,10 @@ export async function sendTeamInvite(
     }
 
     if (team.locked) {
+      return false;
+    }
+
+    if (!team.members.some((member) => member.usersId === authId)) {
       return false;
     }
 
@@ -611,7 +611,7 @@ export async function acceptTeamInvite(teamId: string): Promise<{
 }> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return false;
+    return { success: false, message: "User not authenticated" };
   }
   const userId = session.user.id;
 
@@ -714,7 +714,7 @@ export async function declineTeamInvite(teamId: string): Promise<{
 }> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return false;
+    return { success: false, message: "User not authenticated" };
   }
   const userId = session.user.id;
 

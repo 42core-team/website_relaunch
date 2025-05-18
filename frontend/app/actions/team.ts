@@ -193,8 +193,13 @@ async function lockTeamRepository(
 export async function createTeam(
   name: string,
   eventId: string,
-  userId: string,
 ): Promise<Team | { error: string }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { error: "User not authenticated" };
+  }
+
+  const userId = session.user.id;
   const existingTeam = await getTeam(userId, eventId);
   if (existingTeam) return existingTeam;
 

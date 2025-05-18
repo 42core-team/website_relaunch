@@ -56,7 +56,7 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      const result = await createTeam(newTeamName, eventId, session.user.id);
+      const result = await createTeam(newTeamName, eventId);
 
       if ("error" in result) {
         setErrorMessage(result.error);

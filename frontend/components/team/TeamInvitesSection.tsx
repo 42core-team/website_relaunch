@@ -56,7 +56,7 @@ export const TeamInvitesSection = () => {
     }));
 
     try {
-      const result = await acceptTeamInvite(teamId, session.user.id);
+      const result = await acceptTeamInvite(teamId);
 
       if (result.success) {
         // Remove from invites list if accepted
@@ -99,7 +99,7 @@ export const TeamInvitesSection = () => {
     }));
 
     try {
-      const result = await declineTeamInvite(teamId, session.user.id);
+      const result = await declineTeamInvite(teamId);
 
       if (result.success) {
         // Remove from invites list

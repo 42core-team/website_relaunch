@@ -10,6 +10,13 @@ import { SessionProvider } from "next-auth/react";
 export default function App({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>Core Game</title>
+        <meta charSet="UTF-8" />
+        <meta name="description" content="Webiste for CORE Game" />
+        <meta name="author" content="Team Core Game" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
       <body>
         <HeroUIProvider>
           <NextThemesProvider>

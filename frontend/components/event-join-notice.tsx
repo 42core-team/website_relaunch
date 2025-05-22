@@ -20,7 +20,7 @@ export default function EventJoinNotice({
     setError(null);
 
     try {
-      const success = await joinEvent(userId, eventId);
+      const success = await joinEvent(eventId);
 
       if (success) {
         window.location.reload();

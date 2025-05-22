@@ -193,8 +193,13 @@ async function lockTeamRepository(
 export async function createTeam(
   name: string,
   eventId: string,
-  userId: string,
 ): Promise<Team | { error: string }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { error: "User not authenticated" };
+  }
+
+  const userId = session.user.id;
   const existingTeam = await getTeam(userId, eventId);
   if (existingTeam) return existingTeam;
 
@@ -314,10 +319,14 @@ export async function createTeam(
  * @param userId ID of the user leaving the team
  * @returns boolean indicating success
  */
-export async function leaveTeam(
-  teamId: string,
-  userId: string,
-): Promise<boolean> {
+export async function leaveTeam(teamId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return false;
+  }
+
+  const userId = session.user.id;
+
   try {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -481,6 +490,12 @@ export async function sendTeamInvite(
   teamId: string,
   userId: string,
 ): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return false;
+  }
+  const authId = session.user.id;
+
   try {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -511,6 +526,10 @@ export async function sendTeamInvite(
     }
 
     if (team.locked) {
+      return false;
+    }
+
+    if (!team.members.some((member) => member.usersId === authId)) {
       return false;
     }
 
@@ -586,13 +605,16 @@ export async function getUserPendingInvites(
  * @param userId ID of the user accepting the invite
  * @returns Object with success status and optional message
  */
-export async function acceptTeamInvite(
-  teamId: string,
-  userId: string,
-): Promise<{
+export async function acceptTeamInvite(teamId: string): Promise<{
   success: boolean;
   message?: string;
 }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { success: false, message: "User not authenticated" };
+  }
+  const userId = session.user.id;
+
   try {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -686,13 +708,16 @@ export async function acceptTeamInvite(
  * @param userId ID of the user declining the invite
  * @returns Object with success status and optional message
  */
-export async function declineTeamInvite(
-  teamId: string,
-  userId: string,
-): Promise<{
+export async function declineTeamInvite(teamId: string): Promise<{
   success: boolean;
   message?: string;
 }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { success: false, message: "User not authenticated" };
+  }
+  const userId = session.user.id;
+
   try {
     await prisma.team.update({
       where: { id: teamId },

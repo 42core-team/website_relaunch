@@ -428,10 +428,13 @@ export async function getParticipantsCountForEvent(
 }
 
 // Join a user to an event
-export async function joinEvent(
-  userId: string,
-  eventId: string,
-): Promise<boolean> {
+export async function joinEvent(eventId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return false;
+  }
+  const userId = session.user.id;
+
   try {
     const isRegistered = await shouldShowJoinNotice(userId, eventId);
     if (!isRegistered) return false;

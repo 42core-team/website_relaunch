@@ -9,7 +9,7 @@ service:
   port: 3000
 
 image:
-  repository: ghcr.io/your-org/your-repo
+  repository: ghcr.io/42core-team/website_relaunch
   pullPolicy: IfNotPresent
   tag: "latest"  # Will be overridden by CI/CD
 

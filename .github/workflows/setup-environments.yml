@@ -103,17 +103,17 @@ jobs:
           echo "The following environments have been configured:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🟢 Production (\`prod\`)" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL:** https://your-prod-domain.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://coregame.de" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** main (protected branches only)" >> $GITHUB_STEP_SUMMARY
           echo "- **Namespace:** production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🟡 Beta/Staging (\`beta\`)" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL:** https://beta.your-domain.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://beta.coregame.de" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** dev" >> $GITHUB_STEP_SUMMARY
           echo "- **Namespace:** staging" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔵 Development (\`dev\`)" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL:** https://dev.your-domain.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://dev.coregame.de" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** any feature branch" >> $GITHUB_STEP_SUMMARY
           echo "- **Namespace:** development" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

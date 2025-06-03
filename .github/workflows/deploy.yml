@@ -141,12 +141,12 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
         with:
-          version: '3.12.0'
+          version: 'v3.13.3'
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: '1.28.0'
+          version: 'v1.28.4'
 
       - name: Configure Kubernetes context
         run: |

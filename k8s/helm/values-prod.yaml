@@ -1,0 +1,59 @@
+# Production environment values (main branch)
+replicaCount: 3
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+service:
+  type: ClusterIP
+  port: 3000
+
+image:
+  repository: ghcr.io/your-org/your-repo
+  pullPolicy: IfNotPresent
+  tag: "main"  # Will be overridden by CI/CD
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  NODE_ENV: production
+  GITHUB_ID: "prod-github-id"
+  GITHUB_SECRET: "prod-github-secret"
+  GITHUB_TOKEN: "prod-github-token"
+  GITHUB_RUSH_TOKEN: "prod-github-rush-token"
+  NEXT_PUBLIC_GITHUB_ORG: 42-core-repos
+  NEXT_PUBLIC_RUSH_ORG: 42-core-rush-repos
+  
+  NEXTAUTH_SECRET: "prod-nextauth-secret"
+  NEXTAUTH_URL: "https://coregame.de"
+  
+  DATABASE_URL: "postgresql://prod-user:prod-pass@prod-db:5432/prod-db"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: coregame.de
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: prod-tls
+      hosts:
+        - coregame.de
+
+nodeSelector: {}
+tolerations: []
+affinity: {} 

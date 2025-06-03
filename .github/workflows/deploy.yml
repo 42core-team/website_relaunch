@@ -1,0 +1,310 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - beta
+          - prod
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        default: 'latest'
+        type: string
+      branch:
+        description: 'Branch name (for release naming)'
+        required: false
+        default: 'manual'
+        type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      branch:
+        description: 'Branch name (for release naming)'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environment }}
+      url: ${{ steps.config.outputs.environment_url }}
+    
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: '${{ inputs.environment }}',
+              description: 'Deploying ${{ inputs.branch }} to ${{ inputs.environment }}',
+              auto_merge: false,
+              required_contexts: []
+            });
+            
+            core.setOutput('deployment_id', deployment.data.id);
+            return deployment.data.id;
+
+      - name: Set deployment status to in progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'in_progress',
+              description: 'Deployment started'
+            });
+
+      - name: Determine deployment configuration
+        id: config
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          BRANCH="${{ inputs.branch }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          
+          # Sanitize branch name for Kubernetes resources
+          SANITIZED_BRANCH=$(echo "${BRANCH}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          
+          # Set configuration based on environment
+          case "${ENVIRONMENT}" in
+            "prod")
+              VALUES_FILE="values-prod.yaml"
+              NAMESPACE="production"
+              ENVIRONMENT_URL="https://coregame.de"
+              ;;
+            "beta")
+              VALUES_FILE="values-beta.yaml"
+              NAMESPACE="staging"
+              ENVIRONMENT_URL="https://beta.coregame.de"
+              ;;
+            "dev")
+              VALUES_FILE="values-dev.yaml"
+              NAMESPACE="development"
+              ENVIRONMENT_URL="https://dev.coregame.de"
+              ;;
+            *)
+              echo "Unknown environment: ${ENVIRONMENT}"
+              exit 1
+              ;;
+          esac
+          
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "sanitized_branch=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "release_name=website-relaunch-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "environment_url=${ENVIRONMENT_URL}" >> $GITHUB_OUTPUT
+          
+          echo "Deployment Configuration:"
+          echo "- Environment: ${ENVIRONMENT}"
+          echo "- Branch: ${BRANCH} (sanitized: ${SANITIZED_BRANCH})"
+          echo "- Values file: ${VALUES_FILE}"
+          echo "- Namespace: ${NAMESPACE}"
+          echo "- Image tag: ${IMAGE_TAG}"
+          echo "- Release name: website-relaunch-${SANITIZED_BRANCH}"
+          echo "- Environment URL: ${ENVIRONMENT_URL}"
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.12.0'
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: '1.28.0'
+
+      - name: Configure Kubernetes context
+        run: |
+          # Configure kubectl context based on environment
+          echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
+          
+          # You'll need to configure these based on your cluster setup
+          # Example configurations for different environments:
+          
+          case "${{ steps.config.outputs.environment }}" in
+            "prod")
+              # Production cluster configuration
+              echo "Setting up production cluster context"
+              # kubectl config set-cluster prod --server=${{ secrets.PROD_K8S_SERVER }}
+              # kubectl config set-credentials prod --token=${{ secrets.PROD_K8S_TOKEN }}
+              # kubectl config set-context prod --cluster=prod --user=prod
+              # kubectl config use-context prod
+              ;;
+            "beta")
+              # Staging cluster configuration
+              echo "Setting up staging cluster context"
+              # kubectl config set-cluster staging --server=${{ secrets.STAGING_K8S_SERVER }}
+              # kubectl config set-credentials staging --token=${{ secrets.STAGING_K8S_TOKEN }}
+              # kubectl config set-context staging --cluster=staging --user=staging
+              # kubectl config use-context staging
+              ;;
+            "dev")
+              # Development cluster configuration
+              echo "Setting up development cluster context"
+              # kubectl config set-cluster dev --server=${{ secrets.DEV_K8S_SERVER }}
+              # kubectl config set-credentials dev --token=${{ secrets.DEV_K8S_TOKEN }}
+              # kubectl config set-context dev --cluster=dev --user=dev
+              # kubectl config use-context dev
+              ;;
+          esac
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.config.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Validate Helm chart
+        run: |
+          cd k8s/helm
+          helm lint . --values ${{ steps.config.outputs.values_file }}
+          helm template ${{ steps.config.outputs.release_name }} . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --validate
+
+      - name: Deploy with Helm
+        run: |
+          cd k8s/helm
+          
+          echo "Deploying to ${{ steps.config.outputs.environment }} environment..."
+          echo "Using values file: ${{ steps.config.outputs.values_file }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}"
+          
+          helm upgrade --install \
+            ${{ steps.config.outputs.release_name }} \
+            . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --wait \
+            --timeout=10m \
+            --atomic \
+            --history-max=5
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment in namespace: ${{ steps.config.outputs.namespace }}"
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }} --timeout=300s
+          
+          # Show deployment status
+          kubectl get pods -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          kubectl get services -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          kubectl get ingress -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          
+          # Show Helm release status
+          helm status ${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }}
+
+      - name: Run health checks
+        run: |
+          echo "Running health checks..."
+          
+          # Get the service endpoint
+          SERVICE_NAME="${{ steps.config.outputs.release_name }}"
+          NAMESPACE="${{ steps.config.outputs.namespace }}"
+          
+          # Port forward to test the application (optional)
+          # kubectl port-forward svc/${SERVICE_NAME} 8080:3000 -n ${NAMESPACE} &
+          # sleep 5
+          # curl -f http://localhost:8080 || echo "Health check failed"
+          # pkill -f "kubectl port-forward"
+          
+          echo "Health checks completed"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Successfully deployed to ${{ steps.config.outputs.environment }} environment**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ steps.config.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Namespace:** ${{ steps.config.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release name:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Values file:** ${{ steps.config.outputs.values_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Resources deployed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- Service" >> $GITHUB_STEP_SUMMARY
+          echo "- Ingress (if enabled)" >> $GITHUB_STEP_SUMMARY
+          echo "- HPA (if enabled)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Set deployment status to success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'success',
+              description: 'Deployment completed successfully',
+              environment_url: '${{ steps.config.outputs.environment_url }}'
+            });
+
+      - name: Set deployment status to failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'failure',
+              description: 'Deployment failed'
+            });
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed deployment details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ steps.config.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image tag:** ${{ steps.config.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for error details." 

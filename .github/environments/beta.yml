@@ -1,0 +1,17 @@
+name: Beta/Staging
+description: Beta/staging environment for the dev branch
+url: https://beta.coregame.de
+protection_rules:
+  required_reviewers: 1
+  prevent_self_review: false
+  dismiss_stale_reviews: false
+deployment_branch_policy:
+  protected_branches: false
+  custom_branch_policies: true
+  custom_branches:
+    - dev
+variables:
+  ENVIRONMENT_NAME: staging
+  NAMESPACE: staging
+  DOMAIN: beta.coregame.de
+  VALUES_FILE: values-beta.yaml 

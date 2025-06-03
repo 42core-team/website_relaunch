@@ -9,7 +9,20 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm i
+
+# Configure npm for better reliability and add retry logic
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000
+
+# Clean npm cache first
+RUN npm cache clean --force
+
+# Install with verbose logging and retry on failure
+RUN npm ci --verbose --no-audit --no-fund || \
+    (echo "First npm install failed, retrying..." && npm ci --verbose --no-audit --no-fund) || \
+    (echo "Second npm install failed, trying npm install..." && npm install --verbose --no-audit --no-fund)
 
 # Rebuild the source code only when needed
 FROM base AS builder

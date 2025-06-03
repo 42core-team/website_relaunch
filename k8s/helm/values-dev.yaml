@@ -1,0 +1,62 @@
+# Development environment values (feature branches)
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 3000
+
+image:
+  repository: ghcr.io/42core-team/website_relaunch
+  pullPolicy: IfNotPresent
+  tag: "latest"  # Will be overridden by CI/CD
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+env:
+  NODE_ENV: development
+  GITHUB_ID: "dev-github-id"
+  GITHUB_SECRET: "dev-github-secret"
+  GITHUB_TOKEN: "dev-github-token"
+  GITHUB_RUSH_TOKEN: "dev-github-rush-token"
+  NEXT_PUBLIC_GITHUB_ORG: 42-core-repos
+  NEXT_PUBLIC_RUSH_ORG: 42-core-rush-repos
+  
+  NEXTAUTH_SECRET: "dev-nextauth-secret"
+  NEXTAUTH_URL: "https://dev.coregame.de"
+  
+  DATABASE_URL: "postgresql://dev-user:dev-pass@dev-db:5432/dev-db"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: dev.coregame.de
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: dev-tls
+      hosts:
+        - dev.coregame.de
+
+# Development-specific settings
+livenessProbe:
+  enabled: false
+readinessProbe:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {} 

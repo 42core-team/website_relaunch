@@ -153,14 +153,34 @@ jobs:
           # Configure kubectl context using kubeconfig
           echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
           
+          # Debug information
+          echo ""
+          echo "🔍 Debug information:"
+          echo "- Environment: ${{ steps.config.outputs.environment }}"
+          echo "- GitHub Environment: ${{ inputs.environment }}"
+          echo "- Repository: ${{ github.repository }}"
+          echo "- Actor: ${{ github.actor }}"
+          echo "- Workflow: ${{ github.workflow }}"
+          
           # Try to get KUBECONFIG_DATA from environment secrets first, then repository secrets
           KUBECONFIG_DATA="${{ secrets.KUBECONFIG_DATA }}"
           
+          echo ""
+          echo "🔐 Secret access test:"
+          if [ -n "${KUBECONFIG_DATA}" ]; then
+            echo "✅ KUBECONFIG_DATA secret found (length: ${#KUBECONFIG_DATA} characters)"
+          else
+            echo "❌ KUBECONFIG_DATA secret is empty or not found"
+          fi
+          
           # Check if KUBECONFIG_DATA secret is set
           if [ -z "${KUBECONFIG_DATA}" ]; then
+            echo ""
             echo "❌ ERROR: KUBECONFIG_DATA secret is not configured!"
             echo ""
             echo "The secret was not found in environment secrets or repository secrets."
+            echo ""
+            echo "Current environment context: ${{ inputs.environment }}"
             echo ""
             echo "To fix this issue, add KUBECONFIG_DATA secret to:"
             echo "📍 EITHER: Settings → Environments → ${{ steps.config.outputs.environment }} → Environment secrets"
@@ -174,8 +194,12 @@ jobs:
             echo "4. Paste the base64 encoded kubeconfig as the value"
             echo ""
             echo "See k8s/KUBERNETES_SETUP.md for detailed instructions"
+            echo ""
+            echo "💡 Try running the 'Debug Secrets Access' workflow to diagnose the issue"
             exit 1
           fi
+          
+          echo "✅ Secret found, proceeding with kubeconfig setup..."
           
           # Create .kube directory
           mkdir -p ~/.kube

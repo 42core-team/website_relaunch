@@ -48,8 +48,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=ref,event=pr,prefix=pr-
+            type=sha,prefix={{branch}}-,format=short
 
       - name: Build and push by digest
         id: build
@@ -80,7 +80,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    if: github.event_name == 'push'
     
     permissions:
       contents: read
@@ -104,22 +104,111 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Extract branch name
+        id: branch
+        run: |
+          # Extract branch name from GITHUB_REF and sanitize for Docker tags
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          # Replace invalid characters for Docker tags (only allow a-z, A-Z, 0-9, -, _, .)
+          SANITIZED_BRANCH=$(echo "${BRANCH_NAME}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          echo "name=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "original=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "Original branch name: ${BRANCH_NAME}"
+          echo "Sanitized branch name: ${SANITIZED_BRANCH}"
+
+      - name: Generate tags
+        id: tags
+        run: |
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+          ORIGINAL_BRANCH="${{ steps.branch.outputs.original }}"
+          REGISTRY="${{ env.REGISTRY }}"
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          
+          # Base tags
+          TAGS="${REGISTRY}/${IMAGE_NAME}:${BRANCH_NAME}"
+          
+          # Add latest tag for main branch
+          if [ "${ORIGINAL_BRANCH}" = "main" ]; then
+            TAGS="${TAGS},${REGISTRY}/${IMAGE_NAME}:latest"
+          fi
+          
+          # Add short SHA tag
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAGS="${TAGS},${REGISTRY}/${IMAGE_NAME}:${BRANCH_NAME}-${SHORT_SHA}"
+          
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Generated tags: ${TAGS}"
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+          # Create multi-arch manifest for each tag
+          TAGS="${{ steps.tags.outputs.tags }}"
+          IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
+          
+          for TAG in "${TAG_ARRAY[@]}"; do
+            echo "Creating manifest for tag: $TAG"
+            docker buildx imagetools create -t "$TAG" \
+              $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+          done
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }} 
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+          echo "Inspecting multi-arch image for branch: ${BRANCH_NAME}"
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}
+
+      - name: Output image details
+        run: |
+          echo "## Multi-arch Image Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ steps.branch.outputs.original }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags created:**" >> $GITHUB_STEP_SUMMARY
+          
+          TAGS="${{ steps.tags.outputs.tags }}"
+          IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
+          for TAG in "${TAG_ARRAY[@]}"; do
+            echo "- \`${TAG}\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Supported architectures:** linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+
+  # Summary job to show what was built
+  summary:
+    runs-on: ubuntu-latest
+    needs: [build, merge]
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event_name }}" = "push" ]; then
+            ORIGINAL_BRANCH=${GITHUB_REF#refs/heads/}
+            SANITIZED_BRANCH=$(echo "${ORIGINAL_BRANCH}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+            
+            echo "✅ **Multi-arch image built and pushed for branch:** \`${ORIGINAL_BRANCH}\`" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${ORIGINAL_BRANCH}" != "${SANITIZED_BRANCH}" ]; then
+              echo "   *(Docker tag uses sanitized name: \`${SANITIZED_BRANCH}\`)*" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Available tags:**" >> $GITHUB_STEP_SUMMARY
+            echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SANITIZED_BRANCH}\`" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${ORIGINAL_BRANCH}" = "main" ]; then
+              echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SANITIZED_BRANCH}-${SHORT_SHA}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Architectures:** linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Multi-arch build completed for PR** (images not pushed)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Architectures tested:** linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          fi 

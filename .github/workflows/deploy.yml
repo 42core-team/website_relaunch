@@ -153,13 +153,40 @@ jobs:
           # Configure kubectl context using kubeconfig
           echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
           
+          # Check if KUBECONFIG_DATA secret is set
+          if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
+            echo "❌ ERROR: KUBECONFIG_DATA secret is not configured!"
+            echo ""
+            echo "To fix this issue:"
+            echo "1. Base64 encode your kubeconfig file:"
+            echo "   cat ~/.kube/config | base64 -w 0"
+            echo ""
+            echo "2. Go to Settings → Secrets and variables → Actions"
+            echo "3. Add a new secret named 'KUBECONFIG_DATA'"
+            echo "4. Paste the base64 encoded kubeconfig as the value"
+            echo ""
+            echo "See k8s/KUBERNETES_SETUP.md for detailed instructions"
+            exit 1
+          fi
+          
           # Create .kube directory
           mkdir -p ~/.kube
           
           # Decode and write kubeconfig
           echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
           
+          # Verify kubeconfig was decoded properly
+          if [ ! -s ~/.kube/config ]; then
+            echo "❌ ERROR: Kubeconfig file is empty after decoding!"
+            echo "Please verify that KUBECONFIG_DATA secret contains valid base64 encoded kubeconfig"
+            exit 1
+          fi
+          
+          # Set proper permissions
+          chmod 600 ~/.kube/config
+          
           # Verify connection
+          echo "Testing connection to Kubernetes cluster..."
           kubectl cluster-info
           kubectl get nodes
 

@@ -2,6 +2,31 @@
 
 This guide explains how to configure Kubernetes authentication for the GitHub Actions deployment pipeline.
 
+## Quick Setup (Recommended)
+
+**You need to configure the `KUBECONFIG_DATA` secret to enable deployments:**
+
+1. **Encode your kubeconfig:**
+   ```bash
+   cat ~/.kube/config | base64 -w 0
+   ```
+   Copy the output (it will be a long string)
+
+2. **Add GitHub Secret:**
+   - Go to your repository → **Settings** → **Secrets and variables** → **Actions**
+   - Click **"New repository secret"**
+   - Name: `KUBECONFIG_DATA`
+   - Value: Paste the base64 encoded kubeconfig from step 1
+   - Click **"Add secret"**
+
+3. **Test the deployment:**
+   - Go to **Actions** → **Deploy to Kubernetes**
+   - Select environment: `dev`
+   - Enter image tag: `latest`
+   - Click **"Run workflow"**
+
+That's it! Your deployment pipeline is now configured.
+
 ## Authentication Options
 
 You have two options for authenticating GitHub Actions with your Kubernetes cluster:

@@ -1,3 +1,4 @@
 frontend/.env
 .idea
 .DS_Store
+*/**/.env

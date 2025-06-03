@@ -41,18 +41,15 @@ RUN npx prisma generate
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Build the application
 RUN npm run build
 
-# Debug: List what was generated
-RUN ls -la .next/ || echo "No .next directory found"
-RUN ls -la .next/standalone/ || echo "No standalone directory found"
-RUN find .next -type f -name "*.js" | head -10 || echo "No JS files found in .next"
+# Debug: Check what was built
+RUN echo "=== Build output ===" && ls -la .next/
+RUN echo "=== Standalone check ===" && ls -la .next/standalone/ || echo "No standalone directory"
 
-# Show build output structure
-RUN echo "=== Build output structure ===" && find .next -type d | head -20 || echo "No directories found"
-
-# Verify the build was successful (temporarily disabled for debugging)
-# RUN test -d .next/standalone || (echo "ERROR: Standalone build failed - .next/standalone directory not found" && exit 1)
+# Verify standalone build exists
+RUN test -d .next/standalone || (echo "ERROR: Standalone build failed" && exit 1)
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -65,27 +62,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Copy build artifacts with fallback handling
-COPY --from=builder /app/.next ./temp_next
-RUN if [ -d "./temp_next/standalone" ]; then \
-      echo "Using standalone build"; \
-      cp -r ./temp_next/standalone/* ./; \
-    else \
-      echo "Standalone not found, using regular Next.js build"; \
-      cp -r ./temp_next ./.next; \
-    fi && rm -rf ./temp_next
-
-# Copy node_modules and package.json for regular builds (not needed for standalone)
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
+# Copy the standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
@@ -95,6 +75,5 @@ ENV PORT=3000
 # set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else npx next start; fi"]
+# Start the standalone server
+CMD ["node", "server.js"]

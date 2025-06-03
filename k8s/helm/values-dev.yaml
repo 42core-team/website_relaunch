@@ -22,7 +22,7 @@ resources:
     memory: 128Mi
 
 env:
-  NODE_ENV: development
+  NODE_ENV: production
   GITHUB_ID: "dev-github-id"
   GITHUB_SECRET: "dev-github-secret"
   GITHUB_TOKEN: "dev-github-token"

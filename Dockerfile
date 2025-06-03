@@ -30,6 +30,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ .
 
+# Set dummy DATABASE_URL for Prisma client generation (not used at build time)
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
+
 # Generate Prisma client
 RUN npx prisma generate
 

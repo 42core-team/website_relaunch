@@ -43,6 +43,13 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
+# Debug: List what was generated
+RUN ls -la .next/ || echo "No .next directory found"
+RUN ls -la .next/standalone/ || echo "No standalone directory found"
+
+# Verify the build was successful
+RUN test -d .next/standalone || (echo "ERROR: Standalone build failed - .next/standalone directory not found" && exit 1)
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app

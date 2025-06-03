@@ -50,9 +50,9 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: prod-tls
-      hosts:
+    - hosts:
         - coregame.de
+      secretName: coregame-de-tls
 
 nodeSelector: {}
 tolerations: []

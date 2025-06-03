@@ -47,9 +47,9 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: dev-tls
-      hosts:
+    - hosts:
         - dev.coregame.de
+      secretName: dev-coregame-de-tls
 
 # Development-specific settings
 livenessProbe:

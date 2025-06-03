@@ -50,9 +50,9 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: beta-tls
-      hosts:
+    - hosts:
         - beta.coregame.de
+      secretName: beta-coregame-de-tls
 
 nodeSelector: {}
 tolerations: []

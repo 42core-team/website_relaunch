@@ -30,9 +30,7 @@ spec:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- if .pathType }}
             pathType: {{ .pathType }}
-            {{- end }}
             backend:
               service:
                 name: {{ include "helm.fullname" $ }}

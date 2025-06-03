@@ -210,6 +210,8 @@ jobs:
       environment: ${{ needs.merge.outputs.environment }}
       image_tag: ${{ needs.merge.outputs.image_tag }}
       branch: ${{ needs.merge.outputs.branch }}
+    
+    secrets: inherit
 
   # Summary job to show what was built and deployed
   summary:

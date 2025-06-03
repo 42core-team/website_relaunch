@@ -42,3 +42,76 @@ All images support both:
 - `linux/arm64` (ARM 64-bit, including Apple Silicon)
 
 Docker will automatically pull the correct architecture for your platform.
+
+## Deployment Pipeline
+
+This project includes an automated deployment pipeline that deploys to Kubernetes using Helm charts.
+
+### Environments
+
+- **🟢 Production** (`main` branch) → `production` namespace
+- **🟡 Beta/Staging** (`dev` branch) → `staging` namespace  
+- **🔵 Development** (feature branches) → `development` namespace
+
+### Automatic Deployment
+
+When you push to any tracked branch:
+
+1. **Docker image** is built for multiple architectures (AMD64/ARM64)
+2. **Image is tagged** with branch name and commit SHA
+3. **Helm chart** is deployed with environment-specific configuration
+4. **Application** is automatically available at the configured domain
+
+### Manual Deployment
+
+You can also deploy manually:
+
+1. Go to **Actions** → **Deploy to Kubernetes**
+2. Select environment (`prod`, `beta`, `dev`)
+3. Specify image tag to deploy
+4. Run the workflow
+
+### Configuration
+
+See [`k8s/README.md`](k8s/README.md) for detailed setup instructions including:
+- Kubernetes cluster configuration
+- GitHub secrets setup
+- Environment-specific values
+- Troubleshooting guide
+
+### Deployment Status
+
+Each deployment provides detailed status information including:
+- Deployed image tag
+- Kubernetes resources created
+- Health check results
+- Access URLs
+
+## GitHub Environments
+
+This project uses GitHub Environments to track active deployments and provide easy access to deployed applications.
+
+### Environment Overview
+
+You can see active environments in the repository sidebar:
+
+- **🟢 Production** - Live production environment
+- **🟡 Beta/Staging** - Staging environment for testing
+- **🔵 Development** - Development environment for feature testing
+
+### Quick Setup
+
+1. Go to **Actions** → **Setup GitHub Environments**
+2. Click **"Run workflow"** to automatically create environments
+3. Update domain URLs in values files
+4. Configure environment secrets
+
+### Features
+
+- 📍 **Active deployment tracking** in GitHub UI
+- 🔗 **Direct links** to deployed applications  
+- 🛡️ **Protection rules** for production deployments
+- 📊 **Deployment history** and status monitoring
+- 🔐 **Environment-specific secrets** management
+
+For detailed setup instructions, see [`.github/ENVIRONMENTS.md`](.github/ENVIRONMENTS.md).

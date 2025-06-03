@@ -1,0 +1,59 @@
+# Beta/Staging environment values (dev branch)
+replicaCount: 2
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+service:
+  type: ClusterIP
+  port: 3000
+
+image:
+  repository: ghcr.io/42core-team/website_relaunch
+  pullPolicy: IfNotPresent
+  tag: "dev"  # Will be overridden by CI/CD
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+env:
+  NODE_ENV: production
+  GITHUB_ID: "beta-github-id"
+  GITHUB_SECRET: "beta-github-secret"
+  GITHUB_TOKEN: "beta-github-token"
+  GITHUB_RUSH_TOKEN: "beta-github-rush-token"
+  NEXT_PUBLIC_GITHUB_ORG: 42-core-repos
+  NEXT_PUBLIC_RUSH_ORG: 42-core-rush-repos
+  
+  NEXTAUTH_SECRET: "beta-nextauth-secret"
+  NEXTAUTH_URL: "https://beta.coregame.de"
+  
+  DATABASE_URL: "postgresql://beta-user:beta-pass@beta-db:5432/beta-db"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: beta.coregame.de
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - beta.coregame.de
+      secretName: beta-coregame-de-tls
+
+nodeSelector: {}
+tolerations: []
+affinity: {} 

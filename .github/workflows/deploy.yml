@@ -150,38 +150,18 @@ jobs:
 
       - name: Configure Kubernetes context
         run: |
-          # Configure kubectl context based on environment
+          # Configure kubectl context using kubeconfig
           echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
           
-          # You'll need to configure these based on your cluster setup
-          # Example configurations for different environments:
+          # Create .kube directory
+          mkdir -p ~/.kube
           
-          case "${{ steps.config.outputs.environment }}" in
-            "prod")
-              # Production cluster configuration
-              echo "Setting up production cluster context"
-              # kubectl config set-cluster prod --server=${{ secrets.PROD_K8S_SERVER }}
-              # kubectl config set-credentials prod --token=${{ secrets.PROD_K8S_TOKEN }}
-              # kubectl config set-context prod --cluster=prod --user=prod
-              # kubectl config use-context prod
-              ;;
-            "beta")
-              # Staging cluster configuration
-              echo "Setting up staging cluster context"
-              # kubectl config set-cluster staging --server=${{ secrets.STAGING_K8S_SERVER }}
-              # kubectl config set-credentials staging --token=${{ secrets.STAGING_K8S_TOKEN }}
-              # kubectl config set-context staging --cluster=staging --user=staging
-              # kubectl config use-context staging
-              ;;
-            "dev")
-              # Development cluster configuration
-              echo "Setting up development cluster context"
-              # kubectl config set-cluster dev --server=${{ secrets.DEV_K8S_SERVER }}
-              # kubectl config set-credentials dev --token=${{ secrets.DEV_K8S_TOKEN }}
-              # kubectl config set-context dev --cluster=dev --user=dev
-              # kubectl config use-context dev
-              ;;
-          esac
+          # Decode and write kubeconfig
+          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
+          
+          # Verify connection
+          kubectl cluster-info
+          kubectl get nodes
 
       - name: Create namespace if not exists
         run: |

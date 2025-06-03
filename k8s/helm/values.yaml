@@ -15,6 +15,10 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# Image pull secrets for private registries
+imagePullSecrets:
+  - name: ghcr-secret
+
 resources:
   limits:
     cpu: 500m

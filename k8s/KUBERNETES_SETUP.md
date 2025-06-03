@@ -12,7 +12,19 @@ This guide explains how to configure Kubernetes authentication for the GitHub Ac
    ```
    Copy the output (it will be a long string)
 
-2. **Add GitHub Secret:**
+2. **Add GitHub Secret (choose one option):**
+
+   **Option A: Environment Secrets (Recommended)**
+   - Go to your repository → **Settings** → **Environments**
+   - For each environment (`prod`, `beta`, `dev`):
+     - Click on the environment name
+     - Scroll down to **"Environment secrets"**
+     - Click **"Add secret"**
+     - Name: `KUBECONFIG_DATA`
+     - Value: Paste the base64 encoded kubeconfig from step 1
+     - Click **"Add secret"**
+
+   **Option B: Repository Secret (Alternative)**
    - Go to your repository → **Settings** → **Secrets and variables** → **Actions**
    - Click **"New repository secret"**
    - Name: `KUBECONFIG_DATA`
@@ -26,6 +38,13 @@ This guide explains how to configure Kubernetes authentication for the GitHub Ac
    - Click **"Run workflow"**
 
 That's it! Your deployment pipeline is now configured.
+
+## Why Environment Secrets vs Repository Secrets?
+
+- **Environment Secrets**: More secure, allows different kubeconfigs per environment
+- **Repository Secrets**: Simpler setup, same kubeconfig for all environments
+
+Since you're using one cluster with different namespaces, either approach works fine.
 
 ## Authentication Options
 

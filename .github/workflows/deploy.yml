@@ -153,15 +153,23 @@ jobs:
           # Configure kubectl context using kubeconfig
           echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
           
+          # Try to get KUBECONFIG_DATA from environment secrets first, then repository secrets
+          KUBECONFIG_DATA="${{ secrets.KUBECONFIG_DATA }}"
+          
           # Check if KUBECONFIG_DATA secret is set
-          if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
+          if [ -z "${KUBECONFIG_DATA}" ]; then
             echo "❌ ERROR: KUBECONFIG_DATA secret is not configured!"
             echo ""
-            echo "To fix this issue:"
+            echo "The secret was not found in environment secrets or repository secrets."
+            echo ""
+            echo "To fix this issue, add KUBECONFIG_DATA secret to:"
+            echo "📍 EITHER: Settings → Environments → ${{ steps.config.outputs.environment }} → Environment secrets"
+            echo "📍 OR: Settings → Secrets and variables → Actions → Repository secrets"
+            echo ""
+            echo "Steps to create the secret:"
             echo "1. Base64 encode your kubeconfig file:"
             echo "   cat ~/.kube/config | base64 -w 0"
-            echo ""
-            echo "2. Go to Settings → Secrets and variables → Actions"
+            echo "2. Copy the output"
             echo "3. Add a new secret named 'KUBECONFIG_DATA'"
             echo "4. Paste the base64 encoded kubeconfig as the value"
             echo ""
@@ -173,7 +181,7 @@ jobs:
           mkdir -p ~/.kube
           
           # Decode and write kubeconfig
-          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
+          echo "${KUBECONFIG_DATA}" | base64 -d > ~/.kube/config
           
           # Verify kubeconfig was decoded properly
           if [ ! -s ~/.kube/config ]; then

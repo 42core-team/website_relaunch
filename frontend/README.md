@@ -12,10 +12,11 @@ This directory contains the frontend codebase, built with [Next.js](https://next
 npm install
 ```
 
-**Note:** For the initial setup, you must also generate the Prisma client:
+**Note:** For the initial setup, you must also generate the Prisma client and run the initial database migration:
 
 ```bash
 npx prisma generate
+npx prisma migrate dev
 ```
 
 ### 2. Environment Variables

@@ -6,6 +6,8 @@ This directory contains the frontend codebase, built with [Next.js](https://next
 
 ## Getting Started
 
+The preferred way to develop is to use the provided devcontainer that also starts a postgres database.
+
 ### 1. Install Dependencies
 
 ```bash

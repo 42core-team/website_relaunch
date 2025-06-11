@@ -1,6 +1,6 @@
 /**
  * GitHub API Response Types
- * 
+ *
  * These types represent the structure of responses from the GitHub API.
  * They are not exhaustive but cover the most common fields.
  */
@@ -158,7 +158,7 @@ export interface GitHubIssue {
     default: boolean;
     description: string | null;
   }>;
-  state: 'open' | 'closed';
+  state: "open" | "closed";
   locked: boolean;
   assignee: GitHubUser | null;
   assignees: GitHubUser[];
@@ -190,8 +190,8 @@ export interface GitHubIssue {
   reactions: {
     url: string;
     total_count: number;
-    '+1': number;
-    '-1': number;
+    "+1": number;
+    "-1": number;
     laugh: number;
     hooray: number;
     confused: number;
@@ -208,7 +208,7 @@ export interface GitHubIssue {
  * GitHub Collaborator Permission
  */
 export interface GitHubCollaboratorPermission {
-  permission: 'admin' | 'maintain' | 'write' | 'triage' | 'read';
+  permission: "admin" | "maintain" | "write" | "triage" | "read";
   role_name: string;
   user: GitHubUser;
 }
@@ -221,7 +221,7 @@ export interface GitHubRepositoryInvitation {
   repository: GitHubRepository;
   invitee: GitHubUser;
   inviter: GitHubUser;
-  permissions: 'read' | 'write' | 'admin' | 'maintain' | 'triage';
+  permissions: "read" | "write" | "admin" | "maintain" | "triage";
   created_at: string;
   url: string;
   html_url: string;
@@ -270,4 +270,4 @@ export interface GitHubRateLimit {
     remaining: number;
     reset: number;
   };
-} 
+}

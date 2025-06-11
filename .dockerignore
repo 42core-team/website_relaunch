@@ -1,0 +1,61 @@
+# Dependencies
+frontend/node_modules
+frontend/.next
+frontend/.npm
+frontend/.pnpm-debug.log*
+
+# Testing
+frontend/coverage
+frontend/.nyc_output
+
+# Production
+frontend/build
+frontend/dist
+
+# Environment variables
+frontend/.env*
+!frontend/.env.example
+
+# Debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Runtime data
+frontend/pids
+frontend/*.pid
+frontend/*.seed
+frontend/*.pid.lock
+
+# Logs
+frontend/logs
+frontend/*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+
+# Other
+README.md
+LICENSE
+*.md
+
+# Husky
+frontend/.husky
+
+# Prisma
+frontend/prisma/migrations 

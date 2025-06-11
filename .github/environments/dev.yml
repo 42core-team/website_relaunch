@@ -1,0 +1,15 @@
+name: Development
+description: Development environment for feature branches
+url: https://dev.coregame.de
+protection_rules:
+  required_reviewers: 0
+  prevent_self_review: false
+  dismiss_stale_reviews: false
+deployment_branch_policy:
+  protected_branches: false
+  custom_branch_policies: false
+variables:
+  ENVIRONMENT_NAME: development
+  NAMESPACE: development
+  DOMAIN: dev.coregame.de
+  VALUES_FILE: values-dev.yaml 

@@ -14,8 +14,8 @@ export default function Footer() {
               <span className="font-bold text-xl">CORE</span>
             </Link>
             <p className="mt-4 text-default-500">
-              CORE Game is a competitive coding challenge where you design and program 
-              your own bots to battle it out in a dynamic 2D arena.
+              CORE Game is a competitive coding challenge where you design and
+              program your own bots to battle it out in a dynamic 2D arena.
             </p>
           </div>
 
@@ -23,10 +23,19 @@ export default function Footer() {
           <div>
             <h3 className="font-bold mb-4">Quick Links</h3>
             <div className="flex flex-col gap-2">
-              <Link href="/" className="text-default-500 hover:text-primary">Home</Link>
-              <Link href="/about" className="text-default-500 hover:text-primary">About</Link>
-              <Link href="https://wiki.coregame.de" 
-                className="text-default-500 hover:text-primary">
+              <Link href="/" className="text-default-500 hover:text-primary">
+                Home
+              </Link>
+              <Link
+                href="/about"
+                className="text-default-500 hover:text-primary"
+              >
+                About
+              </Link>
+              <Link
+                href="https://wiki.coregame.de"
+                className="text-default-500 hover:text-primary"
+              >
                 Documentation
               </Link>
             </div>
@@ -36,8 +45,8 @@ export default function Footer() {
           <div>
             <h3 className="font-bold mb-4">Connect</h3>
             <div className="flex flex-col gap-2">
-              <Link 
-                href={siteConfig.links.github} 
+              <Link
+                href={siteConfig.links.github}
                 isExternal
                 className="text-default-500 hover:text-primary"
               >
@@ -64,11 +73,16 @@ export default function Footer() {
               © 2024 CORE Game. All rights reserved.
             </p>
             <div className="flex gap-4 text-sm">
-              <Link href="https://github.com/42core-team/core/blob/dev/LICENSE" className="text-default-500 hover:text-primary">Terms of Service</Link>
+              <Link
+                href="https://github.com/42core-team/core/blob/dev/LICENSE"
+                className="text-default-500 hover:text-primary"
+              >
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>
       </div>
     </footer>
   );
-} 
+}

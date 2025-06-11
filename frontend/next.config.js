@@ -1,19 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: "standalone",
+  logging: {
+    level: "info",
+    format: "json",
+  },
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'nextuipro.nyc3.cdn.digitaloceanspaces.com',
+        protocol: "https",
+        hostname: "cdn.intra.42.fr",
+        port: "",
+        pathname: "**",
       },
     ],
   },
-  eslint: {
-    // NOTE: This allows production builds to successfully complete
-    // even if your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

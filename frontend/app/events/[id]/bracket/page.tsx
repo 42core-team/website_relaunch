@@ -1,58 +1,75 @@
-import {ensureDbConnected} from "@/initializer/database";
-import {MatchEntity, MatchPhase} from "@/entities/match.entity";
 import GraphView from "@/app/events/[id]/bracket/graphView";
 import Actions from "@/app/events/[id]/bracket/actions";
-import { notFound } from 'next/navigation';
-import { EventEntity } from "@/entities/event.entity";
-import { EventType } from "@/entities/eventTypes";
+import { notFound } from "next/navigation";
+import { prisma } from "@/initializer/database";
+import {
+  events_type_enum,
+  Match,
+  matches_phase_enum,
+} from "@/generated/prisma";
 
-export default async function page({ params }: { params: Promise<{ id: string }> }){
-    const connection = await ensureDbConnected();
-    const eventId = (await params).id;
-    
-    const event = await connection.getRepository(EventEntity).findOne({
-        where: { id: eventId }
-    });
-    
-    if (event?.type === EventType.RUSH) {
-        return notFound();
-    }
-    
-    const matches = await connection.getRepository(MatchEntity).find({
-        where: {
-            phase: MatchPhase.ELIMINATION,
+export default async function page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const eventId = (await params).id;
 
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+  });
+
+  if (event?.type === events_type_enum.RUSH) {
+    return notFound();
+  }
+
+  const matches = await prisma.match.findMany({
+    where: {
+      phase: matches_phase_enum.ELIMINATION,
+    },
+    include: {
+      matchTeams: {
+        include: {
+          team: {
+            select: {
+              name: true,
+            },
+          },
         },
-        relations: {
-            teams: true,
-            winner: true
+      },
+      winner: true,
+    },
+  });
+
+  const serializedMatches = matches.map((match) => ({
+    id: match.id,
+    state: match.state,
+    round: match.round,
+    winner: match.winner
+      ? {
+          id: match.winner.id,
+          name: match.winner.name,
         }
-    });
+      : null,
+    teams: match.matchTeams.map((team) => ({
+      id: team.teamsId,
+      name: team.team.name,
+    })),
+    createdAt: match.createdAt,
+    updatedAt: match.updatedAt,
+  }));
 
-    const serializedMatches = matches.map(match => ({
-        id: match.id,
-        state: match.state,
-        round: match.round,
-        winner: match.winner ? {
-            id: match.winner.id,
-            name: match.winner.name,
-        } : null,
-        teams: match.teams ? match.teams.map(team => ({
-            id: team.id,
-            name: team.name,
-        })) : [],
-        createdAt: match.createdAt,
-        updatedAt: match.updatedAt
-    }));
-
-    return (
-        <div>
-            <div className="flex gap-2">
-                <Actions/>
-            </div>
-            <h1>Group phase</h1>
-            <p>Group phase is the first phase of the tournament where teams are divided into groups and play against each other.</p>
-            <GraphView matches={serializedMatches as MatchEntity[]} />
-        </div>
-    )
+  return (
+    <div>
+      <div className="flex gap-2">
+        <Actions />
+      </div>
+      <h1>Group phase</h1>
+      <p>
+        Group phase is the first phase of the tournament where teams are divided
+        into groups and play against each other.
+      </p>
+      <GraphView matches={serializedMatches} />
+    </div>
+  );
 }

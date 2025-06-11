@@ -2,3 +2,4 @@ frontend/.env
 .idea
 .DS_Store
 api.gen.go
+*/**/.env

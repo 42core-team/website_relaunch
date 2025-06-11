@@ -6,16 +6,19 @@ This directory contains the frontend codebase, built with [Next.js](https://next
 
 ## Getting Started
 
+The preferred way to develop is to use the provided devcontainer that also starts a postgres database.
+
 ### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-**Note:** For the initial setup, you must also generate the Prisma client:
+**Note:** For the initial setup, you must also generate the Prisma client and run the initial database migration:
 
 ```bash
 npx prisma generate
+npx prisma migrate dev
 ```
 
 ### 2. Environment Variables

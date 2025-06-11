@@ -4,14 +4,19 @@ import (
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api/server"
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
+	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 	cfg := config.ReadConfig()
+	kubeClient, err := kube.GetKubeClient(cfg.KubePath)
+	if err != nil {
+		panic(err)
+	}
 
-	apiServer := server.NewServer()
+	apiServer := server.NewServer(kubeClient)
 
 	e := echo.New()
 	e.Use(middleware.Logger())

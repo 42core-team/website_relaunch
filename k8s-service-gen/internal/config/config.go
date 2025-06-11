@@ -2,15 +2,21 @@ package config
 
 import (
 	"context"
+	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
+	"log"
 )
 
 type Config struct {
-	Addr string `env:"ADDR, default=:9000"`
-	Dsn  string `env:"DSN, default=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"`
+	Addr     string  `env:"ADDR, default=:9000"`
+	KubePath *string `env:"KUBE_PATH"`
 }
 
 func ReadConfig() *Config {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	cfg := &Config{}
 	if err := envconfig.Process(context.Background(), cfg); err != nil {
 		panic(err)

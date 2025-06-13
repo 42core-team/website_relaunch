@@ -4,9 +4,10 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {EventController} from './event.controller';
 import {EventService} from './event.service';
 import {TeamModule} from "../team/team.module";
+import {UserModule} from "../user/user.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([EventEntity]), TeamModule],
+    imports: [TypeOrmModule.forFeature([EventEntity]), TeamModule, UserModule],
     controllers: [EventController],
     providers: [EventService],
     exports: []

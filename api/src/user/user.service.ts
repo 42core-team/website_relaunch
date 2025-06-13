@@ -53,6 +53,16 @@ export class UserService {
         })
     }
 
+    getUserCountOfEvent(eventId: string): Promise<number> {
+        return this.userRepository.count({
+            where: {
+                events: {
+                    id: eventId
+                }
+            }
+        });
+    }
+
     getUserByGithubId(githubId: string) {
         return this.userRepository.findOneBy({
             githubId
@@ -63,5 +73,20 @@ export class UserService {
         return this.userRepository.findOneBy({
             email
         })
+    }
+
+    joinEvent(userId: string, eventId: string) {
+        return this.userRepository
+            .createQueryBuilder()
+            .relation(UserEntity, "events")
+            .of(userId)
+            .add(eventId)
+    }
+
+    canCreateEvent(userId: string): Promise<boolean> {
+        return this.userRepository.existsBy({
+            id: userId,
+            canCreateEvent: true
+        });
     }
 }

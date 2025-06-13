@@ -23,8 +23,8 @@ export default function CreateEventPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(0);
+  const [endDate, setEndDate] = useState(0);
   const [minTeamSize, setMinTeamSize] = useState(1);
   const [maxTeamSize, setMaxTeamSize] = useState(4);
   const [treeFormat, setTreeFormat] = useState(16);
@@ -72,12 +72,12 @@ export default function CreateEventPage() {
         name,
         description,
         location,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
+        startDate,
+        endDate,
         minTeamSize,
         maxTeamSize,
         treeFormat,
-        eventType: eventType.toString(),
+        type: eventType.toString(),
         repoTemplateOwner: repoTemplateOwner,
         repoTemplateName: repoTemplateName,
       });

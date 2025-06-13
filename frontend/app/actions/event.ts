@@ -389,41 +389,12 @@ export async function getTeamsCountForEvent(eventId: string): Promise<number> {
 export async function getParticipantsCountForEvent(
   eventId: string,
 ): Promise<number> {
-  return prisma.user.count({
-    where: {
-      eventUsers: {
-        some: {
-          eventsId: eventId,
-        },
-      },
-    },
-  });
+  return (await axiosInstance.get(`event/${eventId}/participantsCount`)).data;
 }
 
 // Join a user to an event
 export async function joinEvent(eventId: string): Promise<boolean> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return false;
-  }
-  const userId = session.user.id;
-
-  try {
-    const isRegistered = await shouldShowJoinNotice(eventId);
-    if (!isRegistered) return false;
-
-    await prisma.eventUser.create({
-      data: {
-        usersId: userId,
-        eventsId: eventId,
-      },
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Error joining event:", error);
-    return false;
-  }
+  return (await axiosInstance.put(`event/${eventId}/join`)).data;
 }
 
 // Interface for creating events
@@ -431,12 +402,12 @@ interface EventCreateParams {
   name: string;
   description?: string;
   location?: string;
-  startDate: string;
-  endDate: string;
+  startDate: number;
+  endDate: number;
   minTeamSize: number;
   maxTeamSize: number;
   treeFormat?: number;
-  eventType: string;
+  type: string;
   repoTemplateOwner: string;
   repoTemplateName: string;
 }
@@ -445,112 +416,7 @@ interface EventCreateParams {
 export async function createEvent(
   eventData: EventCreateParams,
 ): Promise<Event | { error: string }> {
-  try {
-    // Get current user from session
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return { error: "User not authenticated" };
-    }
-
-    // Check if user has permission to create events
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    });
-    if (!user || !user.canCreateEvent) {
-      return { error: "You don't have permission to create events" };
-    }
-
-    // Validate dates
-    const startDate = new Date(eventData.startDate);
-    const endDate = new Date(eventData.endDate);
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return { error: "Invalid date format" };
-    }
-
-    if (startDate >= endDate) {
-      return { error: "End date must be after start date" };
-    }
-
-    if (startDate < new Date()) {
-      return { error: "Start date cannot be in the past" };
-    }
-
-    // Validate team sizes
-    if (eventData.minTeamSize <= 0 || eventData.maxTeamSize <= 0) {
-      return { error: "Team sizes must be positive" };
-    }
-
-    if (eventData.minTeamSize > eventData.maxTeamSize) {
-      return {
-        error: "Minimum team size cannot be greater than maximum team size",
-      };
-    }
-
-    // Validate tree format
-    const treeFormat = eventData.treeFormat || 16;
-    if (treeFormat !== 16) {
-      return { error: "Only tournament size of 16 is supported at this time" };
-    }
-
-    // Validate repo template (both owner and name must be provided if either is)
-    if (
-      (eventData.repoTemplateOwner && !eventData.repoTemplateName) ||
-      (!eventData.repoTemplateOwner && eventData.repoTemplateName)
-    ) {
-      return {
-        error: "Both repository template owner and name must be provided",
-      };
-    }
-
-    // Create new event
-    const newEvent = await prisma.event.create({
-      data: {
-        name: eventData.name,
-        description: eventData.description || "",
-        location: eventData.location || "",
-        startDate: startDate,
-        endDate: endDate,
-        minTeamSize: eventData.minTeamSize,
-        maxTeamSize: eventData.maxTeamSize,
-        state: events_state_enum.TEAM_FINDING,
-        currentRound: 0,
-        type:
-          eventData.eventType === "RUSH"
-            ? events_type_enum.RUSH
-            : events_type_enum.REGULAR,
-        treeFormat: treeFormat,
-        repoTemplateOwner: eventData.repoTemplateOwner,
-        repoTemplateName: eventData.repoTemplateName,
-        userPermissions: {
-          create: {
-            userId: user.id,
-            role: user_event_permissions_role_enum.ADMIN,
-          },
-        },
-      },
-    });
-
-    // Return the created event
-    return {
-      id: newEvent.id,
-      name: newEvent.name,
-      description: newEvent.description,
-      location: newEvent.location,
-      start_date: newEvent.startDate.toISOString(),
-      end_date: newEvent.endDate.toISOString(),
-      min_team_size: newEvent.minTeamSize,
-      max_team_size: newEvent.maxTeamSize,
-      currentRound: newEvent.currentRound,
-      event_type: newEvent.type,
-      tree_format: newEvent.treeFormat,
-      repo_template_owner: newEvent.repoTemplateOwner,
-      repo_template_name: newEvent.repoTemplateName,
-    };
-  } catch (error) {
-    console.error("Error creating event:", error);
-    return { error: "An unexpected error occurred" };
-  }
+  return await axiosInstance.post(`event`, eventData);
 }
 
 export async function canUserCreateEvent(): Promise<boolean> {

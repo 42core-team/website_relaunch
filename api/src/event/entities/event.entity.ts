@@ -48,10 +48,10 @@ export class EventEntity {
     treeFormat: number;
 
     @Column({type: "timestamp"})
-    startDate: Date;
+    startDate: number;
 
     @Column({type: "timestamp"})
-    endDate: Date;
+    endDate: number;
 
     @Column({type: "enum", enum: EventState, default: EventState.TEAM_FINDING})
     state: EventState;

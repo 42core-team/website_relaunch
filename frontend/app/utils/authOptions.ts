@@ -22,7 +22,6 @@ export const authOptions: NextAuthOptions = {
         const existingUser = (
           await axiosInstance.get(`user/github/${account.providerAccountId}`)
         ).data;
-        console.log("auth user", existingUser == null, profile.email);
         if (!existingUser) {
           if (!account?.access_token) {
             throw new Error("No access token found");
@@ -40,7 +39,7 @@ export const authOptions: NextAuthOptions = {
 
           console.log(response);
         } else {
-          await axiosInstance.put(`user/${existingUser.id}`, {
+          await axiosInstance.put(`user`, {
             email: user.email!,
             username: githubProfile?.login || existingUser.username,
             name: githubProfile?.name || existingUser.name,
@@ -60,7 +59,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       const dbUser = (
-        await axiosInstance.get(`user/email/${session.user?.email!}`)
+        await axiosInstance.get(`user/email/${session.user?.email}`)
       ).data;
       if (dbUser) session.user.id = dbUser.id;
       return session;

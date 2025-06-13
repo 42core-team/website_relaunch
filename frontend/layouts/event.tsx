@@ -31,9 +31,9 @@ export default async function EventLayout({
 
   if (userId) {
     isEventAdminState = await isEventAdmin(session.user.id, eventId);
-    isUserRegistered = await isUserRegisteredForEvent(userId, eventId);
+    isUserRegistered = await isUserRegisteredForEvent(eventId);
 
-    showJoinNotice = await shouldShowJoinNotice(userId, eventId);
+    showJoinNotice = await shouldShowJoinNotice(eventId);
   }
 
   if (!event) {

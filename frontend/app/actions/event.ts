@@ -15,6 +15,7 @@ import {
 // @ts-ignore
 import { Player } from "tournament-pairings/interfaces";
 import { getServerSession } from "next-auth/next";
+import axiosInstance from "@/app/actions/axios";
 
 export interface Event {
   id: string;
@@ -317,9 +318,7 @@ export async function calculateNextGroupPhaseMatches(
 }
 
 export async function getEventById(eventId: string): Promise<Event | null> {
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-  });
+  const event = (await axiosInstance.get(`event/${eventId}`)).data;
 
   if (!event) return null;
 
@@ -328,8 +327,8 @@ export async function getEventById(eventId: string): Promise<Event | null> {
     name: event.name,
     description: event.description,
     location: event.location,
-    start_date: event.startDate.toISOString(),
-    end_date: event.endDate.toISOString(),
+    start_date: event.startDate,
+    end_date: event.endDate,
     min_team_size: event.minTeamSize,
     max_team_size: event.maxTeamSize,
     currentRound: event.currentRound,
@@ -341,24 +340,13 @@ export async function getEventById(eventId: string): Promise<Event | null> {
 }
 
 export async function isUserRegisteredForEvent(
-  userId: string,
   eventId: string,
 ): Promise<boolean> {
-  const count = await prisma.eventUser.count({
-    where: {
-      usersId: userId,
-      eventsId: eventId,
-    },
-  });
-
-  return count > 0;
+  return (await axiosInstance.get(`event/${eventId}/isUserRegistered`)).data;
 }
 
-export async function shouldShowJoinNotice(
-  userId: string,
-  eventId: string,
-): Promise<boolean> {
-  const isRegistered = await isUserRegisteredForEvent(userId, eventId);
+export async function shouldShowJoinNotice(eventId: string): Promise<boolean> {
+  const isRegistered = await isUserRegisteredForEvent(eventId);
   if (isRegistered) return false;
 
   const event = await getEventById(eventId);
@@ -436,7 +424,7 @@ export async function joinEvent(eventId: string): Promise<boolean> {
   const userId = session.user.id;
 
   try {
-    const isRegistered = await shouldShowJoinNotice(userId, eventId);
+    const isRegistered = await shouldShowJoinNotice(eventId);
     if (!isRegistered) return false;
 
     await prisma.eventUser.create({

@@ -18,7 +18,7 @@ export default async function Page({
   const eventId = (await params).id;
   const userId = session.user.id;
 
-  const userRegistered = await isUserRegisteredForEvent(userId, eventId);
+  const userRegistered = await isUserRegisteredForEvent(userId);
   if (!userRegistered) {
     redirect(`/events/${eventId}`);
   }

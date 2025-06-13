@@ -362,11 +362,9 @@ export async function isEventAdmin(eventId: string): Promise<boolean> {
 
 // Get all events
 export async function getEvents(): Promise<Event[]> {
-  const events = await prisma.event.findMany({
-    orderBy: { startDate: "asc" },
-  });
+  const events = (await axiosInstance.get("event")).data;
 
-  return events.map((event) => ({
+  return events.map((event: any) => ({
     id: event.id,
     name: event.name,
     description: event.description,
@@ -384,9 +382,7 @@ export async function getEvents(): Promise<Event[]> {
 }
 
 export async function getTeamsCountForEvent(eventId: string): Promise<number> {
-  return prisma.team.count({
-    where: { eventId: eventId },
-  });
+  return (await axiosInstance.get(`event/${eventId}/teamsCount`)).data;
 }
 
 // Get total participants count for an event

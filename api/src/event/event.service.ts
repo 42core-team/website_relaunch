@@ -12,6 +12,14 @@ export class EventService {
     ) {
     }
 
+    getAllEvents(): Promise<EventEntity[]> {
+        return this.eventRepository.find({
+            order: {
+                startDate: "ASC"
+            }
+        });
+    }
+
     getEventById(id: string): Promise<EventEntity | null> {
         return this.eventRepository.findOneBy({
             id

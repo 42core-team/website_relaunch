@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Addr     string  `env:"ADDR, default=:9000"`
-	KubePath *string `env:"KUBE_PATH"`
+	Addr      string  `env:"ADDR, default=:9000"`
+	KubePath  *string `env:"KUBE_PATH"`
+	Namespace string  `env:"NAMESPACE, default=coregame"`
 }
 
 func ReadConfig() *Config {

@@ -3,18 +3,21 @@ package server
 import (
 	"context"
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
-	"k8s.io/client-go/kubernetes"
+	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
+	"go.uber.org/zap"
 )
 
 type Server struct {
-	kube *kubernetes.Clientset
+	kube   *kube.Client
+	logger *zap.SugaredLogger
 }
 
 var _ api.StrictServerInterface = (*Server)(nil)
 
-func NewServer(kube *kubernetes.Clientset) *Server {
+func NewServer(kube *kube.Client, logger *zap.SugaredLogger) *Server {
 	return &Server{
-		kube: kube,
+		kube:   kube,
+		logger: logger,
 	}
 }
 

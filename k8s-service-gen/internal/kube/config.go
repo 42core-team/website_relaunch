@@ -1,7 +1,8 @@
 package kube
 
 import (
-	"fmt"
+	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
+	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -9,10 +10,16 @@ import (
 	"path/filepath"
 )
 
+type Client struct {
+	clientset *kubernetes.Clientset
+	namespace string
+	logger    *zap.SugaredLogger
+}
+
 func getKubeConfig(kubePath *string) (*rest.Config, error) {
-	config, err := rest.InClusterConfig()
+	inClusterConfig, err := rest.InClusterConfig()
 	if err == nil {
-		return config, nil
+		return inClusterConfig, nil
 	}
 
 	if kubePath == nil {
@@ -23,11 +30,20 @@ func getKubeConfig(kubePath *string) (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", *kubePath)
 }
 
-func GetKubeClient(kubePath *string) (*kubernetes.Clientset, error) {
-	config, err := getKubeConfig(kubePath)
+func GetKubeClient(config *config.Config, logger *zap.SugaredLogger) (*Client, error) {
+	kubeConfig, err := getKubeConfig(config.KubePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get kube config: %v", err)
+		return nil, err
 	}
 
-	return kubernetes.NewForConfig(config)
+	kubeClient := &Client{
+		namespace: config.Namespace,
+		logger:    logger,
+	}
+	kubeClient.clientset, err = kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return kubeClient, nil
 }

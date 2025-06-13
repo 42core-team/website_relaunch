@@ -7,16 +7,22 @@ import (
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.uber.org/zap"
 )
 
 func main() {
+	logger := setupLogger()
 	cfg := config.ReadConfig()
-	kubeClient, err := kube.GetKubeClient(cfg.KubePath)
+	kubeClient, err := kube.GetKubeClient(cfg, logger)
 	if err != nil {
-		panic(err)
+		logger.Fatalln(err)
+	}
+	err = kubeClient.CreateDefaultNamespace()
+	if err != nil {
+		logger.Infoln(err)
 	}
 
-	apiServer := server.NewServer(kubeClient)
+	apiServer := server.NewServer(kubeClient, logger)
 
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -24,5 +30,10 @@ func main() {
 
 	api.RegisterHandlers(e, api.NewStrictHandler(apiServer, nil))
 
-	e.Logger.Fatal(e.Start(cfg.Addr))
+	logger.Fatal(e.Start(cfg.Addr))
+}
+
+func setupLogger() *zap.SugaredLogger {
+	logger, _ := zap.NewProduction()
+	return logger.Sugar()
 }

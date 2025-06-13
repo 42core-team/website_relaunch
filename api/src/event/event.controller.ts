@@ -17,4 +17,9 @@ export class EventController {
     getEventByUserId(@Param("id") eventId: string, @UserId() userId: string) {
         return this.eventService.isUserRegisteredForEvent(eventId, userId);
     }
+
+    @Get(":id/isEventAdmin")
+    isEventAdmin(@Param("id") eventId: string, @UserId() userId: string) {
+        return this.eventService.isEventAdmin(eventId, userId);
+    }
 }

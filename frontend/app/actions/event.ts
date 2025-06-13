@@ -356,19 +356,8 @@ export async function shouldShowJoinNotice(eventId: string): Promise<boolean> {
   return endDate > new Date();
 }
 
-export async function isEventAdmin(
-  userId: string,
-  eventId: string,
-): Promise<boolean> {
-  const count = await prisma.userEventPermission.count({
-    where: {
-      userId: userId,
-      eventId: eventId,
-      role: user_event_permissions_role_enum.ADMIN,
-    },
-  });
-
-  return count > 0;
+export async function isEventAdmin(eventId: string): Promise<boolean> {
+  return (await axiosInstance.get(`event/${eventId}/isEventAdmin`)).data;
 }
 
 // Get all events

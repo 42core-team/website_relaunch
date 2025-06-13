@@ -30,7 +30,7 @@ export default async function EventLayout({
   event = await getEventById(eventId);
 
   if (userId) {
-    isEventAdminState = await isEventAdmin(session.user.id, eventId);
+    isEventAdminState = await isEventAdmin(eventId);
     isUserRegistered = await isUserRegisteredForEvent(eventId);
 
     showJoinNotice = await shouldShowJoinNotice(eventId);

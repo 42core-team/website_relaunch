@@ -43,7 +43,7 @@ export default function DashboardPage() {
         const participants = await getParticipantsCountForEvent(eventId);
         const phase = await getCurrentPhase(eventId);
         const round = await getCurrentRound(eventId);
-        const adminCheck = await isEventAdmin(userId, eventId);
+        const adminCheck = await isEventAdmin(eventId);
 
         setEvent(eventData);
         setTeamsCount(teams);

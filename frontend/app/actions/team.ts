@@ -103,7 +103,7 @@ export async function getTeam(
 
 export async function lockEvent(eventId: string) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !(await isEventAdmin(session.user.id, eventId))) {
+  if (!session?.user?.id || !(await isEventAdmin(eventId))) {
     return { error: "User not authenticated" };
   }
 

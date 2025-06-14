@@ -117,30 +117,20 @@ export async function leaveTeam(eventId: string): Promise<boolean> {
 
 /**
  * Get all members of a team
- * @param teamId ID of the team
+ * @param eventId ID of the event to get team members for
  * @returns Array of team members
  */
-export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
-  try {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      include: { members: { include: { user: true } } },
-    });
+export async function getTeamMembers(eventId: string): Promise<TeamMember[]> {
+  const members: any[] = (
+    await axiosInstance.get(`team/event/${eventId}/members`)
+  ).data;
 
-    if (!team || !team.members || team.members.length === 0) {
-      return [];
-    }
-
-    return team.members.map((member) => ({
-      id: member.user.id,
-      name: member.user.name,
-      username: member.user.username,
-      profilePicture: member.user.profilePicture,
-    }));
-  } catch (err) {
-    console.error("Error getting team members:", err);
-    return [];
-  }
+  return members.map((member: any) => ({
+    id: member.user.id,
+    name: member.user.name,
+    username: member.user.username,
+    profilePicture: member.user.profilePicture,
+  }));
 }
 
 /**

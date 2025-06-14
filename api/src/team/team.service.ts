@@ -27,7 +27,7 @@ export class TeamService {
         })
     }
 
-    getTeamOfUserForEvent(eventId: string, userId: string): Promise<TeamEntity | null> {
+    getTeamOfUserForEvent(eventId: string, userId: string, relations: FindOptionsRelations<TeamEntity> = {}): Promise<TeamEntity | null> {
         return this.teamRepository.findOne({
             where: {
                 event: {
@@ -36,7 +36,8 @@ export class TeamService {
                 users: {
                     id: userId
                 }
-            }
+            },
+            relations
         });
     }
 
@@ -150,5 +151,4 @@ export class TeamService {
             }
         });
     }
-
 }

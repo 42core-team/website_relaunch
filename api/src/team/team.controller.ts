@@ -1,4 +1,14 @@
-import {Controller, Get, Param, Body, Post, UseGuards, BadRequestException, Put} from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Param,
+    Body,
+    Post,
+    UseGuards,
+    BadRequestException,
+    Put,
+    NotFoundException
+} from '@nestjs/common';
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
 import {CreateTeamDto} from "./dtos/ createTeamDto";
@@ -41,9 +51,22 @@ export class TeamController {
         @Param("eventId") eventId: string
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
-        if (!team) throw new BadRequestException("You are not part of a team for this event.");
-        if(team.locked) throw new BadRequestException("You cannot leave a locked team.");
+        if (!team) throw new NotFoundException("You are not part of a team for this event.");
+        if (team.locked) throw new BadRequestException("You cannot leave a locked team.");
 
         return this.teamService.leaveTeam(team.id, userId);
+    }
+
+    @Get("event/:eventId/members")
+    async getTeamMembers(
+        @Param("eventId") eventId: string,
+        @UserId('id') userId: string
+    ) {
+        const team = await this.teamService.getTeamOfUserForEvent(eventId, userId, {
+            users: true
+        });
+        if (!team) throw new NotFoundException("You are not part of a team for this event.");
+
+        return team.users
     }
 }

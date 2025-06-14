@@ -89,4 +89,10 @@ export class UserService {
             canCreateEvent: true
         });
     }
+
+    getUserById(userId: string) {
+        return this.userRepository.findOneByOrFail({
+            id: userId
+        })
+    }
 }

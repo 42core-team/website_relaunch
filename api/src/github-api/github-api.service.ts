@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
 import * as CryptoJS from "crypto-js";
-import {GitHubApiClient, RepositoryApi} from "../common/githubApi";
+import {GitHubApiClient, RepositoryApi, UserApi} from "../common/githubApi";
 
 @Injectable()
 export class GithubApiService {
@@ -31,6 +31,39 @@ export class GithubApiService {
             repoName,
             username,
             'pull'
+        )
+    }
+
+    async createTeamRepository(
+        name: string,
+        username: string,
+        userGithubAccessToken: string,
+        githubOrg: string,
+        encryptedSecret: string,
+        repoTemplateOwner: string,
+        repoTemplateName: string
+    ) {
+        const secret = this.decryptSecret(encryptedSecret);
+        const githubApi = new GitHubApiClient({
+            token: secret
+        });
+        const repositoryApi = new RepositoryApi(githubApi);
+        const userApi = new UserApi(githubApi);
+        const repo = await repositoryApi.createRepoFromTemplate(
+            repoTemplateOwner,
+            repoTemplateName,
+            {
+                owner: githubOrg,
+                name,
+                private: true,
+            }
+        )
+
+        await repositoryApi.addCollaborator(githubOrg, repo.name, username, "push");
+        await userApi.acceptRepositoryInvitationByRepo(
+            githubOrg,
+            repo.name,
+            userGithubAccessToken
         )
     }
 }

@@ -1,6 +1,7 @@
-import {Controller, Get, Param, UseGuards} from '@nestjs/common';
+import {Controller, Get, Param, Body, Post, UseGuards, BadRequestException, Put} from '@nestjs/common';
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
+import {CreateTeamDto} from "./dtos/ createTeamDto";
 
 @UseGuards(FrontendGuard)
 @Controller('team')
@@ -16,5 +17,32 @@ export class TeamController {
     @Get("event/:eventId/my")
     getMyTeamForEvent(@Param("eventId") eventId: string, @UserId('id') userId: string) {
         return this.teamService.getTeamOfUserForEvent(eventId, userId);
+    }
+
+    @Post("event/:eventId/create")
+    async createTeam(
+        @UserId('id') userId: string,
+        @Param("eventId") eventId: string,
+        @Body() createTeamDto: CreateTeamDto
+    ) {
+        if (await this.teamService.getTeamOfUserForEvent(eventId, userId))
+            throw new BadRequestException("You already have a team for this event.");
+
+        if (await this.teamService.existsTeamByName(createTeamDto.name, eventId))
+            throw new BadRequestException("A team with this name already exists for this event.");
+
+
+        return this.teamService.createTeam(createTeamDto.name, userId, eventId);
+    }
+
+    @Put("event/:eventId/leave")
+    async leaveTeam(
+        @UserId('id') userId: string,
+        @Param("eventId") eventId: string
+    ) {
+        const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
+        if (!team) throw new BadRequestException("You are not part of a team for this event.");
+
+        return this.teamService.leaveTeam(team.id, userId);
     }
 }

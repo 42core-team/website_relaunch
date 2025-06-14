@@ -91,122 +91,18 @@ export async function createTeam(
   name: string,
   eventId: string,
 ): Promise<Team | { error: string }> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return { error: "User not authenticated" };
-  }
-
-  const userId = session.user.id;
-  const existingTeam = await getMyEventTeam(eventId);
-  if (existingTeam) return existingTeam;
-
-  const isValidName =
-    /^[a-zA-Z0-9-_]+$/.test(name) && !/^[-_]/.test(name) && !/[-_]$/.test(name);
-  if (!isValidName) {
-    return {
-      error:
-        "Invalid team name. Only alphanumeric characters, dashes, and underscores are allowed.",
-    };
-  }
-
-  // Get user and event entities
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
-
-  if (!user || !event) {
-    throw new Error("User or event not found");
-  }
-
-  const teamNameExistsCount = await prisma.team.count({
-    where: {
-      name: {
-        equals: name,
-        mode: "insensitive",
-      },
-      eventId: eventId,
-    },
-  });
-
-  if (teamNameExistsCount) {
-    return {
-      error: `A team with the name "${name}" already exists for this event.`,
-    };
-  }
-
-  const savedTeam = await prisma.team.create({
-    data: {
-      name: name,
-      eventId: eventId,
-      locked: false,
-      repo: "",
-      score: 0,
-      buchholzPoints: 0,
-      hadBye: false,
-      members: {
-        create: [
-          {
-            user: {
-              connect: { id: userId },
-            },
-          },
-        ],
-      },
-    },
-  });
-
-  // Use event's template if available, otherwise use default template
-  const templateOwner = event.repoTemplateOwner;
-  const templateRepo = event.repoTemplateName;
-
-  try {
-    // Use different repo API and organization based on event type
-    const isRushEvent = event.type === events_type_enum.RUSH;
-    const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
-    const uApi = isRushEvent ? rushUserApi : userApi;
-    const orgName = isRushEvent
-      ? process.env.NEXT_PUBLIC_RUSH_ORG
-      : process.env.NEXT_PUBLIC_GITHUB_ORG;
-
-    const repo = await repoApi.createRepoFromTemplate(
-      templateOwner,
-      templateRepo,
-      {
-        owner: orgName || "",
-        name: event.name + "-" + savedTeam.name + "-" + savedTeam.id,
-        private: true,
-      },
-    );
-
-    savedTeam.repo = repo.name;
-    await prisma.team.update({
-      where: { id: savedTeam.id },
-      data: { repo: repo.name },
-    });
-    await repoApi.addCollaborator(
-      orgName || "",
-      repo.name,
-      user.username,
-      "push",
-    );
-    await uApi.acceptRepositoryInvitationByRepo(
-      orgName || "",
-      repo.name,
-      user.githubAccessToken,
-    );
-  } catch (error) {
-    console.error("Error creating repository from template:", error);
-    return {
-      error:
-        "Error creating repository. If you recently changed your github username or your github account name, logout and back in again and try again.",
-    };
-  }
+  const newTeam = (
+    await axiosInstance.post(`team/event/${eventId}/create`, {
+      name,
+    })
+  ).data;
 
   return {
-    id: savedTeam.id,
-    name: savedTeam.name,
-    repo: savedTeam.repo || "",
-    createdAt: savedTeam.createdAt,
-    updatedAt: savedTeam.updatedAt,
+    id: newTeam.id,
+    name: newTeam.name,
+    repo: newTeam.repo,
+    createdAt: newTeam.createdAt,
+    updatedAt: newTeam.updatedAt,
   };
 }
 

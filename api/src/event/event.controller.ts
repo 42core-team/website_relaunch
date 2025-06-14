@@ -13,7 +13,7 @@ import {EventService} from "./event.service";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "../team/team.service";
 import {UserService} from "../user/user.service";
-import {CreateEventDto} from "./dtos/CreateEventDto";
+import {CreateEventDto} from "./dtos/createEventDto";
 
 @UseGuards(FrontendGuard)
 @Controller('event')

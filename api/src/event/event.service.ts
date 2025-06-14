@@ -1,4 +1,4 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {EventEntity} from "./entities/event.entity";
 import {DeepPartial, Repository} from "typeorm";
@@ -13,7 +13,7 @@ export class EventService {
         @InjectRepository(EventEntity)
         private readonly eventRepository: Repository<EventEntity>,
         private readonly configService: ConfigService,
-        private readonly teamService: TeamService
+        @Inject(forwardRef(() => TeamService)) private readonly teamService: TeamService
     ) {
     }
 
@@ -27,8 +27,8 @@ export class EventService {
         });
     }
 
-    getEventById(id: string): Promise<EventEntity | null> {
-        return this.eventRepository.findOneBy({
+    getEventById(id: string): Promise<EventEntity> {
+        return this.eventRepository.findOneByOrFail({
             id
         });
     }

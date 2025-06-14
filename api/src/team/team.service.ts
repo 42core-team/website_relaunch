@@ -1,15 +1,19 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {BadRequestException, forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {TeamEntity} from "./entities/team.entity";
 import {Repository} from "typeorm";
 import {GithubApiService} from "../github-api/github-api.service";
+import {EventService} from "../event/event.service";
+import {UserService} from "../user/user.service";
 
 @Injectable()
 export class TeamService {
     constructor(
         @InjectRepository(TeamEntity)
         private readonly teamRepository: Repository<TeamEntity>,
-        private readonly githubApiService: GithubApiService
+        private readonly githubApiService: GithubApiService,
+        @Inject(forwardRef(() => EventService)) private readonly eventService: EventService,
+        private readonly userService: UserService
     ) {
     }
 
@@ -63,6 +67,41 @@ export class TeamService {
         });
     }
 
+    async createTeam(name: string, userId: string, eventId: string) {
+        const event = await this.eventService.getEventById(eventId);
+        const user = await this.userService.getUserById(userId);
+        const team = await this.teamRepository.save({
+            name,
+            event: {id: eventId},
+            users: [{id: userId}],
+            repo: `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${eventId}`
+        })
+
+        const repoName = event.name + '-' + name + '-' + team.id;
+        try {
+            await this.githubApiService.createTeamRepository(
+                repoName,
+                user.username,
+                user.githubAccessToken,
+                event.githubOrg,
+                event.githubOrgSecret,
+                event.repoTemplateOwner,
+                event.repoTemplateName
+            );
+
+            team.repo = repoName;
+            await this.teamRepository.save(team);
+        } catch (e) {
+            this.logger.error(`Failed to create repository for team ${team.id}`, e);
+        }
+
+        return team;
+    }
+
+    async leaveTeam(teamId: string, userId: string) {
+
+    }
+
     getTeamCountForEvent(eventId: string): Promise<number> {
         return this.teamRepository.count({
             where: {
@@ -72,4 +111,16 @@ export class TeamService {
             }
         });
     }
+
+    existsTeamByName(name: string, eventId: string): Promise<boolean> {
+        return this.teamRepository.exists({
+            where: {
+                name,
+                event: {
+                    id: eventId
+                }
+            }
+        });
+    }
+
 }

@@ -15,7 +15,7 @@ interface TeamDetailPageProps {
 export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
   const { teamId, id } = await params;
 
-  const members = await getTeamMembers(id);
+  const members = await getTeamMembers(teamId);
   const teamInfo = await getTeamById(teamId);
   if (!teamInfo || !members) {
     notFound();

@@ -101,13 +101,12 @@ export async function leaveTeam(eventId: string): Promise<boolean> {
 
 /**
  * Get all members of a team
- * @param eventId ID of the event to get team members for
+ * @param teamId ID of the event to get team members for
  * @returns Array of team members
  */
-export async function getTeamMembers(eventId: string): Promise<TeamMember[]> {
-  const members: any[] = (
-    await axiosInstance.get(`team/event/${eventId}/members`)
-  ).data;
+export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
+  const members: any[] = (await axiosInstance.get(`team/${teamId}/members`))
+    .data;
 
   return members.map((member: any) => ({
     id: member.id,

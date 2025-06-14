@@ -72,15 +72,13 @@ export class TeamController {
         return this.teamService.leaveTeam(team.id, userId);
     }
 
-    @Get("event/:eventId/members")
+    @Get(":id/members")
     async getTeamMembers(
-        @Param("eventId") eventId: string,
-        @UserId() userId: string
+        @Param("id") teamId: string,
     ) {
-        const team = await this.teamService.getTeamOfUserForEvent(eventId, userId, {
+        const team = await this.teamService.getTeamById(teamId, {
             users: true
         });
-        if (!team) throw new NotFoundException("You are not part of a team for this event.");
 
         return team.users
     }

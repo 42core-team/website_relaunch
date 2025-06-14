@@ -95,4 +95,12 @@ export class UserService {
             id: userId
         })
     }
+
+    addTeamInvite(userId: string, teamId: string): Promise<void> {
+        return this.userRepository
+            .createQueryBuilder()
+            .relation(UserEntity, "teamInvites")
+            .of(userId)
+            .add(teamId);
+    }
 }

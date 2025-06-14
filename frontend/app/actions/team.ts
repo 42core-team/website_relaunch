@@ -198,85 +198,11 @@ export async function searchUsersForInvite(
 
 /**
  * Send a team invite to a user
- * @param teamId ID of the team sending the invite
- * @param userId ID of the user being invited
  * @returns boolean indicating success
+ * @param eventId
  */
-export async function sendTeamInvite(
-  teamId: string,
-  userId: string,
-): Promise<boolean> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return false;
-  }
-  const authId = session.user.id;
-
-  try {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      include: {
-        event: true,
-        members: true,
-        invites: true,
-      },
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        memberOfTeams: {
-          include: {
-            team: {
-              include: {
-                event: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!team || !user) {
-      return false;
-    }
-
-    if (team.locked) {
-      return false;
-    }
-
-    if (!team.members.some((member) => member.usersId === authId)) {
-      return false;
-    }
-
-    if (team.members.some((u) => u.usersId === userId)) {
-      return false;
-    }
-
-    if (team.invites.some((u) => u.usersId === userId)) {
-      return false;
-    }
-
-    if (user.memberOfTeams.some((t) => t.team.eventId === team.event.id)) {
-      return false;
-    }
-
-    await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        invites: {
-          create: {
-            usersId: userId,
-          },
-        },
-      },
-    });
-
-    return true;
-  } catch (err) {
-    console.error("Error sending team invite:", err);
-    return false;
-  }
+export async function sendTeamInvite(eventId: string): Promise<boolean> {
+  return (await axiosInstance.post(`team/event/${eventId}/sendInvite`)).data;
 }
 
 /**

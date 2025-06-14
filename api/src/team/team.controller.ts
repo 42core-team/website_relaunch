@@ -12,11 +12,16 @@ import {
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
 import {CreateTeamDto} from "./dtos/ createTeamDto";
+import {InviteUserDto} from "./dtos/inviteUserDto";
+import {UserService} from "../user/user.service";
 
 @UseGuards(FrontendGuard)
 @Controller('team')
 export class TeamController {
-    constructor(private readonly teamService: TeamService) {
+    constructor(
+        private readonly teamService: TeamService,
+        private readonly userService: UserService
+    ) {
     }
 
     @Get(":id")
@@ -69,4 +74,20 @@ export class TeamController {
 
         return team.users
     }
+
+    @Post("event/:eventId/sendInvite")
+    async sendInviteToTeam(
+        @UserId('id') userId: string,
+        @Param("eventId") eventId: string,
+        @Body() inviteUserDto: InviteUserDto
+    ) {
+        const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
+        if (!team) throw new NotFoundException("You are not part of a team for this event.");
+        if (team.locked) throw new BadRequestException("You cannot send invites for a locked team.");
+        if (await this.teamService.getTeamOfUserForEvent(eventId, inviteUserDto.userToInviteId))
+            throw new BadRequestException("This user is already part of a team for this event.");
+
+        return this.userService.addTeamInvite(inviteUserDto.userToInviteId, team.id);
+    }
+
 }

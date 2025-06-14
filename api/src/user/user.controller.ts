@@ -22,10 +22,10 @@ export class UserController {
         );
     }
 
-    @Put()
+    @Put(":id")
     async updateUser(
         @Body() user: CreateUserDto,
-        @UserId('id') id: string
+        @Param('id') id: string
     ) {
         return this.userService.updateUser(
             id,
@@ -37,6 +37,11 @@ export class UserController {
             user.githubAccessToken,
             user.canCreateEvent
         );
+    }
+
+    @Get("canCreateEvent")
+    async canCreateEvent(@UserId('id') id: string) {
+        return this.userService.canCreateEvent(id);
     }
 
     @Get("github/:githubId")

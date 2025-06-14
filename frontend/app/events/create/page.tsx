@@ -159,8 +159,9 @@ export default function CreateEventPage() {
               </label>
               <Input
                 type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) =>
+                  setStartDate(new Date(e.target.value).getTime())
+                }
                 required
               />
             </div>
@@ -168,8 +169,7 @@ export default function CreateEventPage() {
               <label className="block text-sm font-medium mb-1">End Date</label>
               <Input
                 type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => setEndDate(new Date(e.target.value).getTime())}
                 required
               />
             </div>

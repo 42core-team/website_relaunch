@@ -40,7 +40,7 @@ export class UserController {
     }
 
     @Get("canCreateEvent")
-    async canCreateEvent(@UserId('id') id: string) {
+    async canCreateEvent(@UserId() id: string) {
         return this.userService.canCreateEvent(id);
     }
 

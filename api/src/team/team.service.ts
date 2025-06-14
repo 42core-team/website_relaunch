@@ -164,4 +164,40 @@ export class TeamService {
             }
         });
     }
+
+    isUserInvitedToTeam(userId: string, teamId: string): Promise<boolean> {
+        return this.teamRepository.exists({
+            where: {
+                id: teamId,
+                teamInvites: {
+                    id: userId
+                }
+            }
+        });
+    }
+
+    async acceptTeamInvite(userId: string, teamId: string): Promise<void> {
+        const team = await this.getTeamById(teamId, {
+            event: true
+        })
+        const user = await this.userService.getUserById(userId);
+        await this.teamRepository.createQueryBuilder()
+            .relation("teamInvites")
+            .of(teamId)
+            .remove(userId);
+
+        await this.teamRepository.createQueryBuilder()
+            .relation("users")
+            .of(teamId)
+            .add(userId);
+
+        await this.githubApiService.addUserToRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret);
+    }
+
+    declineTeamInvite(userId: string, teamId: string) {
+        return this.teamRepository.createQueryBuilder()
+            .relation("teamInvites")
+            .of(teamId)
+            .remove(userId);
+    }
 }

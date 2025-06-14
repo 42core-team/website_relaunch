@@ -159,154 +159,37 @@ export async function sendTeamInvite(eventId: string): Promise<boolean> {
 
 /**
  * Get pending team invites for a user
- * @param userId ID of the user
  * @returns Array of team invites with details
+ * @param eventId
  */
 export async function getUserPendingInvites(
-  userId: string,
+  eventId: string,
 ): Promise<TeamInviteWithDetails[]> {
-  return (await axiosInstance.get(`team/event/${userId}/pending`)).data;
+  return (await axiosInstance.get(`team/event/${eventId}/pending`)).data;
 }
 
 /**
  * Accept a team invite
+ * @param eventId
  * @param teamId ID of the team that sent the invite
- * @param userId ID of the user accepting the invite
  * @returns Object with success status and optional message
  */
-export async function acceptTeamInvite(teamId: string): Promise<{
-  success: boolean;
-  message?: string;
-}> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return { success: false, message: "User not authenticated" };
-  }
-  const userId = session.user.id;
-
-  try {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      include: {
-        members: true,
-        invites: true,
-        event: true,
-      },
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        memberOfTeams: {
-          include: {
-            team: true,
-          },
-        },
-      },
-    });
-
-    if (!team || !user) {
-      return { success: false, message: "Team or user not found" };
-    }
-
-    if (team.locked) {
-      return {
-        success: false,
-        message: "This team is locked and not accepting new members",
-      };
-    }
-
-    if (user.memberOfTeams.some((t) => t.team.eventId === team.event.id)) {
-      return {
-        success: false,
-        message: "You are already in a team for this event",
-      };
-    }
-
-    if (team.repo) {
-      // Determine if it's a rush event and select appropriate API and org
-      const isRushEvent = team.event.type === events_type_enum.RUSH;
-      const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
-      const uApi = isRushEvent ? rushUserApi : userApi;
-      const orgName = isRushEvent
-        ? process.env.NEXT_PUBLIC_RUSH_ORG
-        : process.env.NEXT_PUBLIC_GITHUB_ORG;
-
-      await repoApi.addCollaborator(
-        orgName || "",
-        team.repo,
-        user.username,
-        "push",
-      );
-      await uApi.acceptRepositoryInvitationByRepo(
-        orgName || "",
-        team.repo,
-        user.githubAccessToken,
-      );
-    }
-
-    await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        members: {
-          create: {
-            usersId: userId,
-          },
-        },
-        invites: {
-          deleteMany: {
-            usersId: userId,
-          },
-        },
-      },
-    });
-
-    return { success: true };
-  } catch (err) {
-    console.error("Error accepting team invite:", err);
-    return {
-      success: false,
-      message: "An error occurred while accepting the invite",
-    };
-  }
+export async function acceptTeamInvite(eventId: string, teamId: string) {
+  return (
+    await axiosInstance.put(`team/event/${eventId}/acceptInvite/${teamId}`)
+  ).data;
 }
 
 /**
  * Decline a team invite
+ * @param eventId
  * @param teamId ID of the team that sent the invite
- * @param userId ID of the user declining the invite
  * @returns Object with success status and optional message
  */
-export async function declineTeamInvite(teamId: string): Promise<{
-  success: boolean;
-  message?: string;
-}> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return { success: false, message: "User not authenticated" };
-  }
-  const userId = session.user.id;
-
-  try {
-    await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        invites: {
-          deleteMany: {
-            usersId: userId,
-          },
-        },
-      },
-    });
-
-    return { success: true };
-  } catch (err) {
-    console.error("Error declining team invite:", err);
-    return {
-      success: false,
-      message: "An error occurred while declining the invite",
-    };
-  }
+export async function declineTeamInvite(eventId: string, teamId: string) {
+  return (
+    await axiosInstance.delete(`team/event/${teamId}/declineInvite/${teamId}`)
+  ).data;
 }
 
 /**

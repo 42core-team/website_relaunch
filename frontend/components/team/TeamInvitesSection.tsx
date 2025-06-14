@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import {
@@ -22,6 +22,7 @@ export const TeamInvitesSection = () => {
       }
     >
   >({});
+  const eventId = useParams().id as string;
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -29,7 +30,7 @@ export const TeamInvitesSection = () => {
     async function fetchInvites() {
       try {
         // @ts-ignore
-        const userInvites = await getUserPendingInvites(session.user.id);
+        const userInvites = await getUserPendingInvites(eventId);
         setInvites(userInvites);
       } catch (error) {
         console.error("Error fetching invites:", error);
@@ -56,7 +57,7 @@ export const TeamInvitesSection = () => {
     }));
 
     try {
-      const result = await acceptTeamInvite(teamId);
+      const result = await acceptTeamInvite(eventId, teamId);
 
       if (result.success) {
         // Remove from invites list if accepted
@@ -99,7 +100,7 @@ export const TeamInvitesSection = () => {
     }));
 
     try {
-      const result = await declineTeamInvite(teamId);
+      const result = await declineTeamInvite(eventId, teamId);
 
       if (result.success) {
         // Remove from invites list

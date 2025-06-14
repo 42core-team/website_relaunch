@@ -7,7 +7,7 @@ import {
     UseGuards,
     BadRequestException,
     Put,
-    NotFoundException
+    NotFoundException, Delete
 } from '@nestjs/common';
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
@@ -36,7 +36,7 @@ export class TeamController {
 
     @Post("event/:eventId/create")
     async createTeam(
-        @UserId('id') userId: string,
+        @UserId() userId: string,
         @Param("eventId") eventId: string,
         @Body() createTeamDto: CreateTeamDto
     ) {
@@ -52,7 +52,7 @@ export class TeamController {
 
     @Put("event/:eventId/leave")
     async leaveTeam(
-        @UserId('id') userId: string,
+        @UserId() userId: string,
         @Param("eventId") eventId: string
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
@@ -65,7 +65,7 @@ export class TeamController {
     @Get("event/:eventId/members")
     async getTeamMembers(
         @Param("eventId") eventId: string,
-        @UserId('id') userId: string
+        @UserId() userId: string
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId, {
             users: true
@@ -77,7 +77,7 @@ export class TeamController {
 
     @Post("event/:eventId/sendInvite")
     async sendInviteToTeam(
-        @UserId('id') userId: string,
+        @UserId() userId: string,
         @Param("eventId") eventId: string,
         @Body() inviteUserDto: InviteUserDto
     ) {
@@ -93,7 +93,7 @@ export class TeamController {
     @Get("event/:eventId/searchInviteUsers/:searchQuery")
     async searchUsersForInvite(
         @Param("eventId") eventId: string,
-        @UserId('id') userId: string,
+        @UserId() userId: string,
         @Param('searchQuery') searchQuery: string
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
@@ -105,9 +105,38 @@ export class TeamController {
 
     @Get("event/:eventId/pending")
     async getUserPendingInvites(
-        @UserId('id') userId: string,
+        @UserId() userId: string,
         @Param("eventId") eventId: string
     ) {
         return this.teamService.getTeamsUserIsInvitedTo(userId, eventId);
+    }
+
+    @Put("event/:eventId/acceptInvite/:teamId")
+    async acceptTeamInvite(
+        @UserId() userId: string,
+        @Param("eventId") eventId: string,
+        @Param("teamId") teamId: string
+    ) {
+        if (await this.teamService.getTeamOfUserForEvent(eventId, userId))
+            throw new BadRequestException("You are already part of a team for this event.");
+        if (!await this.teamService.isUserInvitedToTeam(userId, teamId))
+            throw new BadRequestException("You are not invited to this team.");
+        const team = await this.teamService.getTeamById(teamId);
+        if (team.locked)
+            throw new BadRequestException("You cannot accept an invite to a locked team.");
+
+        return this.teamService.acceptTeamInvite(userId, teamId);
+    }
+
+    @Delete("event/:eventId/declineInvite/:teamId")
+    async declineTeamInvite(
+        @UserId() userId: string,
+        @Param("eventId") eventId: string,
+        @Param("teamId") teamId: string
+    ) {
+        if (!await this.teamService.isUserInvitedToTeam(userId, teamId))
+            throw new BadRequestException("You are not invited to this team.");
+
+        return this.teamService.declineTeamInvite(userId, teamId);
     }
 }

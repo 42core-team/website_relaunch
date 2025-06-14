@@ -87,7 +87,7 @@ export class EventController {
             throw new BadRequestException("User is already registered for this event.");
         }
 
-        return this.userService.joinEvent(eventId, userId);
+        return this.userService.joinEvent(userId, eventId);
     }
 
     @Put(":id/lock")

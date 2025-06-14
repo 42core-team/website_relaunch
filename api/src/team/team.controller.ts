@@ -94,6 +94,8 @@ export class TeamController {
         if (team.locked) throw new BadRequestException("You cannot send invites for a locked team.");
         if (await this.teamService.getTeamOfUserForEvent(eventId, inviteUserDto.userToInviteId))
             throw new BadRequestException("This user is already part of a team for this event.");
+        if (await this.teamService.isUserInvitedToTeam(inviteUserDto.userToInviteId, team.id))
+            throw new BadRequestException("This user is already invited to this team.");
 
         return this.userService.addTeamInvite(inviteUserDto.userToInviteId, team.id);
     }

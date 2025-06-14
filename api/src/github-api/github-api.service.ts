@@ -11,7 +11,7 @@ export class GithubApiService {
     }
 
     decryptSecret(encryptedSecret: string): string {
-        return CryptoJS.AES.decrypt(encryptedSecret, this.configService.getOrThrow<string>('API_SECRET_ENCRYPTION_KEY')).toString();
+        return CryptoJS.AES.decrypt(encryptedSecret, this.configService.getOrThrow<string>('API_SECRET_ENCRYPTION_KEY')).toString(CryptoJS.enc.Utf8);
     }
 
 

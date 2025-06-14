@@ -42,6 +42,7 @@ export class TeamController {
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
         if (!team) throw new BadRequestException("You are not part of a team for this event.");
+        if(team.locked) throw new BadRequestException("You cannot leave a locked team.");
 
         return this.teamService.leaveTeam(team.id, userId);
     }

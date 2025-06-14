@@ -5,6 +5,7 @@ import {Repository} from "typeorm";
 import {GithubApiService} from "../github-api/github-api.service";
 import {EventService} from "../event/event.service";
 import {UserService} from "../user/user.service";
+import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
 
 @Injectable()
 export class TeamService {
@@ -19,9 +20,10 @@ export class TeamService {
 
     logger = new Logger("TeamService");
 
-    getTeamById(id: string): Promise<TeamEntity | null> {
-        return this.teamRepository.findOneBy({
-            id
+    getTeamById(id: string, relations: FindOptionsRelations<TeamEntity> = {}): Promise<TeamEntity> {
+        return this.teamRepository.findOneOrFail({
+            where: {id},
+            relations
         })
     }
 
@@ -98,8 +100,34 @@ export class TeamService {
         return team;
     }
 
-    async leaveTeam(teamId: string, userId: string) {
+    async deleteTeam(teamId: string) {
+        const team = await this.getTeamById(teamId, {
+            event: true
+        });
 
+        if (team.repo)
+            await this.githubApiService.deleteRepository(
+                team.repo,
+                team.event.githubOrg,
+                team.event.githubOrgSecret
+            );
+        return this.teamRepository.delete(teamId);
+    }
+
+    async leaveTeam(teamId: string, userId: string) {
+        const team = await this.getTeamById(teamId, {
+            users: true,
+            event: true
+        })
+        const user = await this.userService.getUserById(userId);
+
+        if (team.users.length == 1)
+            return this.deleteTeam(teamId);
+
+        await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
+        await this.teamRepository.update(teamId, {
+            users: team.users.filter(u => u.id !== userId)
+        });
     }
 
     getTeamCountForEvent(eventId: string): Promise<number> {

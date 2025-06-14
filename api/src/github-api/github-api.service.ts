@@ -34,6 +34,34 @@ export class GithubApiService {
         )
     }
 
+    async removeUserFromRepository(
+        repositoryName: string,
+        username: string,
+        githubOrg: string,
+        encryptedSecret: string,
+    ) {
+        const secret = this.decryptSecret(encryptedSecret);
+        const githubApi = new GitHubApiClient({
+            token: secret
+        });
+        const repositoryApi = new RepositoryApi(githubApi);
+        const userApi = new UserApi(githubApi);
+        await repositoryApi.removeCollaborator(githubOrg, repositoryName, username);
+    }
+
+    async deleteRepository(
+        repositoryName: string,
+        githubOrg: string,
+        encryptedSecret: string
+    ) {
+        const secret = this.decryptSecret(encryptedSecret);
+        const githubApi = new GitHubApiClient({
+            token: secret
+        });
+        const repositoryApi = new RepositoryApi(githubApi);
+        return await repositoryApi.deleteRepo(githubOrg, repositoryName);
+    }
+
     async createTeamRepository(
         name: string,
         username: string,

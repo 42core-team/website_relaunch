@@ -108,78 +108,11 @@ export async function createTeam(
 
 /**
  * Leave a team and delete it if this was the last member
- * @param teamId ID of the team to leave
- * @param userId ID of the user leaving the team
+ * @param eventId ID of the event to leave the team for
  * @returns boolean indicating success
  */
-export async function leaveTeam(teamId: string): Promise<boolean> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return false;
-  }
-
-  const userId = session.user.id;
-
-  try {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      include: { members: true, event: true },
-    });
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!team || !user) {
-      return false;
-    }
-
-    if (team.locked) {
-      return false;
-    }
-
-    // Determine if it's a rush event and select appropriate API and org
-    const isRushEvent = team.event?.type === events_type_enum.RUSH;
-    const repoApi = isRushEvent ? rushRepositoryApi : repositoryApi;
-    const orgName = isRushEvent
-      ? process.env.NEXT_PUBLIC_RUSH_ORG
-      : process.env.NEXT_PUBLIC_GITHUB_ORG;
-
-    if (team.members.length <= 1) {
-      if (team.repo) {
-        await repoApi.deleteRepo(orgName || "", team.repo);
-      }
-      await prisma.team.delete({
-        where: { id: teamId },
-      });
-    } else {
-      if (team.repo) {
-        await repoApi.removeCollaborator(
-          orgName || "",
-          team.repo,
-          user.username,
-        );
-      }
-      await prisma.team.update({
-        where: { id: teamId },
-        data: {
-          members: {
-            delete: [
-              {
-                teamsId_usersId: {
-                  teamsId: teamId,
-                  usersId: userId,
-                },
-              },
-            ],
-          },
-        },
-      });
-    }
-
-    return true;
-  } catch (err) {
-    console.error("Error leaving team:", err);
-    return false;
-  }
+export async function leaveTeam(eventId: string): Promise<boolean> {
+  return (await axiosInstance.put(`team/event/${eventId}/leave`)).data;
 }
 
 /**

@@ -102,4 +102,12 @@ export class TeamController {
 
         return this.userService.searchUsersForInvite(eventId, searchQuery, team.id);
     }
+
+    @Get("event/:eventId/pending")
+    async getUserPendingInvites(
+        @UserId('id') userId: string,
+        @Param("eventId") eventId: string
+    ) {
+        return this.teamService.getTeamsUserIsInvitedTo(userId, eventId);
+    }
 }

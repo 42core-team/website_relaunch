@@ -151,4 +151,17 @@ export class TeamService {
             }
         });
     }
+
+    getTeamsUserIsInvitedTo(userId: string, eventId: string): Promise<TeamEntity[]> {
+        return this.teamRepository.find({
+            where: {
+                event: {
+                    id: eventId
+                },
+                teamInvites: {
+                    id: userId
+                }
+            }
+        });
+    }
 }

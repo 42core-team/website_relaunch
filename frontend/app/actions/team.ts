@@ -165,32 +165,7 @@ export async function sendTeamInvite(eventId: string): Promise<boolean> {
 export async function getUserPendingInvites(
   userId: string,
 ): Promise<TeamInviteWithDetails[]> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        invitedToTeams: {
-          include: {
-            team: true,
-          },
-        },
-      },
-    });
-
-    if (!user || user.invitedToTeams.length === 0) {
-      return [];
-    }
-
-    return user.invitedToTeams.map((team) => ({
-      id: team.team.id,
-      teamId: team.team.id,
-      teamName: team.team.name,
-      createdAt: team.team.createdAt,
-    }));
-  } catch (err) {
-    console.error("Error getting user pending invites:", err);
-    return [];
-  }
+  return (await axiosInstance.get(`team/event/${userId}/pending`)).data;
 }
 
 /**

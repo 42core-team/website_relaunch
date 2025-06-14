@@ -122,7 +122,7 @@ export class TeamService {
         })
         const user = await this.userService.getUserById(userId);
 
-        if (team.users.length == 1)
+        if (team.users.length <= 1)
             return this.deleteTeam(teamId);
 
         await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
@@ -199,5 +199,22 @@ export class TeamService {
             .relation("teamInvites")
             .of(teamId)
             .remove(userId);
+    }
+
+    getTeamsForEvent(eventId: string, searchName?: string, searchDir?: string, sortBy?: string): Promise<TeamEntity[]> {
+        const query = this.teamRepository.createQueryBuilder('team')
+            .innerJoin('team.event', 'event')
+            .where('event.id = :eventId', {eventId});
+
+        if (searchName) {
+            query.andWhere('team.name LIKE :searchName', {searchName: `%${searchName}%`});
+        }
+
+        if (sortBy) {
+            const direction = searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+            query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
+        }
+
+        return query.getMany();
     }
 }

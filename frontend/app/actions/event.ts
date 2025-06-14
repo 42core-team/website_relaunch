@@ -95,7 +95,8 @@ export async function getParticipantsCountForEvent(
 
 // Join a user to an event
 export async function joinEvent(eventId: string): Promise<boolean> {
-  return (await axiosInstance.put(`event/${eventId}/join`)).data;
+  await axiosInstance.put(`event/${eventId}/join`);
+  return true;
 }
 
 // Interface for creating events

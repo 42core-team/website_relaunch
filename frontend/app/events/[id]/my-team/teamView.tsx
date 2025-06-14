@@ -31,7 +31,7 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     async function fetchTeamMembers() {
       if (myTeam) {
         try {
-          const members = await getTeamMembers(myTeam.id);
+          const members = await getTeamMembers(eventId);
           setTeamMembers(members);
         } catch (error) {
           console.error("Error fetching team members:", error);

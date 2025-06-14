@@ -1,21 +1,5 @@
 "use server";
 
-import { prisma } from "@/initializer/database";
-import {
-  Team as PrismaTeam,
-  User as PrismaUser,
-  Event as PrismaEvent,
-  events_type_enum,
-} from "@/generated/prisma";
-import {
-  repositoryApi,
-  userApi,
-  rushRepositoryApi,
-  rushUserApi,
-} from "@/initializer/github";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/utils/authOptions";
-import { isEventAdmin } from "@/app/actions/event";
 import axiosInstance from "@/app/actions/axios";
 
 export interface Team {
@@ -126,10 +110,10 @@ export async function getTeamMembers(eventId: string): Promise<TeamMember[]> {
   ).data;
 
   return members.map((member: any) => ({
-    id: member.user.id,
-    name: member.user.name,
-    username: member.user.username,
-    profilePicture: member.user.profilePicture,
+    id: member.id,
+    name: member.name,
+    username: member.username,
+    profilePicture: member.profilePicture,
   }));
 }
 
@@ -198,15 +182,12 @@ export async function declineTeamInvite(eventId: string, teamId: string) {
  * @returns Array of teams
  */
 export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
-  const teams = await prisma.team.findMany({
-    where: { eventId },
-    include: { members: true },
-  });
+  const teams = (await axiosInstance.get(`team/event/${eventId}`)).data;
 
-  return teams.map((team) => ({
+  return teams.map((team: any) => ({
     id: team.id,
     name: team.name,
-    repo: team.repo || "",
+    repo: team.repo,
     membersCount: team.members.length,
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,
@@ -219,42 +200,17 @@ export async function getTeamsForEventTable(
   sortColumn: "name" | "createdAt" | "membersCount" | undefined = "name",
   sortDirection: "asc" | "desc" = "asc",
 ) {
-  let whereName: any;
-  if (searchTeamName === undefined) {
-    whereName = undefined;
-  } else {
-    whereName = {
-      contains: searchTeamName,
-      mode: "insensitive",
-    };
-  }
-  let orderBy: any;
-  if (sortColumn === undefined) {
-    orderBy = undefined;
-  } else if (sortColumn === "membersCount") {
-    orderBy = {
-      members: {
-        _count: sortDirection,
+  const teams = (
+    await axiosInstance.get(`team/event/${eventId}/`, {
+      params: {
+        searchName: searchTeamName,
+        sortBy: sortColumn,
+        sortDir: sortDirection,
       },
-    };
-  } else {
-    orderBy = {
-      [sortColumn]: sortDirection,
-    };
-  }
+    })
+  ).data;
 
-  const teams = await prisma.team.findMany({
-    where: {
-      eventId,
-      name: whereName,
-    },
-    orderBy,
-    include: {
-      members: true,
-    },
-  });
-
-  return teams.map((team) => ({
+  return teams.map((team: any) => ({
     id: team.id,
     name: team.name,
     repo: team.repo || "",

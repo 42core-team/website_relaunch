@@ -7,7 +7,7 @@ import {
     UseGuards,
     BadRequestException,
     Put,
-    NotFoundException, Delete
+    NotFoundException, Delete, Query
 } from '@nestjs/common';
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
@@ -27,6 +27,16 @@ export class TeamController {
     @Get(":id")
     getTeamById(@Param("id") id: string) {
         return this.teamService.getTeamById(id);
+    }
+
+    @Get("event/:eventId")
+    getTeamsForEvent
+    (@Param("eventId") eventId: string,
+     @Query("searchName") searchName?: string,
+     @Query("sortDir") sortDir?: string,
+     @Query("sortBy") sortBy?: string
+    ) {
+        return this.teamService.getTeamsForEvent(eventId, searchName, sortDir, sortBy);
     }
 
     @Get("event/:eventId/my")

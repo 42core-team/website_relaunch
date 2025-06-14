@@ -89,4 +89,13 @@ export class EventController {
 
         return this.userService.joinEvent(eventId, userId);
     }
+
+    @Put(":id/lock")
+    async lockEvent(@Param("id") eventId: string, @UserId() userId: string) {
+        const isAdmin = await this.eventService.isEventAdmin(eventId, userId);
+        if (!isAdmin)
+            throw new UnauthorizedException("You are not authorized to lock this event.");
+
+        return this.eventService.lockEvent(eventId);
+    }
 }

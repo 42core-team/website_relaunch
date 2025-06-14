@@ -1,19 +1,23 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {EventEntity} from "./entities/event.entity";
 import {DeepPartial, Repository} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
 import * as CryptoJS from "crypto-js";
 import {ConfigService} from "@nestjs/config";
+import {TeamService} from "../team/team.service";
 
 @Injectable()
 export class EventService {
     constructor(
         @InjectRepository(EventEntity)
         private readonly eventRepository: Repository<EventEntity>,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly teamService: TeamService
     ) {
     }
+
+    logger = new Logger("EventService");
 
     getAllEvents(): Promise<EventEntity[]> {
         return this.eventRepository.find({
@@ -93,6 +97,21 @@ export class EventService {
     }
 
     async lockEvent(eventId: string) {
+        const event = await this.eventRepository.findOneOrFail({
+            where: {
+                id: eventId
+            },
+            relations: {
+                teams: true
+            }
+        });
 
+        await Promise.all(event.teams.map(async (team) => {
+            try {
+                await this.teamService.lockTeam(team.id);
+            } catch (e) {
+                this.logger.error(`Failed to lock team ${team.id} for event ${eventId}`, e);
+            }
+        }))
     }
 }

@@ -7,7 +7,7 @@ import {TeamModule} from "../team/team.module";
 import {UserModule} from "../user/user.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([EventEntity]), TeamModule, UserModule],
+    imports: [TypeOrmModule.forFeature([EventEntity]), TeamModule, UserModule, TeamModule],
     controllers: [EventController],
     providers: [EventService],
     exports: []

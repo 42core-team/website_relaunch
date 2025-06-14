@@ -9,6 +9,7 @@ import { TeamModule } from './team/team.module';
 import { MatchModule } from './match/match.module';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {DatabaseConfig} from "./DatabaseConfig";
+import { GithubApiModule } from './github-api/github-api.module';
 
 @Module({
   imports: [    ConfigModule.forRoot({
@@ -22,7 +23,7 @@ import {DatabaseConfig} from "./DatabaseConfig";
         return databaseConfig.getConfig() as any;
       },
       inject: [ConfigService]
-    }), AuthModule, UserModule, EventModule, TeamModule, MatchModule],
+    }), AuthModule, UserModule, EventModule, TeamModule, MatchModule, GithubApiModule],
   controllers: [AppController],
   providers: [AppService],
 })

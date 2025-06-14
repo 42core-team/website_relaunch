@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error("No access token found");
           }
 
-          const response = await axiosInstance.post(`user/`, {
+          await axiosInstance.post(`user/`, {
             email: user.email!,
             username: githubProfile?.login || user.name!,
             name: user.name! || githubProfile?.name!,
@@ -36,10 +36,8 @@ export const authOptions: NextAuthOptions = {
             githubAccessToken: account.access_token,
             canCreateEvent: false,
           });
-
-          console.log(response);
         } else {
-          await axiosInstance.put(`user`, {
+          await axiosInstance.put(`user/${existingUser.id}`, {
             email: user.email!,
             username: githubProfile?.login || existingUser.username,
             name: githubProfile?.name || existingUser.name,
@@ -57,11 +55,12 @@ export const authOptions: NextAuthOptions = {
       if (!session.user?.email) {
         throw new Error("User email is not available in session");
       }
-
       const dbUser = (
         await axiosInstance.get(`user/email/${session.user?.email}`)
       ).data;
+
       if (dbUser) session.user.id = dbUser.id;
+
       return session;
     },
   },

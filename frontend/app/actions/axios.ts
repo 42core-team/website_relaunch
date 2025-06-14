@@ -12,6 +12,9 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   async (config) => {
+    if (config.url && config.url.startsWith("user/email/")) {
+      return config;
+    }
     const session = await getServerSession(authOptions);
     config.headers.userId = session?.user?.id || "";
     return config;

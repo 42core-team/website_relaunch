@@ -54,7 +54,7 @@ export interface TeamInviteWithDetails {
 }
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
-  const team = (await axiosInstance.get("team/${teamId}")).data;
+  const team = (await axiosInstance.get(`team/${teamId}`)).data;
 
   return team
     ? {

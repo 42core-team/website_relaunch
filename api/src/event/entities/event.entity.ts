@@ -1,6 +1,7 @@
 import {Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 import {UserEntity, UserEventPermissionEntity} from "../../user/entities/user.entity";
 import {TeamEntity} from "../../team/entities/team.entity";
+import {Exclude} from "class-transformer";
 
 export enum EventState{
     TEAM_FINDING = "TEAM_FINDING",
@@ -24,6 +25,7 @@ export class EventEntity {
     @Column()
     githubOrg: string;
 
+    @Exclude()
     @Column()
     githubOrgSecret: string;
 

@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import {EventEntity} from "../../event/entities/event.entity";
 import {TeamEntity} from "../../team/entities/team.entity";
+import {Exclude} from "class-transformer";
 
 @Entity('users')
 export class UserEntity {
@@ -19,6 +20,7 @@ export class UserEntity {
     @Column()
     githubId: string;
 
+    @Exclude()
     @Column()
     githubAccessToken: string;
 
@@ -49,9 +51,11 @@ export class UserEntity {
     @ManyToMany(() => EventEntity, event => event.users)
     events: EventEntity[]
 
+    @Exclude()
     @OneToMany(() => UserEventPermissionEntity, (permission: UserEventPermissionEntity) => permission.user)
     permissions: UserEventPermissionEntity[];
 
+    @Exclude()
     @Column({ default: false })
     canCreateEvent: boolean;
 }

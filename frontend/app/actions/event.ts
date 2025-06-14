@@ -102,13 +102,14 @@ export async function joinEvent(eventId: string): Promise<boolean> {
 interface EventCreateParams {
   name: string;
   description?: string;
+  githubOrg: string;
+  githubOrgSecret: string;
   location?: string;
   startDate: number;
   endDate: number;
   minTeamSize: number;
   maxTeamSize: number;
   treeFormat?: number;
-  type: string;
   repoTemplateOwner: string;
   repoTemplateName: string;
 }

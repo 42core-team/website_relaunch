@@ -1,5 +1,4 @@
-import {IsString, IsOptional, IsNumber, MinLength, IsDateString, Min, IsEnum} from "class-validator";
-import {EventType} from "../entities/event.entity";
+import {IsString, IsOptional, IsNumber, MinLength, Min, IsNotEmpty} from "class-validator";
 
 export class CreateEventDto {
     @IsString()
@@ -9,6 +8,15 @@ export class CreateEventDto {
     @IsOptional()
     @IsString()
     description: string;
+
+
+    @IsString()
+    @IsNotEmpty()
+    githubOrg: string;
+
+    @IsString()
+    @IsNotEmpty()
+    githubOrgSecret: string;
 
     @IsOptional()
     @IsString()
@@ -31,9 +39,6 @@ export class CreateEventDto {
     @IsOptional()
     @IsNumber()
     treeFormat?: number;
-
-    @IsEnum(EventType)
-    type: EventType;
 
     @IsOptional()
     @IsString()

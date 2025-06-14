@@ -30,6 +30,10 @@ export class TeamService {
         });
     }
 
+    lockTeam(teamId: string) {
+
+    }
+
     getTeamCountForEvent(eventId: string): Promise<number> {
         return this.teamRepository.count({
             where: {

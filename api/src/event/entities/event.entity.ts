@@ -2,11 +2,6 @@ import {Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, Prim
 import {UserEntity, UserEventPermissionEntity} from "../../user/entities/user.entity";
 import {TeamEntity} from "../../team/entities/team.entity";
 
-export enum EventType {
-    REGULAR = "REGULAR",
-    RUSH = "RUSH"
-}
-
 export enum EventState{
     TEAM_FINDING = "TEAM_FINDING",
     CODING_PHASE = "CODING_PHASE",
@@ -26,8 +21,11 @@ export class EventEntity {
     @Column({default: ""})
     description: string;
 
-    @Column({type: "enum", enum: EventType, default: EventType.REGULAR})
-    type: EventType;
+    @Column()
+    githubOrg: string;
+
+    @Column()
+    githubOrgSecret: string;
 
     @Column({ nullable: true })
     repoTemplateOwner: string;

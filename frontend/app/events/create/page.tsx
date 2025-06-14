@@ -22,15 +22,14 @@ export default function CreateEventPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [githubOrg, setGithubOrg] = useState("42core-team");
+  const [githubOrgSecret, setGithubOrgSecret] = useState("");
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState(0);
   const [endDate, setEndDate] = useState(0);
   const [minTeamSize, setMinTeamSize] = useState(1);
   const [maxTeamSize, setMaxTeamSize] = useState(4);
   const [treeFormat, setTreeFormat] = useState(16);
-  const [eventType, setEventType] = useState<string>(
-    events_type_enum.REGULAR.toString(),
-  );
   const [repoTemplateOwner, setRepoTemplateOwner] = useState("");
   const [repoTemplateName, setRepoTemplateName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -71,13 +70,14 @@ export default function CreateEventPage() {
       const result = await createEvent({
         name,
         description,
+        githubOrg,
+        githubOrgSecret,
         location,
         startDate,
         endDate,
         minTeamSize,
         maxTeamSize,
         treeFormat,
-        type: eventType.toString(),
         repoTemplateOwner: repoTemplateOwner,
         repoTemplateName: repoTemplateName,
       });
@@ -117,18 +117,6 @@ export default function CreateEventPage() {
               required
               placeholder="Enter event name"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Type</label>
-            <Select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              placeholder="Select event type"
-            >
-              <SelectItem key="REGULAR">Regular Event</SelectItem>
-              <SelectItem key="RUSH">Rush Event</SelectItem>
-            </Select>
           </div>
 
           <div>
@@ -218,6 +206,37 @@ export default function CreateEventPage() {
             >
               <SelectItem key="16">16 Teams</SelectItem>
             </Select>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">
+                GitHub Organization
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Organization Name
+                </label>
+                <Input
+                  value={githubOrg}
+                  onChange={(e) => setGithubOrg(e.target.value)}
+                  placeholder="e.g. 42core-team"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  GitHub Organization Secret
+                </label>
+                <Input
+                  value={githubOrgSecret}
+                  type="password"
+                  onChange={(e) => setGithubOrgSecret(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">

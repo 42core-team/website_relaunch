@@ -1,14 +1,17 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
-import {EventEntity, EventType} from "./entities/event.entity";
+import {EventEntity} from "./entities/event.entity";
 import {DeepPartial, Repository} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
+import * as CryptoJS from "crypto-js";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class EventService {
     constructor(
         @InjectRepository(EventEntity)
-        private readonly eventRepository: Repository<EventEntity>
+        private readonly eventRepository: Repository<EventEntity>,
+        private readonly configService: ConfigService
     ) {
     }
 
@@ -30,20 +33,24 @@ export class EventService {
         userId: string,
         name: string,
         description: string,
+        githubOrg: string,
+        githubOrgSecret: string,
         location: string,
         startDate: number,
         endDate: number,
         minTeamSize: number,
         maxTeamSize: number,
-        type: EventType,
         treeFormat?: number,
         repoTemplateOwner?: string,
         repoTemplateName?: string
     ) {
+        githubOrgSecret = CryptoJS.AES.encrypt(githubOrgSecret, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
+
         return this.eventRepository.save({
             name,
             description,
-            type,
+            githubOrg,
+            githubOrgSecret,
             repoTemplateOwner,
             repoTemplateName,
             location,
@@ -83,5 +90,9 @@ export class EventService {
                 role: PermissionRole.ADMIN
             }
         });
+    }
+
+    async lockEvent(eventId: string) {
+
     }
 }

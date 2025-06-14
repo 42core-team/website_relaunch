@@ -214,7 +214,7 @@ export async function getTeamsForEventTable(
     id: team.id,
     name: team.name,
     repo: team.repo || "",
-    membersCount: team.members.length,
+    membersCount: team.userCount,
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,
   }));

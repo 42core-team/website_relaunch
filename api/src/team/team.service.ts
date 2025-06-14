@@ -201,10 +201,23 @@ export class TeamService {
             .remove(userId);
     }
 
-    getTeamsForEvent(eventId: string, searchName?: string, searchDir?: string, sortBy?: string): Promise<TeamEntity[]> {
+    async getTeamsForEvent(eventId: string, searchName?: string, searchDir?: string, sortBy?: string): Promise<Array<TeamEntity & {
+        userCount: number
+    }>> {
         const query = this.teamRepository.createQueryBuilder('team')
             .innerJoin('team.event', 'event')
-            .where('event.id = :eventId', {eventId});
+            .leftJoin('team.users', 'user')
+            .where('event.id = :eventId', {eventId})
+            .select([
+                'team.id',
+                'team.name',
+                'team.locked',
+                'team.repo',
+                'team.createdAt',
+                'team.updatedAt',
+            ])
+            .addSelect('COUNT(user.id)', 'userCount')
+            .groupBy('team.id');
 
         if (searchName) {
             query.andWhere('team.name LIKE :searchName', {searchName: `%${searchName}%`});
@@ -215,6 +228,10 @@ export class TeamService {
             query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
         }
 
-        return query.getMany();
+        const result = await query.getRawAndEntities();
+        return result.entities.map((team, idx) => ({
+            ...team,
+            userCount: parseInt(result.raw[idx].userCount, 10)
+        }));
     }
 }

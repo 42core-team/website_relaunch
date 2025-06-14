@@ -4,11 +4,11 @@ import axiosInstance from "@/app/actions/axios";
 
 export interface Event {
   id: string;
-  start_date: string;
+  start_date: number;
   name: string;
   description?: string;
   location?: string;
-  end_date: string;
+  end_date: number;
   min_team_size: number;
   max_team_size: number;
   currentRound: number;
@@ -70,8 +70,8 @@ export async function getEvents(): Promise<Event[]> {
     name: event.name,
     description: event.description,
     location: event.location,
-    start_date: event.startDate.toISOString(),
-    end_date: event.endDate.toISOString(),
+    start_date: event.startDate,
+    end_date: event.endDate,
     min_team_size: event.minTeamSize,
     max_team_size: event.maxTeamSize,
     currentRound: event.currentRound,
@@ -117,7 +117,7 @@ interface EventCreateParams {
 export async function createEvent(
   eventData: EventCreateParams,
 ): Promise<Event | { error: string }> {
-  return await axiosInstance.post(`event`, eventData);
+  return (await axiosInstance.post(`event`, eventData)).data;
 }
 
 export async function canUserCreateEvent(): Promise<boolean> {

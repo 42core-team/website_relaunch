@@ -50,8 +50,8 @@ export class EventService {
             minTeamSize,
             maxTeamSize,
             treeFormat: treeFormat ?? 16,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
             permissions: [
                 {
                     user: {

@@ -40,7 +40,7 @@ export const TeamInviteModal = ({
     if (value.length >= 2) {
       setIsSearching(true);
       try {
-        const results = await searchUsersForInvite(teamId, eventId, value);
+        const results = await searchUsersForInvite(eventId, value);
         setSearchResults(results);
       } catch (error) {
         console.error("Error searching users:", error);

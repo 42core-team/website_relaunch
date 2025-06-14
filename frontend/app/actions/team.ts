@@ -135,65 +135,17 @@ export async function getTeamMembers(eventId: string): Promise<TeamMember[]> {
 
 /**
  * Search for users that can be invited to a team
- * @param teamId ID of the team to invite to
  * @param eventId ID of the event
  * @param searchQuery query string to search by username or name
  * @returns Array of user search results
  */
 export async function searchUsersForInvite(
-  teamId: string,
   eventId: string,
   searchQuery: string,
 ): Promise<UserSearchResult[]> {
-  try {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      include: { invites: true, members: true },
-    });
-
-    if (!team) {
-      throw new Error("Team not found");
-    }
-
-    const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          {
-            eventUsers: {
-              some: {
-                eventsId: eventId,
-              },
-            },
-          },
-          {
-            OR: [
-              { name: { contains: searchQuery, mode: "insensitive" } },
-              { username: { contains: searchQuery, mode: "insensitive" } },
-            ],
-          },
-        ],
-      },
-    });
-
-    const teamUserIds = team.members.map((u) => u.usersId);
-    const invitedUserIds = team.invites.map((u) => u.usersId);
-
-    const filteredUsers = users.filter(
-      (user) => !teamUserIds.includes(user.id),
-    );
-
-    // Return users with isInvited flag set for those who already have invites
-    return filteredUsers.map((user) => ({
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      profilePicture: user.profilePicture,
-      isInvited: invitedUserIds.includes(user.id),
-    }));
-  } catch (err) {
-    console.error("Error searching users for invite:", err);
-    return [];
-  }
+  return await axiosInstance.get(
+    `team/event/${eventId}/searchInviteUsers/${searchQuery}`,
+  );
 }
 
 /**

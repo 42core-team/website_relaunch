@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {UserEntity} from "./entities/user.entity";
-import {Repository, UpdateResult} from "typeorm";
+import {Like, Repository, UpdateResult} from "typeorm";
 
 @Injectable()
 export class UserService {
@@ -102,5 +102,16 @@ export class UserService {
             .relation(UserEntity, "teamInvites")
             .of(userId)
             .add(teamId);
+    }
+
+    searchUsersForInvite(eventId: string, searchQuery: string, id: string) {
+        return this.userRepository
+            .createQueryBuilder('user')
+            .innerJoin('user.events', 'event', 'event.id = :eventId', {eventId})
+            .leftJoin('user.teams', 'team')
+            .leftJoin('team.event', 'teamEvent', 'teamEvent.id = :eventId', {eventId})
+            .where('user.username LIKE :username', {username: `%${searchQuery}%`})
+            .andWhere('team.id IS NULL')
+            .getMany();
     }
 }

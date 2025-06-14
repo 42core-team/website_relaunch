@@ -90,4 +90,16 @@ export class TeamController {
         return this.userService.addTeamInvite(inviteUserDto.userToInviteId, team.id);
     }
 
+    @Get("event/:eventId/searchInviteUsers/:searchQuery")
+    async searchUsersForInvite(
+        @Param("eventId") eventId: string,
+        @UserId('id') userId: string,
+        @Param('searchQuery') searchQuery: string
+    ) {
+        const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
+        if (!team) throw new NotFoundException("You are not part of a team for this event.");
+        if (team.locked) throw new BadRequestException("You cannot search for users in a locked team.");
+
+        return this.userService.searchUsersForInvite(eventId, searchQuery, team.id);
+    }
 }

@@ -57,7 +57,7 @@ export const TeamInviteModal = ({
     setIsInviting((prev) => ({ ...prev, [userId]: true }));
 
     try {
-      const success = await sendTeamInvite(eventId);
+      const success = await sendTeamInvite(eventId, userId);
 
       if (success) {
         // Update the search results to show the user as invited

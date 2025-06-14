@@ -8,11 +8,7 @@ import {
   getParticipantsCountForEvent,
   isEventAdmin,
 } from "@/app/actions/event";
-import {
-  increaseRound,
-  getCurrentPhase,
-  getCurrentRound,
-} from "@/app/actions/tournament";
+
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { lockEvent } from "@/app/actions/team";
@@ -41,15 +37,13 @@ export default function DashboardPage() {
         const eventData = await getEventById(eventId);
         const teams = await getTeamsCountForEvent(eventId);
         const participants = await getParticipantsCountForEvent(eventId);
-        const phase = await getCurrentPhase(eventId);
-        const round = await getCurrentRound(eventId);
+
         const adminCheck = await isEventAdmin(eventId);
 
         setEvent(eventData);
         setTeamsCount(teams);
         setParticipantsCount(participants);
-        setCurrentPhase(phase);
-        setCurrentRound(round);
+
         setIsAdmin(adminCheck);
         setLoading(false);
       } catch (error) {
@@ -64,12 +58,6 @@ export default function DashboardPage() {
   const handleIncreaseRound = async () => {
     setActionLoading(true);
     try {
-      await increaseRound(eventId);
-      // Refresh data
-      const phase = await getCurrentPhase(eventId);
-      const round = await getCurrentRound(eventId);
-      setCurrentPhase(phase);
-      setCurrentRound(round);
     } catch (error) {
       console.error("Error increasing round:", error);
     }

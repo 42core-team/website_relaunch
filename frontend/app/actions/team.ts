@@ -126,18 +126,28 @@ export async function searchUsersForInvite(
   eventId: string,
   searchQuery: string,
 ): Promise<UserSearchResult[]> {
-  return await axiosInstance.get(
-    `team/event/${eventId}/searchInviteUsers/${searchQuery}`,
-  );
+  return (
+    await axiosInstance.get(
+      `team/event/${eventId}/searchInviteUsers/${searchQuery}`,
+    )
+  ).data;
 }
 
 /**
  * Send a team invite to a user
  * @returns boolean indicating success
  * @param eventId
+ * @param userId ID of the user to invite
  */
-export async function sendTeamInvite(eventId: string): Promise<boolean> {
-  return (await axiosInstance.post(`team/event/${eventId}/sendInvite`)).data;
+export async function sendTeamInvite(
+  eventId: string,
+  userId: string,
+): Promise<boolean> {
+  return (
+    await axiosInstance.post(`team/event/${eventId}/sendInvite`, {
+      userToInviteId: userId,
+    })
+  ).data;
 }
 
 /**

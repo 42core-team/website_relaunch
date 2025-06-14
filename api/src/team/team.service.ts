@@ -11,6 +11,25 @@ export class TeamService {
     ) {
     }
 
+    getTeamById(id: string): Promise<TeamEntity | null> {
+        return this.teamRepository.findOneBy({
+            id
+        })
+    }
+
+    getTeamOfUserForEvent(eventId: string, userId: string): Promise<TeamEntity | null> {
+        return this.teamRepository.findOne({
+            where: {
+                event: {
+                    id: eventId
+                },
+                users: {
+                    id: userId
+                }
+            }
+        });
+    }
+
     getTeamCountForEvent(eventId: string): Promise<number> {
         return this.teamRepository.count({
             where: {

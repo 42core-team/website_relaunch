@@ -16,6 +16,7 @@ import {
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { isEventAdmin } from "@/app/actions/event";
+import axiosInstance from "@/app/actions/axios";
 
 export interface Team {
   id: string;
@@ -53,9 +54,7 @@ export interface TeamInviteWithDetails {
 }
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-  });
+  const team = (await axiosInstance.get("team/${teamId}")).data;
 
   return team
     ? {
@@ -69,36 +68,19 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
     : null;
 }
 
-export async function getTeam(
-  userId: string,
-  eventId: string,
-): Promise<Team | null> {
-  try {
-    const team = await prisma.team.findFirst({
-      where: {
-        members: {
-          some: {
-            usersId: userId,
-          },
-        },
-        eventId: eventId,
-      },
-    });
+export async function getMyEventTeam(eventId: string): Promise<Team | null> {
+  const team = (await axiosInstance.get(`team/event/${eventId}/my`)).data;
 
-    if (!team) return null;
+  if (!team) return null;
 
-    return {
-      id: team.id,
-      name: team.name,
-      repo: team.repo || "",
-      locked: team.locked,
-      createdAt: team.createdAt,
-      updatedAt: team.updatedAt,
-    };
-  } catch (err) {
-    console.error("Error getting team:", err);
-    return null;
-  }
+  return {
+    id: team.id,
+    name: team.name,
+    repo: team.repo || "",
+    locked: team.locked,
+    createdAt: team.createdAt,
+    updatedAt: team.updatedAt,
+  };
 }
 
 export async function lockEvent(eventId: string) {
@@ -200,7 +182,7 @@ export async function createTeam(
   }
 
   const userId = session.user.id;
-  const existingTeam = await getTeam(userId, eventId);
+  const existingTeam = await getMyEventTeam(eventId);
   if (existingTeam) return existingTeam;
 
   const isValidName =

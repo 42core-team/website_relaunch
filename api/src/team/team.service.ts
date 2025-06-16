@@ -77,7 +77,6 @@ export class TeamService {
             name,
             event: {id: eventId},
             users: [{id: userId}],
-            repo: `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${eventId}`
         })
 
         const repoName = event.name + '-' + name + '-' + team.id;

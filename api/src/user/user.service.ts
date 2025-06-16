@@ -110,7 +110,8 @@ export class UserService {
             .innerJoin('user.events', 'event', 'event.id = :eventId', {eventId})
             .leftJoin('user.teams', 'team')
             .leftJoin('team.event', 'teamEvent', 'teamEvent.id = :eventId', {eventId})
-            .where('user.username LIKE :username', {username: `%${searchQuery}%`})
+            .where('LOWER(user.username) LIKE LOWER(:username)', {username: `%${searchQuery}%`})
+            .orWhere('LOWER(user.name) LIKE LOWER(:name)', {name: `%${searchQuery}%`})
             .andWhere('team.id IS NULL')
             .getMany();
     }

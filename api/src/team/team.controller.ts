@@ -14,13 +14,15 @@ import {TeamService} from "./team.service";
 import {CreateTeamDto} from "./dtos/ createTeamDto";
 import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
+import {EventService} from "../event/event.service";
 
 @UseGuards(FrontendGuard)
 @Controller('team')
 export class TeamController {
     constructor(
         private readonly teamService: TeamService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly eventService: EventService
     ) {
     }
 
@@ -50,6 +52,9 @@ export class TeamController {
         @Param("eventId") eventId: string,
         @Body() createTeamDto: CreateTeamDto
     ) {
+        if (!await this.eventService.isUserRegisteredForEvent(eventId, userId))
+            throw new BadRequestException("You are not registered for this event.");
+
         if (await this.teamService.getTeamOfUserForEvent(eventId, userId))
             throw new BadRequestException("You already have a team for this event.");
 

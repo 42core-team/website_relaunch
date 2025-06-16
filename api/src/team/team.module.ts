@@ -11,7 +11,7 @@ import {UserModule} from "../user/user.module";
     imports: [TypeOrmModule.forFeature([TeamEntity]),
         GithubApiModule,
         forwardRef(() => EventModule),
-        UserModule
+        UserModule,
     ],
     controllers: [TeamController],
     providers: [TeamService],

@@ -74,6 +74,7 @@ export class EventEntity {
 
     @OneToMany(() => UserEventPermissionEntity, permission => permission.event, {
         onUpdate: "CASCADE",
+        cascade: true
     })
     permissions: UserEventPermissionEntity[];
 }

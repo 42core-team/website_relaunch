@@ -1,6 +1,8 @@
 "use server";
 
 import axiosInstance from "@/app/actions/axios";
+import { ServerActionResponse } from "@/app/actions/errors";
+import { AxiosError } from "axios";
 
 export interface Team {
   id: string;
@@ -74,20 +76,28 @@ export async function lockEvent(eventId: string) {
 export async function createTeam(
   name: string,
   eventId: string,
-): Promise<Team | { error: string }> {
-  const newTeam = (
-    await axiosInstance.post(`team/event/${eventId}/create`, {
-      name,
-    })
-  ).data;
+): Promise<ServerActionResponse<Team>> {
+  try {
+    const newTeam = (
+      await axiosInstance.post(`team/event/${eventId}/create`, {
+        name,
+      })
+    ).data;
 
-  return {
-    id: newTeam.id,
-    name: newTeam.name,
-    repo: newTeam.repo,
-    createdAt: newTeam.createdAt,
-    updatedAt: newTeam.updatedAt,
-  };
+    return {
+      id: newTeam.id,
+      name: newTeam.name,
+      repo: newTeam.repo,
+      createdAt: newTeam.createdAt,
+      updatedAt: newTeam.updatedAt,
+    };
+  } catch (error: any) {
+    return {
+      error:
+        error.response?.data?.message ||
+        "An unexpected error occurred while creating the team.",
+    };
+  }
 }
 
 /**
@@ -95,8 +105,8 @@ export async function createTeam(
  * @param eventId ID of the event to leave the team for
  * @returns boolean indicating success
  */
-export async function leaveTeam(eventId: string): Promise<boolean> {
-  return (await axiosInstance.put(`team/event/${eventId}/leave`)).data;
+export async function leaveTeam(eventId: string) {
+  await axiosInstance.put(`team/event/${eventId}/leave`);
 }
 
 /**
@@ -142,12 +152,10 @@ export async function searchUsersForInvite(
 export async function sendTeamInvite(
   eventId: string,
   userId: string,
-): Promise<boolean> {
-  return (
-    await axiosInstance.post(`team/event/${eventId}/sendInvite`, {
-      userToInviteId: userId,
-    })
-  ).data;
+): Promise<void> {
+  await axiosInstance.post(`team/event/${eventId}/sendInvite`, {
+    userToInviteId: userId,
+  });
 }
 
 /**
@@ -168,9 +176,7 @@ export async function getUserPendingInvites(
  * @returns Object with success status and optional message
  */
 export async function acceptTeamInvite(eventId: string, teamId: string) {
-  return (
-    await axiosInstance.put(`team/event/${eventId}/acceptInvite/${teamId}`)
-  ).data;
+  await axiosInstance.put(`team/event/${eventId}/acceptInvite/${teamId}`);
 }
 
 /**
@@ -181,7 +187,7 @@ export async function acceptTeamInvite(eventId: string, teamId: string) {
  */
 export async function declineTeamInvite(eventId: string, teamId: string) {
   return (
-    await axiosInstance.delete(`team/event/${teamId}/declineInvite/${teamId}`)
+    await axiosInstance.delete(`team/event/${eventId}/declineInvite/${teamId}`)
   ).data;
 }
 

@@ -3,7 +3,7 @@ import {
     Body,
     Controller,
     Get,
-    Param,
+    Param, ParseUUIDPipe,
     Post,
     Put,
     UnauthorizedException,
@@ -31,7 +31,7 @@ export class EventController {
     }
 
     @Get(":id")
-    getEventById(@Param("id") id: string) {
+    getEventById(@Param("id", new ParseUUIDPipe()) id: string) {
         return this.eventService.getEventById(id);
     }
 
@@ -61,27 +61,27 @@ export class EventController {
     }
 
     @Get(":id/teamsCount")
-    getTeamsCountForEvent(@Param("id") eventId: string) {
+    getTeamsCountForEvent(@Param("id", new ParseUUIDPipe()) eventId: string) {
         return this.teamService.getTeamCountForEvent(eventId);
     }
 
     @Get(":id/participantsCount")
-    getParticipantsCountForEvent(@Param("id") eventId: string) {
+    getParticipantsCountForEvent(@Param("id", new ParseUUIDPipe()) eventId: string) {
         return this.userService.getUserCountOfEvent(eventId);
     }
 
     @Get(":id/isUserRegistered")
-    getEventByUserId(@Param("id") eventId: string, @UserId() userId: string) {
+    getEventByUserId(@Param("id", new ParseUUIDPipe()) eventId: string, @UserId() userId: string) {
         return this.eventService.isUserRegisteredForEvent(eventId, userId);
     }
 
     @Get(":id/isEventAdmin")
-    isEventAdmin(@Param("id") eventId: string, @UserId() userId: string) {
+    isEventAdmin(@Param("id", new ParseUUIDPipe()) eventId: string, @UserId() userId: string) {
         return this.eventService.isEventAdmin(eventId, userId);
     }
 
     @Put(":id/join")
-    async joinEvent(@Param("id") eventId: string, @UserId() userId: string) {
+    async joinEvent(@Param("id", new ParseUUIDPipe()) eventId: string, @UserId() userId: string) {
         const isRegistered = await this.eventService.isUserRegisteredForEvent(eventId, userId);
         if (isRegistered) {
             throw new BadRequestException("User is already registered for this event.");
@@ -91,7 +91,7 @@ export class EventController {
     }
 
     @Put(":id/lock")
-    async lockEvent(@Param("id") eventId: string, @UserId() userId: string) {
+    async lockEvent(@Param("id", new ParseUUIDPipe()) eventId: string, @UserId() userId: string) {
         const isAdmin = await this.eventService.isEventAdmin(eventId, userId);
         if (!isAdmin)
             throw new UnauthorizedException("You are not authorized to lock this event.");

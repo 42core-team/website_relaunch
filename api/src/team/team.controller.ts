@@ -7,7 +7,7 @@ import {
     UseGuards,
     BadRequestException,
     Put,
-    NotFoundException, Delete, Query
+    NotFoundException, Delete, Query, ParseUUIDPipe
 } from '@nestjs/common';
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
@@ -27,13 +27,13 @@ export class TeamController {
     }
 
     @Get(":id")
-    getTeamById(@Param("id") id: string) {
+    getTeamById(@Param("id", new ParseUUIDPipe()) id: string) {
         return this.teamService.getTeamById(id);
     }
 
     @Get("event/:eventId")
     getTeamsForEvent
-    (@Param("eventId") eventId: string,
+    (@Param("eventId", new ParseUUIDPipe()) eventId: string,
      @Query("searchName") searchName?: string,
      @Query("sortDir") sortDir?: string,
      @Query("sortBy") sortBy?: string
@@ -42,14 +42,14 @@ export class TeamController {
     }
 
     @Get("event/:eventId/my")
-    getMyTeamForEvent(@Param("eventId") eventId: string, @UserId('id') userId: string) {
+    getMyTeamForEvent(@Param("eventId", new ParseUUIDPipe()) eventId: string, @UserId('id') userId: string) {
         return this.teamService.getTeamOfUserForEvent(eventId, userId);
     }
 
     @Post("event/:eventId/create")
     async createTeam(
         @UserId() userId: string,
-        @Param("eventId") eventId: string,
+        @Param("eventId", new ParseUUIDPipe()) eventId: string,
         @Body() createTeamDto: CreateTeamDto
     ) {
         if (!await this.eventService.isUserRegisteredForEvent(eventId, userId))
@@ -68,7 +68,7 @@ export class TeamController {
     @Put("event/:eventId/leave")
     async leaveTeam(
         @UserId() userId: string,
-        @Param("eventId") eventId: string
+        @Param("eventId", new ParseUUIDPipe()) eventId: string
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
         if (!team) throw new NotFoundException("You are not part of a team for this event.");
@@ -79,7 +79,7 @@ export class TeamController {
 
     @Get(":id/members")
     async getTeamMembers(
-        @Param("id") teamId: string,
+        @Param("id", new ParseUUIDPipe()) teamId: string,
     ) {
         const team = await this.teamService.getTeamById(teamId, {
             users: true
@@ -91,7 +91,7 @@ export class TeamController {
     @Post("event/:eventId/sendInvite")
     async sendInviteToTeam(
         @UserId() userId: string,
-        @Param("eventId") eventId: string,
+        @Param("eventId", new ParseUUIDPipe()) eventId: string,
         @Body() inviteUserDto: InviteUserDto
     ) {
         const team = await this.teamService.getTeamOfUserForEvent(eventId, userId);
@@ -107,7 +107,7 @@ export class TeamController {
 
     @Get("event/:eventId/searchInviteUsers/:searchQuery")
     async searchUsersForInvite(
-        @Param("eventId") eventId: string,
+        @Param("eventId", new ParseUUIDPipe()) eventId: string,
         @UserId() userId: string,
         @Param('searchQuery') searchQuery: string
     ) {
@@ -121,7 +121,7 @@ export class TeamController {
     @Get("event/:eventId/pending")
     async getUserPendingInvites(
         @UserId() userId: string,
-        @Param("eventId") eventId: string
+        @Param("eventId", new ParseUUIDPipe()) eventId: string
     ) {
         return this.teamService.getTeamsUserIsInvitedTo(userId, eventId);
     }
@@ -129,8 +129,8 @@ export class TeamController {
     @Put("event/:eventId/acceptInvite/:teamId")
     async acceptTeamInvite(
         @UserId() userId: string,
-        @Param("eventId") eventId: string,
-        @Param("teamId") teamId: string
+        @Param("eventId", new ParseUUIDPipe()) eventId: string,
+        @Param("teamId", new ParseUUIDPipe()) teamId: string
     ) {
         if (await this.teamService.getTeamOfUserForEvent(eventId, userId))
             throw new BadRequestException("You are already part of a team for this event.");
@@ -146,8 +146,8 @@ export class TeamController {
     @Delete("event/:eventId/declineInvite/:teamId")
     async declineTeamInvite(
         @UserId() userId: string,
-        @Param("eventId") eventId: string,
-        @Param("teamId") teamId: string
+        @Param("eventId", new ParseUUIDPipe()) eventId: string,
+        @Param("teamId", new ParseUUIDPipe()) teamId: string
     ) {
         if (!await this.teamService.isUserInvitedToTeam(userId, teamId))
             throw new BadRequestException("You are not invited to this team.");

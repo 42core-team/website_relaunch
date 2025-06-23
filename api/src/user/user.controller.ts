@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards} from '@nestjs/common';
 import {UserService} from "./user.service";
 import {CreateUserDto} from "./dtos/user.dto";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
@@ -25,7 +25,7 @@ export class UserController {
     @Put(":id")
     async updateUser(
         @Body() user: CreateUserDto,
-        @Param('id') id: string
+        @Param('id', new ParseUUIDPipe()) id: string
     ) {
         return this.userService.updateUser(
             id,

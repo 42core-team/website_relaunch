@@ -1,27 +1,30 @@
-import {IsBoolean, IsEmail, IsNotEmpty, IsString} from "class-validator";
+import {IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString} from "class-validator";
 
 export class CreateUserDto {
-  @IsEmail()
-  email: string;
+    @IsEmail()
+    email: string;
 
-  @IsNotEmpty()
-  @IsString()
-  username: string;
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-  @IsNotEmpty()
-  @IsString()
-  profilePicture: string;
+    @IsNotEmpty()
+    @IsString()
+    username: string;
 
-  @IsNotEmpty()
-  @IsString()
-  githubId: string;
+    @IsNotEmpty()
+    @IsString()
+    name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  githubAccessToken: string;
+    @IsNotEmpty()
+    @IsString()
+    profilePicture: string;
 
-  @IsBoolean()
-  canCreateEvent?: boolean;
+    @IsNotEmpty()
+    @IsString()
+    githubId: string;
+
+    @IsNotEmpty()
+    @IsString()
+    githubAccessToken: string;
+
+    @IsBoolean()
+    @IsOptional()
+    canCreateEvent?: boolean;
 }

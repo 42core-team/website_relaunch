@@ -49,7 +49,7 @@ export class UserService {
             profilePicture,
             githubId,
             githubAccessToken,
-            canCreateEvent
+            canCreateEvent: canCreateEvent ?? false
         })
     }
 

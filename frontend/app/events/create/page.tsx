@@ -14,6 +14,7 @@ import {
 } from "@heroui/react";
 import { title } from "@/components/primitives";
 import { createEvent, canUserCreateEvent } from "@/app/actions/event";
+import { isActionError } from "@/app/actions/errors";
 
 export default function CreateEventPage() {
   const { status } = useSession();
@@ -65,33 +66,27 @@ export default function CreateEventPage() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const result = await createEvent({
-        name,
-        description,
-        githubOrg,
-        githubOrgSecret,
-        location,
-        startDate,
-        endDate,
-        minTeamSize,
-        maxTeamSize,
-        treeFormat,
-        repoTemplateOwner: repoTemplateOwner,
-        repoTemplateName: repoTemplateName,
-      });
+    const result = await createEvent({
+      name,
+      description,
+      githubOrg,
+      githubOrgSecret,
+      location,
+      startDate,
+      endDate,
+      minTeamSize,
+      maxTeamSize,
+      treeFormat,
+      repoTemplateOwner: repoTemplateOwner,
+      repoTemplateName: repoTemplateName,
+    });
 
-      if ("error" in result) {
-        setError(result.error);
-      } else {
-        router.push(`/events/${result.id}`);
-      }
-    } catch (err) {
-      console.error("Error creating event:", err);
-      setError("An unexpected error occurred while creating the event.");
-    } finally {
-      setIsLoading(false);
+    if (isActionError(result)) {
+      setError(result.error);
+      return;
     }
+
+    router.push(`/events/${result.id}`);
   };
 
   return (
@@ -220,6 +215,7 @@ export default function CreateEventPage() {
                   Organization Name
                 </label>
                 <Input
+                  required={true}
                   value={githubOrg}
                   onChange={(e) => setGithubOrg(e.target.value)}
                   placeholder="e.g. 42core-team"
@@ -230,6 +226,7 @@ export default function CreateEventPage() {
                   GitHub Organization Secret
                 </label>
                 <Input
+                  required={true}
                   value={githubOrgSecret}
                   type="password"
                   onChange={(e) => setGithubOrgSecret(e.target.value)}
@@ -254,6 +251,7 @@ export default function CreateEventPage() {
                   Template Owner
                 </label>
                 <Input
+                  required={true}
                   value={repoTemplateOwner}
                   onChange={(e) => setRepoTemplateOwner(e.target.value)}
                   placeholder="e.g. 42core-team"
@@ -264,6 +262,7 @@ export default function CreateEventPage() {
                   Template Repository
                 </label>
                 <Input
+                  required={true}
                   value={repoTemplateName}
                   onChange={(e) => setRepoTemplateName(e.target.value)}
                   placeholder="e.g. rush-template"

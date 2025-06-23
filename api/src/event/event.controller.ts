@@ -31,8 +31,8 @@ export class EventController {
     }
 
     @Get(":id")
-    getEventById(@Param("id", new ParseUUIDPipe()) id: string) {
-        return this.eventService.getEventById(id);
+   async getEventById(@Param("id", new ParseUUIDPipe()) id: string) {
+        return await this.eventService.getEventById(id);
     }
 
     @Post()

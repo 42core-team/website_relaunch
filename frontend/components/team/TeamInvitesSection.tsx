@@ -86,7 +86,18 @@ export const TeamInvitesSection = () => {
       [teamId]: { ...prev[teamId], isDeclining: true, message: undefined },
     }));
 
-    await declineTeamInvite(eventId, teamId);
+    const result = await declineTeamInvite(eventId, teamId);
+    if (isActionError(result)) {
+      setActionStates((prev) => ({
+        ...prev,
+        [teamId]: {
+          ...prev[teamId],
+          isDeclining: false,
+          message: result.error,
+        },
+      }));
+      return;
+    }
     setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
   };
 

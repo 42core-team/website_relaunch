@@ -79,7 +79,12 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
     }
 
     setIsLeaving(true);
-    await leaveTeam(eventId);
+    const result = await leaveTeam(eventId);
+    if (isActionError(result)) {
+      setErrorMessage(result.error);
+      setIsLeaving(false);
+      return false;
+    }
 
     setMyTeam(null);
     setTeamMembers([]);

@@ -1,11 +1,13 @@
 import {NestFactory, Reflector} from '@nestjs/core';
 import {AppModule} from './app.module';
 import {ClassSerializerInterceptor, ValidationPipe} from "@nestjs/common";
+import {TypeormExceptionFilter} from "./common/TypeormExceptionFilter";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.useGlobalPipes(new ValidationPipe());
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+    app.useGlobalFilters(new TypeormExceptionFilter());
     app.enableCors();
     await app.listen(process.env.PORT ?? 4000);
 }

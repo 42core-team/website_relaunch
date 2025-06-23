@@ -89,8 +89,10 @@ export async function createTeam(
  * @param eventId ID of the event to leave the team for
  * @returns boolean indicating success
  */
-export async function leaveTeam(eventId: string) {
-  await axiosInstance.put(`team/event/${eventId}/leave`);
+export async function leaveTeam(
+  eventId: string,
+): Promise<ServerActionResponse<void>> {
+  return await handleError(axiosInstance.put(`team/event/${eventId}/leave`));
 }
 
 /**
@@ -159,8 +161,13 @@ export async function getUserPendingInvites(
  * @param teamId ID of the team that sent the invite
  * @returns Object with success status and optional message
  */
-export async function acceptTeamInvite(eventId: string, teamId: string) {
-  await axiosInstance.put(`team/event/${eventId}/acceptInvite/${teamId}`);
+export async function acceptTeamInvite(
+  eventId: string,
+  teamId: string,
+): Promise<ServerActionResponse<void>> {
+  return await handleError(
+    axiosInstance.put(`team/event/${eventId}/acceptInvite/${teamId}`),
+  );
 }
 
 /**
@@ -169,10 +176,13 @@ export async function acceptTeamInvite(eventId: string, teamId: string) {
  * @param teamId ID of the team that sent the invite
  * @returns Object with success status and optional message
  */
-export async function declineTeamInvite(eventId: string, teamId: string) {
-  return (
-    await axiosInstance.delete(`team/event/${eventId}/declineInvite/${teamId}`)
-  ).data;
+export async function declineTeamInvite(
+  eventId: string,
+  teamId: string,
+): Promise<ServerActionResponse> {
+  return await handleError(
+    axiosInstance.delete(`team/event/${eventId}/declineInvite/${teamId}`),
+  );
 }
 
 /**

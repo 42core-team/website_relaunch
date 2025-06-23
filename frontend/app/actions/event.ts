@@ -29,7 +29,7 @@ export async function isUserRegisteredForEvent(
   eventId: string,
 ): Promise<ServerActionResponse<boolean>> {
   return await handleError(
-    axiosInstance.get(`event/${eventId}/isUserRegistered`),
+    axiosInstance.get<boolean>(`event/${eventId}/isUserRegistered`),
   );
 }
 
@@ -107,8 +107,8 @@ interface EventCreateParams {
 // Create a new event
 export async function createEvent(
   eventData: EventCreateParams,
-): Promise<Event | { error: string }> {
-  return (await axiosInstance.post(`event`, eventData)).data;
+): Promise<ServerActionResponse<Event>> {
+  return await handleError(axiosInstance.post<Event>(`event`, eventData));
 }
 
 export async function canUserCreateEvent(): Promise<boolean> {

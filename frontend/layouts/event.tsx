@@ -42,11 +42,7 @@ export default async function EventLayout({
   const isUserRegistered = await isUserRegisteredForEvent(eventId);
   const showJoinNotice = await shouldShowJoinNotice(eventId);
 
-  if (
-    isActionError(isEventAdminState) ||
-    isActionError(isUserRegistered) ||
-    isActionError(showJoinNotice)
-  ) {
+  if (isActionError(isEventAdminState) || isActionError(isUserRegistered)) {
     return (
       <div className="container mx-auto max-w-7xl px-6">
         Error: Unable to fetch event details.

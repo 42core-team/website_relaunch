@@ -95,6 +95,8 @@ export class TeamService {
             await this.teamRepository.save(team);
         } catch (e) {
             this.logger.error(`Failed to create repository for team ${team.id}`, e);
+            await this.teamRepository.delete(team.id);
+            throw new BadRequestException("Failed to create repository for team. Please try again later.");
         }
 
         return team;
@@ -121,6 +123,7 @@ export class TeamService {
         })
         const user = await this.userService.getUserById(userId);
 
+        await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
         await this.teamRepository.createQueryBuilder().relation("users")
             .of(teamId)
             .remove(userId);
@@ -128,7 +131,6 @@ export class TeamService {
         if (team.users.length <= 1)
             return this.deleteTeam(teamId);
 
-        await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
     }
 
     getTeamCountForEvent(eventId: string): Promise<number> {
@@ -181,6 +183,9 @@ export class TeamService {
             event: true
         })
         const user = await this.userService.getUserById(userId);
+
+        await this.githubApiService.addUserToRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret);
+
         await this.teamRepository.createQueryBuilder()
             .relation("teamInvites")
             .of(teamId)
@@ -190,8 +195,6 @@ export class TeamService {
             .relation("users")
             .of(teamId)
             .add(userId);
-
-        await this.githubApiService.addUserToRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret);
     }
 
     declineTeamInvite(userId: string, teamId: string) {

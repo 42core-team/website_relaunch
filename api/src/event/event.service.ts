@@ -27,8 +27,8 @@ export class EventService {
         });
     }
 
-    getEventById(id: string): Promise<EventEntity> {
-        return this.eventRepository.findOneByOrFail({
+    async getEventById(id: string): Promise<EventEntity> {
+        return await this.eventRepository.findOneByOrFail({
             id
         });
     }

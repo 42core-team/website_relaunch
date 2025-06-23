@@ -120,9 +120,10 @@ export class TeamService {
             event: true
         })
         const user = await this.userService.getUserById(userId);
-        await this.teamRepository.update(teamId, {
-            users: team.users.filter(u => u.id !== userId)
-        });
+
+        await this.teamRepository.createQueryBuilder().relation("users")
+            .of(teamId)
+            .remove(userId);
 
         if (team.users.length <= 1)
             return this.deleteTeam(teamId);

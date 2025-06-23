@@ -104,15 +104,17 @@ export class UserService {
             .add(teamId);
     }
 
-    searchUsersForInvite(eventId: string, searchQuery: string, id: string) {
+    searchUsersForInvite(eventId: string, searchQuery: string, teamId: string) {
         return this.userRepository
             .createQueryBuilder('user')
             .innerJoin('user.events', 'event', 'event.id = :eventId', {eventId})
             .leftJoin('user.teams', 'team')
             .leftJoin('team.event', 'teamEvent', 'teamEvent.id = :eventId', {eventId})
-            .where('LOWER(user.username) LIKE LOWER(:username)', {username: `%${searchQuery}%`})
-            .orWhere('LOWER(user.name) LIKE LOWER(:name)', {name: `%${searchQuery}%`})
+            .leftJoin('user.teamInvites', 'inviteTeam')
+            .leftJoin('inviteTeam.event', 'inviteEvent')
+            .where('(LOWER(user.username) LIKE LOWER(:username) OR LOWER(user.name) LIKE LOWER(:name))', {username: `%${searchQuery}%`, name: `%${searchQuery}%`})
             .andWhere('team.id IS NULL')
+            .andWhere('(inviteEvent.id IS NULL OR inviteEvent.id != :eventId)', {eventId})
             .getMany();
     }
 }

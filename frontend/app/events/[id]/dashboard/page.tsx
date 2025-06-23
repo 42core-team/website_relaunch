@@ -12,6 +12,7 @@ import {
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { lockEvent } from "@/app/actions/team";
+import { isActionError } from "@/app/actions/errors";
 
 export default function DashboardPage() {
   const { id } = useParams();
@@ -22,9 +23,6 @@ export default function DashboardPage() {
   const [event, setEvent] = useState<any>(null);
   const [teamsCount, setTeamsCount] = useState<number>(0);
   const [participantsCount, setParticipantsCount] = useState<number>(0);
-  const [currentPhase, setCurrentPhase] = useState<events_state_enum | null>(
-    null,
-  );
   const [currentRound, setCurrentRound] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -38,6 +36,11 @@ export default function DashboardPage() {
         const participants = await getParticipantsCountForEvent(eventId);
 
         const adminCheck = await isEventAdmin(eventId);
+
+        if (isActionError(adminCheck)) {
+          setIsAdmin(false);
+          return;
+        }
 
         setEvent(eventData);
         setTeamsCount(teams);
@@ -61,25 +64,6 @@ export default function DashboardPage() {
       console.error("Error increasing round:", error);
     }
     setActionLoading(false);
-  };
-
-  const phaseDisplay = (phase: events_state_enum | null) => {
-    if (!phase) return "Unknown";
-
-    switch (phase) {
-      case events_state_enum.TEAM_FINDING:
-        return "Team Finding";
-      case events_state_enum.CODING_PHASE:
-        return "Coding Phase";
-      case events_state_enum.SWISS_ROUND:
-        return "Swiss Round";
-      case events_state_enum.ELIMINATION_ROUND:
-        return "Elimination Round";
-      case events_state_enum.FINISHED:
-        return "Finished";
-      default:
-        return phase;
-    }
   };
 
   if (loading) {
@@ -127,23 +111,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-400">Current Phase</p>
-            <div className="font-medium">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  currentPhase === events_state_enum.FINISHED
-                    ? "bg-green-900 text-green-300"
-                    : currentPhase === events_state_enum.ELIMINATION_ROUND
-                      ? "bg-purple-900 text-purple-300"
-                      : currentPhase === events_state_enum.SWISS_ROUND
-                        ? "bg-blue-900 text-blue-300"
-                        : currentPhase === events_state_enum.CODING_PHASE
-                          ? "bg-yellow-900 text-yellow-300"
-                          : "bg-gray-700 text-gray-300"
-                }`}
-              >
-                {phaseDisplay(currentPhase)}
-              </span>
-            </div>
+            <div className="font-medium"></div>
           </div>
           <div>
             <p className="text-gray-400">Current Round</p>
@@ -176,15 +144,6 @@ export default function DashboardPage() {
             Admin Actions
           </h2>
           <div className="flex flex-wrap gap-3">
-            <Button
-              onPress={handleIncreaseRound}
-              disabled={
-                actionLoading || currentPhase === events_state_enum.FINISHED
-              }
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              {actionLoading ? "Processing..." : "Advance Tournament"}
-            </Button>
             <Button
               onPress={() => {
                 lockEvent(eventId)

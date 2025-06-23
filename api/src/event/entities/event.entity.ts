@@ -72,6 +72,8 @@ export class EventEntity {
     @OneToMany(() => TeamEntity, team => team.event, {onDelete: "CASCADE"})
     teams: TeamEntity[];
 
-    @OneToMany(() => UserEventPermissionEntity, permission => permission.event)
+    @OneToMany(() => UserEventPermissionEntity, permission => permission.event, {
+        onUpdate: "CASCADE",
+    })
     permissions: UserEventPermissionEntity[];
 }

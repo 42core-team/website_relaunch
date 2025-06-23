@@ -1,49 +1,36 @@
 "use server";
 
-import axiosInstance from "@/app/actions/axios";
+import axiosInstance, { handleError } from "@/app/actions/axios";
+import { isActionError, ServerActionResponse } from "@/app/actions/errors";
 
 export interface Event {
   id: string;
-  start_date: number;
+  startDate: number;
   name: string;
   description?: string;
   location?: string;
-  end_date: number;
-  min_team_size: number;
-  max_team_size: number;
+  endDate: number;
+  minTeamSize: number;
+  maxTeamSize: number;
   currentRound: number;
-  event_type?: string;
-  tree_format?: number;
-  repo_template_owner?: string;
-  repo_template_name?: string;
+  type?: string;
+  treeFormat?: number;
+  repoTemplateOwner?: string;
+  repoTemplateName?: string;
 }
 
-export async function getEventById(eventId: string): Promise<Event | null> {
-  const event = (await axiosInstance.get(`event/${eventId}`)).data;
-
-  if (!event) return null;
-
-  return {
-    id: event.id,
-    name: event.name,
-    description: event.description,
-    location: event.location,
-    start_date: event.startDate,
-    end_date: event.endDate,
-    min_team_size: event.minTeamSize,
-    max_team_size: event.maxTeamSize,
-    currentRound: event.currentRound,
-    event_type: event.type,
-    tree_format: event.treeFormat,
-    repo_template_owner: event.repoTemplateOwner,
-    repo_template_name: event.repoTemplateName,
-  };
+export async function getEventById(
+  eventId: string,
+): Promise<ServerActionResponse<Event>> {
+  return await handleError(axiosInstance.get(`event/${eventId}`));
 }
 
 export async function isUserRegisteredForEvent(
   eventId: string,
-): Promise<boolean> {
-  return (await axiosInstance.get(`event/${eventId}/isUserRegistered`)).data;
+): Promise<ServerActionResponse<boolean>> {
+  return await handleError(
+    axiosInstance.get(`event/${eventId}/isUserRegistered`),
+  );
 }
 
 export async function shouldShowJoinNotice(eventId: string): Promise<boolean> {
@@ -51,14 +38,16 @@ export async function shouldShowJoinNotice(eventId: string): Promise<boolean> {
   if (isRegistered) return false;
 
   const event = await getEventById(eventId);
-  if (!event) return false;
+  if (isActionError(event) || !event) return false;
 
-  const endDate = new Date(event.end_date);
+  const endDate = new Date(event.endDate);
   return endDate > new Date();
 }
 
-export async function isEventAdmin(eventId: string): Promise<boolean> {
-  return (await axiosInstance.get(`event/${eventId}/isEventAdmin`)).data;
+export async function isEventAdmin(
+  eventId: string,
+): Promise<ServerActionResponse<boolean>> {
+  return await handleError(axiosInstance.get(`event/${eventId}/isEventAdmin`));
 }
 
 // Get all events

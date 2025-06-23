@@ -14,6 +14,7 @@ import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "../team/team.service";
 import {UserService} from "../user/user.service";
 import {CreateEventDto} from "./dtos/createEventDto";
+import {Type} from "class-transformer";
 
 @UseGuards(FrontendGuard)
 @Controller('event')

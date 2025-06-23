@@ -1,6 +1,6 @@
 "use server";
 
-import axiosInstance from "@/app/actions/axios";
+import axiosInstance, { handleError } from "@/app/actions/axios";
 import { ServerActionResponse } from "@/app/actions/errors";
 import { AxiosError } from "axios";
 
@@ -77,27 +77,11 @@ export async function createTeam(
   name: string,
   eventId: string,
 ): Promise<ServerActionResponse<Team>> {
-  try {
-    const newTeam = (
-      await axiosInstance.post(`team/event/${eventId}/create`, {
-        name,
-      })
-    ).data;
-
-    return {
-      id: newTeam.id,
-      name: newTeam.name,
-      repo: newTeam.repo,
-      createdAt: newTeam.createdAt,
-      updatedAt: newTeam.updatedAt,
-    };
-  } catch (error: any) {
-    return {
-      error:
-        error.response?.data?.message ||
-        "An unexpected error occurred while creating the team.",
-    };
-  }
+  return await handleError(
+    axiosInstance.post(`team/event/${eventId}/create`, {
+      name,
+    }),
+  );
 }
 
 /**

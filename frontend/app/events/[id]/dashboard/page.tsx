@@ -12,7 +12,6 @@ import {
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { lockEvent } from "@/app/actions/team";
-import { events_state_enum } from "@/generated/prisma";
 
 export default function DashboardPage() {
   const { id } = useParams();

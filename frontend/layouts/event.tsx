@@ -9,7 +9,6 @@ import {
 } from "@/app/actions/event";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
-import { events_type_enum } from "@/generated/prisma";
 
 export default async function EventLayout({
   children,
@@ -40,8 +39,6 @@ export default async function EventLayout({
     return <div>Event not found</div>;
   }
 
-  const isRushEvent = event.event_type === events_type_enum.RUSH;
-
   return (
     <div className="relative flex flex-col h-screen">
       {showJoinNotice && userId && (
@@ -51,7 +48,6 @@ export default async function EventLayout({
         eventId={eventId}
         isUserRegistered={isUserRegistered}
         isEventAdmin={isEventAdminState}
-        isRushEvent={isRushEvent}
       />
       <main className="container mx-auto max-w-7xl px-6 flex-grow">
         {children}

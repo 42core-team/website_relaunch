@@ -1,12 +1,4 @@
-import GraphView from "@/app/events/[id]/groups/graphView";
 import Actions from "@/app/events/[id]/groups/actions";
-import { notFound } from "next/navigation";
-import { prisma } from "@/initializer/database";
-import {
-  events_type_enum,
-  Match,
-  matches_phase_enum,
-} from "@/generated/prisma";
 
 export default async function page({
   params,

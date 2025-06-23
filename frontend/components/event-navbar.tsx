@@ -6,14 +6,12 @@ interface EventNavbarProps {
   eventId: string;
   isUserRegistered?: boolean;
   isEventAdmin?: boolean;
-  isRushEvent?: boolean;
 }
 
 export default function EventNavbar({
   eventId,
   isUserRegistered = false,
   isEventAdmin = false,
-  isRushEvent = false,
 }: EventNavbarProps) {
   const pathname = usePathname();
 
@@ -25,13 +23,11 @@ export default function EventNavbar({
     { name: "Teams", path: `/events/${eventId}/teams` },
   ];
 
-  if (!isRushEvent) {
-    navItems = [
-      ...navItems,
-      { name: "Group Phase", path: `/events/${eventId}/groups` },
-      { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
-    ];
-  }
+  navItems = [
+    ...navItems,
+    { name: "Group Phase", path: `/events/${eventId}/groups` },
+    { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
+  ];
 
   if (isEventAdmin) {
     navItems = [

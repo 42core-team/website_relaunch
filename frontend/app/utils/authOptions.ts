@@ -19,36 +19,45 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "github") {
         const githubProfile = profile as any;
 
-        const existingUser = (
-          await axiosInstance.get(`user/github/${account.providerAccountId}`)
-        ).data;
-        if (!existingUser) {
-          if (!account?.access_token) {
-            throw new Error("No access token found");
-          }
+        try {
+          const existingUser = (
+            await axiosInstance.get(`user/github/${account.providerAccountId}`)
+          ).data;
+          if (!existingUser) {
+            if (!account?.access_token) {
+              throw new Error("No access token found");
+            }
 
-          await axiosInstance.post(`user/`, {
-            email: user.email!,
-            username: githubProfile?.login || user.name!,
-            name: user.name! || githubProfile?.name!,
-            profilePicture: user.image! || githubProfile?.avatar_url!,
-            githubId: account.providerAccountId,
-            githubAccessToken: account.access_token,
-            canCreateEvent: false,
-          });
-        } else {
-          await axiosInstance.put(`user/${existingUser.id}`, {
-            email: user.email!,
-            username: githubProfile?.login || existingUser.username,
-            name: githubProfile?.name || existingUser.name,
-            profilePicture:
-              githubProfile?.avatar_url || existingUser.profilePicture,
-            githubId: account.providerAccountId,
-            githubAccessToken: account.access_token,
-            canCreateEvent: existingUser.canCreateEvent,
-          });
+            console.log("user not found, creating new user");
+
+            await axiosInstance.post(`user/`, {
+              email: user.email!,
+              username: githubProfile?.login || user.name!,
+              name: user.name! || githubProfile?.name!,
+              profilePicture: user.image! || githubProfile?.avatar_url!,
+              githubId: account.providerAccountId,
+              githubAccessToken: account.access_token,
+              canCreateEvent: false,
+            });
+          } else {
+            await axiosInstance.put(`user/${existingUser.id}`, {
+              email: user.email!,
+              username: githubProfile?.login || existingUser.username,
+              name: githubProfile?.name || existingUser.name,
+              profilePicture:
+                githubProfile?.avatar_url || existingUser.profilePicture,
+              githubId: account.providerAccountId,
+              githubAccessToken: account.access_token,
+              canCreateEvent: existingUser.canCreateEvent,
+            });
+          }
+        } catch (e: any) {
+          console.error("Error during sign in:", e);
+          console.debug("response:", e?.response);
+          return false;
         }
       }
+
       return true;
     },
     async session({ session }) {

@@ -14,7 +14,6 @@ import {
 } from "@heroui/react";
 import { title } from "@/components/primitives";
 import { createEvent, canUserCreateEvent } from "@/app/actions/event";
-import { events_type_enum } from "@/generated/prisma";
 
 export default function CreateEventPage() {
   const { status } = useSession();

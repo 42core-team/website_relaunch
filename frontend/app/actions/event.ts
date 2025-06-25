@@ -17,6 +17,7 @@ export interface Event {
   treeFormat?: number;
   repoTemplateOwner?: string;
   repoTemplateName?: string;
+  githubOrg: string;
 }
 
 export async function getEventById(

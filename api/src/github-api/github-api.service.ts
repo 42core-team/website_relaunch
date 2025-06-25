@@ -38,7 +38,8 @@ export class GithubApiService {
         repositoryName: string,
         username: string,
         githubOrg: string,
-        encryptedSecret: string
+        encryptedSecret: string,
+        githubAccessToken: string
     ) {
         const secret = this.decryptSecret(encryptedSecret);
         const githubApi = new GitHubApiClient({
@@ -47,7 +48,7 @@ export class GithubApiService {
         const repositoryApi = new RepositoryApi(githubApi);
         const userApi = new UserApi(githubApi);
         await repositoryApi.addCollaborator(githubOrg, repositoryName, username, "push");
-        await userApi.acceptRepositoryInvitationByRepo(githubOrg, repositoryName, secret);
+        await userApi.acceptRepositoryInvitationByRepo(githubOrg, repositoryName, githubAccessToken);
     }
 
     async removeUserFromRepository(

@@ -184,7 +184,7 @@ export class TeamService {
         })
         const user = await this.userService.getUserById(userId);
 
-        await this.githubApiService.addUserToRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret);
+        await this.githubApiService.addUserToRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret, user.githubAccessToken);
 
         await this.teamRepository.createQueryBuilder()
             .relation("teamInvites")

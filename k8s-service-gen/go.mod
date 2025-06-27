@@ -9,7 +9,11 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/oapi-codegen/runtime v1.1.1
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sethvargo/go-envconfig v1.3.0
+	go.uber.org/zap v1.27.0
+	k8s.io/api v0.33.1
+	k8s.io/apimachinery v0.33.1
 	k8s.io/client-go v0.33.1
 )
 
@@ -50,7 +54,6 @@ require (
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
@@ -66,8 +69,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.33.1 // indirect
-	k8s.io/apimachinery v0.33.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250610211856-8b98d1ed966a // indirect
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect

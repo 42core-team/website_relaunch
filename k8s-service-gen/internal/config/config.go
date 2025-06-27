@@ -11,6 +11,7 @@ type Config struct {
 	Addr      string  `env:"ADDR, default=:9000"`
 	KubePath  *string `env:"KUBE_PATH"`
 	Namespace string  `env:"NAMESPACE, default=coregame"`
+	RabbitMQ  string  `env:"RABBITMQ, default=amqp://guest:guest@rabbitmq:5672/"`
 }
 
 func ReadConfig() *Config {

@@ -3,7 +3,6 @@ package kube
 import (
 	"context"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -92,5 +91,9 @@ func generateRandomID(n int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(b), nil
+	var num uint64
+	for i := 0; i < len(b) && i < 8; i++ {
+		num = (num << 8) | uint64(b[i])
+	}
+	return fmt.Sprintf("%d", num), nil
 }

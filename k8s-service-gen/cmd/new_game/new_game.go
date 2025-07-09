@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
-	"os"
-	"strings"
 	"time"
 
+	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -39,7 +40,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := bodyFrom(os.Args)
+	body, err := json.Marshal(getDummyGame())
+	failOnError(err, "Failed to marshal JSON")
+
 	err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key
@@ -47,19 +50,26 @@ func main() {
 		false,
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
+			ContentType:  "application/json",
 			Body:         []byte(body),
 		})
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent %s", body)
 }
 
-func bodyFrom(args []string) string {
-	var s string
-	if (len(args) < 2) || os.Args[1] == "" {
-		s = "hello"
-	} else {
-		s = strings.Join(args[1:], " ")
+func getDummyGame() kube.Game {
+	return kube.Game{
+		ID:    uuid.New(),
+		Image: "ghcr.io/42core-team/game-server:dev",
+		Bots: []kube.Bot{
+			{
+				ID:      uuid.New(),
+				RepoURL: "https://github.com/42core-team/my-core-bot.git",
+			},
+			{
+				ID:      uuid.New(),
+				RepoURL: "https://github.com/42core-team/my-core-bot.git",
+			},
+		},
 	}
-	return s
 }

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -20,35 +21,22 @@ func (c *Client) CreateGameJob(game *Game) error {
 		botIDs = append(botIDs, id)
 	}
 
-	job := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "game-" + game.ID.String(),
-			Namespace: c.namespace,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "game",
-					Image:   game.Image,
-					Command: append([]string{"./game"}, botIDs...),
-				},
-			},
-			RestartPolicy: corev1.RestartPolicyNever,
-		},
-	}
-
+	var volumes []corev1.Volume
+	var initContainers []corev1.Container
+	var botContainers []corev1.Container
 	for _, bot := range game.Bots {
 		volumeName := "shared-data-" + bot.ID.String()
 		initContainerName := "clone-repo-" + bot.ID.String()
 		containerName := "bot-" + bot.ID.String()
 
-		job.Spec.Volumes = append(job.Spec.Volumes, corev1.Volume{
+		volumes = append(volumes, corev1.Volume{
 			Name: volumeName,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
 		})
-		job.Spec.InitContainers = append(job.Spec.InitContainers, corev1.Container{
+
+		initContainers = append(initContainers, corev1.Container{
 			Name:  initContainerName,
 			Image: "alpine/git",
 			Command: []string{
@@ -61,7 +49,8 @@ func (c *Client) CreateGameJob(game *Game) error {
 				},
 			},
 		})
-		job.Spec.Containers = append(job.Spec.Containers, corev1.Container{
+
+		botContainers = append(botContainers, corev1.Container{
 			Name:  containerName,
 			Image: bot.Image,
 			Command: []string{
@@ -76,13 +65,43 @@ func (c *Client) CreateGameJob(game *Game) error {
 		})
 	}
 
-	_, err := c.clientset.CoreV1().Pods(c.namespace).Create(context.TODO(), job, metav1.CreateOptions{})
+	mainContainer := corev1.Container{
+		Name:    "game",
+		Image:   game.Image,
+		Command: append([]string{"./game"}, botIDs...),
+	}
+
+	podSpec := corev1.PodSpec{
+		Volumes:        volumes,
+		InitContainers: initContainers,
+		Containers:     append([]corev1.Container{mainContainer}, botContainers...),
+		RestartPolicy:  corev1.RestartPolicyNever,
+	}
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "game-" + game.ID.String(),
+			Namespace: c.namespace,
+		},
+		Spec: batchv1.JobSpec{
+			Completions: int32Ptr(1),
+			Template: corev1.PodTemplateSpec{
+				Spec: podSpec,
+			},
+		},
+	}
+
+	_, err := c.clientset.BatchV1().Jobs(c.namespace).Create(context.TODO(), job, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create job: %v", err)
 	}
 
-	fmt.Println("Pod with multiple containers created successfully")
+	fmt.Println("Job with multiple containers created successfully")
 	return nil
+}
+
+func int32Ptr(i int32) *int32 {
+	return &i
 }
 
 func generateRandomID(n int) (string, error) {

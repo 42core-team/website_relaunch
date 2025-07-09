@@ -64,10 +64,12 @@ func getDummyGame() kube.Game {
 		Bots: []kube.Bot{
 			{
 				ID:      uuid.New(),
+				Image:   "ghcr.io/42core-team/my-core-bot:dev",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 			{
 				ID:      uuid.New(),
+				Image:   "ghcr.io/42core-team/my-core-bot:dev",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 		},

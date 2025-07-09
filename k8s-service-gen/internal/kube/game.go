@@ -96,7 +96,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 		return fmt.Errorf("failed to create job: %v", err)
 	}
 
-	fmt.Println("Job with multiple containers created successfully")
+	c.logger.Infoln("Job with multiple containers created successfully", "jobName", job.Name)
 	return nil
 }
 

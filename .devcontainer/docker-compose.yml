@@ -6,8 +6,7 @@ services:
     volumes:
       - ..:/workspace:cached
     command: sleep infinity
-    networks:
-      - development-network
+    network_mode: host
 
   postgres:
     image: postgres:latest
@@ -28,6 +27,7 @@ services:
     restart: unless-stopped
     ports:
       - "15672:15672"
+      - "5672:5672"
     networks:
       - development-network
 

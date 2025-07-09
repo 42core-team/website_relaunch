@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		logger.Fatalln(err)
 	}
-	err = q.ConsumeGameQueue(logger)
+	err = q.ConsumeGameQueue(logger, kubeClient)
 	if err != nil {
 		logger.Fatalln(err)
 	}

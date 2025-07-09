@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 )
@@ -50,7 +51,7 @@ func (q *Queue) DeclareQueues() error {
 	return nil
 }
 
-func (q *Queue) ConsumeGameQueue(logger *zap.SugaredLogger) error {
+func (q *Queue) ConsumeGameQueue(logger *zap.SugaredLogger, kubeClient *kube.Client) error {
 	msgs, err := q.ch.Consume(
 		q.gameQ.Name,
 		"",
@@ -66,7 +67,20 @@ func (q *Queue) ConsumeGameQueue(logger *zap.SugaredLogger) error {
 	go func() {
 		for d := range msgs {
 			logger.Info(string(d.Body))
-			err := d.Ack(false)
+
+			game, err := parseGameMessage(d.Body)
+			if err != nil {
+				logger.Errorln("Failed to parse game message", zap.Error(err))
+				continue
+			}
+
+			err = kubeClient.CreateGameJob(&game)
+			if err != nil {
+				logger.Errorln("Failed to create game job", zap.Error(err))
+				continue
+			}
+
+			err = d.Ack(false)
 			if err != nil {
 				logger.Errorln("There was an error during Acknowledgement", zap.Error(err), zap.Any("delivery", d))
 			}

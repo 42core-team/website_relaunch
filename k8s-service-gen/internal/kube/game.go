@@ -5,19 +5,20 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (c *Client) CreateGameJob(game *Game) error {
 	var botIDs []string
-	for _, bot := range game.Bots {
+	for ind := range game.Bots {
 		id, err := generateRandomID(16)
 		if err != nil {
 			return fmt.Errorf("error generating rnd IDs for bots %w", err)
 		}
-		bot.RndID = &id
-		botIDs = append(botIDs, *bot.RndID)
+		game.Bots[ind].RndID = &id
+		botIDs = append(botIDs, id)
 	}
 
 	job := &corev1.Pod{

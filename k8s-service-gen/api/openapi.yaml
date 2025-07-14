@@ -27,14 +27,6 @@ paths:
                                 type: string
                 "404":
                     $ref: "#/components/responses/NotFound"
-                "410":
-                    description: Logs are already deleted.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ErrorResponse"
-                "500":
-                    $ref: "#/components/responses/InternalServerError"
             tags:
                 - match
             summary: Get logs of container

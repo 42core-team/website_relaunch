@@ -33,6 +33,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ErrorResponse"
+                "500":
+                    $ref: "#/components/responses/InternalServerError"
             tags:
                 - match
             summary: Get logs of container
@@ -63,6 +65,8 @@ paths:
                                     - containers
                 "404":
                     $ref: "#/components/responses/NotFound"
+                "500":
+                    $ref: "#/components/responses/InternalServerError"
             tags:
                 - match
             summary: Get containers of match
@@ -114,6 +118,12 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/MessageResponse"
+        InternalServerError:
+            description: An internal server error occurred.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
     parameters:
         id:
             name: id

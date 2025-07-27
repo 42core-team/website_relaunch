@@ -97,6 +97,26 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
       return `<h${level} id="${id}"><a href="#${id}" class="heading-anchor">${text}</a></h${level}>`;
     });
 
+    // Fix .md links to work with wiki routing
+    const actualVersion = version || (await getDefaultVersion());
+    htmlContent = htmlContent.replace(/<a href="([^"]*\.md)"([^>]*)>/g, (match, href, attributes) => {
+      // Remove .md extension and create proper wiki URL
+      const cleanHref = href.replace(/\.md$/, '');
+      const wikiUrl = `/wiki/${actualVersion}/${cleanHref}`;
+      return `<a href="${wikiUrl}"${attributes}>`;
+    });
+
+    // Fix relative links that don't end with .md but should be wiki links
+    htmlContent = htmlContent.replace(/<a href="([^"#][^"]*)"([^>]*)>/g, (match, href, attributes) => {
+      // Skip if it's already a full URL, fragment link, or wiki link
+      if (href.startsWith('http') || href.startsWith('#') || href.startsWith('/wiki/')) {
+        return match;
+      }
+      // Convert relative links to wiki URLs
+      const wikiUrl = `/wiki/${actualVersion}/${href}`;
+      return `<a href="${wikiUrl}"${attributes}>`;
+    });
+
     const stats = await fs.stat(filePath);
 
     return {

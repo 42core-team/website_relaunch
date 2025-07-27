@@ -68,9 +68,6 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
   }, [toc]);
   // Remove version from currentSlug to get the actual page path
   const getPagePath = (slug: string[]) => {
-    if (currentVersion !== 'latest' && slug.length > 0 && slug[0] === currentVersion) {
-      return slug.slice(1).join('/');
-    }
     return slug.join('/');
   };
 
@@ -78,11 +75,7 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
 
   // Helper function to generate version-aware URLs
   const getVersionAwareUrl = (itemPath: string) => {
-    if (currentVersion === 'latest') {
-      return `/wiki/${itemPath}`;
-    } else {
-      return `/wiki/${currentVersion}/${itemPath}`;
-    }
+    return `/wiki/${currentVersion}/${itemPath}`;
   };
 
   const renderNavItem = (item: WikiNavItem, depth: number = 0) => {

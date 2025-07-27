@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from '@heroui/input';
-import { WikiPage } from '@/lib/markdown';
-import { Link } from '@heroui/link';
+import { WikiSearchResult } from '@/lib/markdown';
+import { useRouter } from 'next/navigation';
 
 interface WikiSearchProps {
-  onResults?: (results: WikiPage[]) => void;
+  onResults?: (results: WikiSearchResult[]) => void;
   currentVersion?: string;
 }
 
 export function WikiSearch({ onResults, currentVersion = 'latest' }: WikiSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<WikiPage[]>([]);
+  const [results, setResults] = useState<WikiSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const searchPages = async () => {
@@ -62,28 +63,73 @@ export function WikiSearch({ onResults, currentVersion = 'latest' }: WikiSearchP
             <div className="p-4 text-center text-default-500">Searching...</div>
           ) : results.length > 0 ? (
             <div className="p-2">
-              {results.map((page) => {
-                const href = currentVersion === 'latest'
-                  ? `/wiki/${page.slug.join('/')}`
-                  : `/wiki/${currentVersion}/${page.slug.join('/')}`;
+              {results.map((result) => {
+                const { page } = result;
+                // Always include version in URL path for consistency
+                const href = `/wiki/${currentVersion}/${page.slug.join('/')}`;
 
                 return (
-                  <Link
+                  <a
                     key={page.slug.join('/')}
                     href={href}
-                    className="block p-3 hover:bg-default-100 rounded-md transition-colors"
-                    onPress={() => setQuery('')}
+                    className="block p-3 hover:bg-default-100 rounded-md transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setQuery('');
+
+                      // Navigate to the page
+                      router.push(href);
+
+                      // If it's a content match, try to highlight the found text after navigation
+                      if (result.matchType === 'content' && result.snippet) {
+                        setTimeout(() => {
+                          // Try to find and scroll to the text using a more robust method
+                          const searchText = query.trim().toLowerCase();
+                          const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th');
+
+                          Array.from(elements).forEach(element => {
+                            if (element.textContent?.toLowerCase().includes(searchText)) {
+                              element.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                              });
+
+                              // Temporarily highlight the element
+                              const originalBg = (element as HTMLElement).style.backgroundColor;
+                              (element as HTMLElement).style.backgroundColor = '#fef3c7';
+                              (element as HTMLElement).style.transition = 'background-color 0.3s';
+
+                              setTimeout(() => {
+                                (element as HTMLElement).style.backgroundColor = originalBg;
+                              }, 2000);
+
+                              return; // Exit after first match
+                            }
+                          });
+                        }, 800); // Wait longer for page to fully load
+                      }
+                    }}
                   >
                     <div className="font-medium text-sm text-default-700">{page.title}</div>
-                    <div className="text-xs text-default-500 mt-1 flex items-center gap-2">
+
+                    {/* Show snippet with highlighting */}
+                    <div
+                      className="text-xs text-default-600 mt-1 line-clamp-2"
+                      dangerouslySetInnerHTML={{ __html: result.highlightedSnippet }}
+                    />
+
+                    <div className="text-xs text-default-500 mt-2 flex items-center gap-2">
                       <span>/{page.slug.join('/')}</span>
                       {page.version && page.version !== 'latest' && (
                         <span className="bg-primary-100 text-primary-700 px-1 py-0.5 rounded text-xs">
                           {page.version}
                         </span>
                       )}
+                      <span className="text-default-400">
+                        {result.matchType === 'title' ? 'Found in title' : 'Found in content'}
+                      </span>
                     </div>
-                  </Link>
+                  </a>
                 );
               })}
             </div>

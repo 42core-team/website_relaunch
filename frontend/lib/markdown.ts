@@ -14,6 +14,14 @@ export interface WikiPage {
   version?: string;
 }
 
+export interface WikiSearchResult {
+  page: WikiPage;
+  snippet: string;
+  highlightedSnippet: string;
+  matchType: 'title' | 'content';
+  matchPosition?: number;
+}
+
 export interface WikiNavItem {
   title: string;
   slug: string[];
@@ -30,7 +38,7 @@ export interface WikiVersion {
 const contentDirectory = path.join(process.cwd(), 'content/wiki');
 
 // Configuration for the default version - change this to set which folder is the default
-const DEFAULT_VERSION_FOLDER = 'latest'; // Change this to your desired default folder name
+const DEFAULT_VERSION_FOLDER = 'season2-reloaded'; // Change this to your desired default folder name
 
 async function getDefaultVersion(): Promise<string> {
   const versions = await getAvailableVersions();
@@ -233,21 +241,72 @@ function formatTitle(name: string): string {
     .replace(/\b\w/g, l => l.toUpperCase());
 }
 
-export async function searchWikiPages(query: string, version?: string): Promise<WikiPage[]> {
+export async function searchWikiPages(query: string, version?: string): Promise<WikiSearchResult[]> {
   const allPages = await getAllWikiPagesForVersion(version);
   const lowercaseQuery = query.toLowerCase();
+  const results: WikiSearchResult[] = [];
 
-  return allPages.filter(page =>
-    page.title.toLowerCase().includes(lowercaseQuery) ||
-    page.content.toLowerCase().includes(lowercaseQuery)
-  );
+  for (const page of allPages) {
+    const titleMatch = page.title.toLowerCase().includes(lowercaseQuery);
+    const contentMatch = page.content.toLowerCase().includes(lowercaseQuery);
+
+    if (titleMatch || contentMatch) {
+      let snippet = '';
+      let highlightedSnippet = '';
+      let matchType: 'title' | 'content' = 'title';
+      let matchPosition: number | undefined;
+
+      if (titleMatch) {
+        snippet = page.title;
+        highlightedSnippet = highlightText(page.title, query);
+        matchType = 'title';
+      } else if (contentMatch) {
+        const plainTextContent = stripHtml(page.content);
+        const matchIndex = plainTextContent.toLowerCase().indexOf(lowercaseQuery);
+        matchPosition = matchIndex;
+
+        // Extract snippet around the match (100 chars before and after)
+        const start = Math.max(0, matchIndex - 100);
+        const end = Math.min(plainTextContent.length, matchIndex + query.length + 100);
+        snippet = plainTextContent.substring(start, end);
+
+        // Add ellipsis if we're not at the beginning/end
+        if (start > 0) snippet = '...' + snippet;
+        if (end < plainTextContent.length) snippet = snippet + '...';
+
+        highlightedSnippet = highlightText(snippet, query);
+        matchType = 'content';
+      }
+
+      results.push({
+        page,
+        snippet,
+        highlightedSnippet,
+        matchType,
+        matchPosition
+      });
+    }
+  }
+
+  return results;
+}
+
+// Helper function to strip HTML tags
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// Helper function to highlight search terms
+function highlightText(text: string, query: string): string {
+  const regex = new RegExp(`(${query})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
 }
 
 export async function getAllWikiPagesForVersion(version?: string): Promise<WikiPage[]> {
   const pages: WikiPage[] = [];
-  const versionDir = version && version !== 'latest'
-    ? path.join(contentDirectory, version)
-    : contentDirectory;
+  // Get the default version if none specified
+  const actualVersion = version || (await getDefaultVersion());
+  const versionDir = path.join(contentDirectory, actualVersion);
 
   async function walkDirectory(dir: string, basePath: string[] = []): Promise<void> {
     try {
@@ -255,17 +314,10 @@ export async function getAllWikiPagesForVersion(version?: string): Promise<WikiP
 
       for (const entry of entries) {
         if (entry.isDirectory()) {
-          // Skip version directories when we're in the root and looking at latest
-          if (basePath.length === 0 && version === 'latest') {
-            const versions = await getAvailableVersions();
-            if (versions.some(v => v.slug === entry.name && !v.isDefault)) {
-              continue;
-            }
-          }
           await walkDirectory(path.join(dir, entry.name), [...basePath, entry.name]);
         } else if (entry.name.endsWith('.md')) {
           const slug = [...basePath, entry.name.replace('.md', '')];
-          const page = await getWikiPageWithVersion(slug, version);
+          const page = await getWikiPageWithVersion(slug, actualVersion);
           if (page) {
             pages.push(page);
           }

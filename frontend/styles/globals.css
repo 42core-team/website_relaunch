@@ -152,3 +152,12 @@ h6[id]::before {
 .wiki-content h6:hover .heading-anchor::before {
   @apply opacity-100;
 }
+
+/* Search highlighting */
+mark {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}

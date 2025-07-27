@@ -71,7 +71,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
       return (
         <WikiLayout
           navigation={navigation}
-          currentSlug={slug}
+          currentSlug={[]}
           versions={versions}
           currentVersion={version}
           pageContent={homePage.content}
@@ -116,7 +116,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
   return (
     <WikiLayout
       navigation={navigation}
-      currentSlug={slug}
+      currentSlug={pagePath}
       versions={versions}
       currentVersion={version}
       pageContent={page.content}

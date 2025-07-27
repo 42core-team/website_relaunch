@@ -21,6 +21,7 @@ interface WikiNavigationProps {
 export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', pageContent }: WikiNavigationProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const [isScrolling, setIsScrolling] = useState(false);
 
   // Parse table of contents from page content
   useEffect(() => {
@@ -46,15 +47,20 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
   useEffect(() => {
     if (toc.length === 0) return;
 
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
     const observer = new IntersectionObserver(
       (entries) => {
+        // Don't update during programmatic scrolling
+        if (isScrolling) return;
+
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
           }
         });
       },
-      { rootMargin: '-20% 0% -35% 0%' }
+      { rootMargin: '-20% 0% -60% 0%' }
     );
 
     toc.forEach(({ id }) => {
@@ -64,8 +70,37 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
       }
     });
 
-    return () => observer.disconnect();
+    // Handle scroll events to detect programmatic scrolling
+    const handleScroll = () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(() => {
+        setIsScrolling(false);
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
   }, [toc]);
+
+  const handleTocClick = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsScrolling(true);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      // Set active immediately for better UX
+      setActiveId(id);
+    }
+  };
   // Remove version from currentSlug to get the actual page path
   const getPagePath = (slug: string[]) => {
     return slug.join('/');
@@ -105,10 +140,11 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
               </div>
               <div className="space-y-0.5">
                 {toc.map((tocItem, index) => (
-                  <Link
+                  <a
                     key={`toc-${index}-${tocItem.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`}
                     href={`#${tocItem.id}`}
-                    className={`block text-xs px-2 py-1 rounded-sm transition-colors hover:bg-default-100 hover:text-primary ${
+                    onClick={(e) => handleTocClick(tocItem.id, e)}
+                    className={`block text-xs px-2 py-1 rounded-sm transition-colors hover:bg-default-100 hover:text-primary cursor-pointer ${
                       activeId === tocItem.id
                         ? 'text-primary font-medium bg-primary-50 border-l-2 border-primary'
                         : 'text-default-500'
@@ -116,7 +152,7 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
                     style={{ paddingLeft: `${(tocItem.level - 1) * 8 + 8}px` }}
                   >
                     {tocItem.text}
-                  </Link>
+                  </a>
                 ))}
               </div>
             </div>

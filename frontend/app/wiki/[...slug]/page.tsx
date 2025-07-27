@@ -10,13 +10,15 @@ interface WikiPageProps {
 }
 
 async function parseSlugForVersion(slug: string[]) {
+  // Get available versions first to get the default
+  const versions = await getAvailableVersions();
+  const defaultVersion = versions.find(v => v.isDefault)?.slug || 'season2-reloaded';
+
   // Check if first segment is a version
   if (slug.length === 0) {
-    return { version: 'latest', pagePath: [] };
+    return { version: defaultVersion, pagePath: [] };
   }
 
-  // Get available versions to check against
-  const versions = await getAvailableVersions();
   const possibleVersion = slug[0];
 
   // Check if the first segment matches any available version
@@ -30,7 +32,7 @@ async function parseSlugForVersion(slug: string[]) {
   }
 
   return {
-    version: 'latest',
+    version: defaultVersion,
     pagePath: slug
   };
 }
@@ -76,6 +78,9 @@ export default async function WikiPage({ params }: WikiPageProps) {
     getAvailableVersions(),
   ]);
 
+  // Get the default version for comparison
+  const defaultVersion = versions.find(v => v.isDefault)?.slug || 'season2-reloaded';
+
   // If this is an image file error, redirect to parent directory
   if (isImageError && pagePath.length > 0) {
     const parentPath = pagePath.slice(0, -1);
@@ -105,7 +110,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                 </h1>
                 <div className="text-sm text-default-500 flex items-center gap-4">
                   <span>Last updated: {parentPage.lastModified.toLocaleDateString()}</span>
-                  {version !== 'latest' && (
+                  {version !== defaultVersion && (
                     <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                       {version}
                     </span>
@@ -143,7 +148,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
             <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
               <h3 className="text-warning-800 font-semibold mb-2">Content Not Available</h3>
               <p className="text-warning-700">
-                The page <code>{pagePath.join('/')}</code> is not available in {version === 'latest' ? 'the latest version' : version}.
+                The page <code>{pagePath.join('/')}</code> is not available in {version === defaultVersion ? 'the default version' : version}.
                 Showing the home page for this version instead.
               </p>
             </div>
@@ -154,7 +159,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
               </h1>
               <div className="text-sm text-default-500 flex items-center gap-4">
                 <span>Last updated: {homePage.lastModified.toLocaleDateString()}</span>
-                {version !== 'latest' && (
+                {version !== defaultVersion && (
                   <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                     {version}
                   </span>
@@ -191,7 +196,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
           </h1>
           <div className="text-sm text-default-500 flex items-center gap-4">
             <span>Last updated: {page.lastModified.toLocaleDateString()}</span>
-            {version !== 'latest' && (
+            {version !== defaultVersion && (
               <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                 {version}
               </span>

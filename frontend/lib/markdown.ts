@@ -260,13 +260,16 @@ async function getFilePathFromSlugWithVersion(slug: string[], version?: string):
   const actualVersion = version || (await getDefaultVersion());
   const versionDir = path.join(contentDirectory, actualVersion);
 
+  // Decode URL components to handle spaces and special characters
+  const decodedSlug = slug.map(segment => decodeURIComponent(segment));
+
   // Handle root README
-  if (slug.length === 0 || (slug.length === 1 && slug[0] === '')) {
+  if (decodedSlug.length === 0 || (decodedSlug.length === 1 && decodedSlug[0] === '')) {
     return path.join(versionDir, 'README.md');
   }
 
   // Try direct file path first
-  const directPath = path.join(versionDir, ...slug) + '.md';
+  const directPath = path.join(versionDir, ...decodedSlug) + '.md';
 
   // Check if direct path exists
   try {
@@ -274,10 +277,11 @@ async function getFilePathFromSlugWithVersion(slug: string[], version?: string):
     return directPath;
   } catch {
     // If direct path doesn't exist, try README in directory
-    return path.join(versionDir, ...slug, 'README.md');
+    return path.join(versionDir, ...decodedSlug, 'README.md');
   }
 }async function getFilePathFromSlug(slug: string[]): Promise<string> {
-  return getFilePathFromSlugWithVersion(slug, 'latest');
+  const defaultVersion = await getDefaultVersion();
+  return getFilePathFromSlugWithVersion(slug, defaultVersion);
 }
 
 function formatVersionName(slug: string): string {
@@ -297,7 +301,8 @@ function formatVersionName(slug: string): string {
 
 function getTitleFromSlug(slug: string[]): string {
   if (slug.length === 0) return 'Home';
-  const lastSegment = slug[slug.length - 1];
+  // Decode the last segment to handle URL-encoded characters
+  const lastSegment = decodeURIComponent(slug[slug.length - 1]);
   return formatTitle(lastSegment);
 }
 

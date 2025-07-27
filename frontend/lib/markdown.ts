@@ -78,14 +78,38 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
     const fileContent = await fs.readFile(filePath, 'utf8');
     const { data, content } = matter(fileContent);
 
-    // Process markdown content with a simpler approach
+    // Process markdown content with callout support
     const processedContent = await remark()
       .use(remarkGfm)
       .use(remarkHtml, { sanitize: false })
       .process(content);
 
-    // Post-process the HTML to add IDs to headings
+    // Post-process the HTML to add IDs to headings and handle callouts
     let htmlContent = processedContent.toString();
+
+    // Transform GitHub-style callouts (> [!TYPE])
+    htmlContent = htmlContent.replace(
+      /<blockquote>\s*<p>\s*\[!(WARNING|INFO|NOTE|TIP|IMPORTANT|CAUTION)\]\s*(.*?)<\/p>\s*([\s\S]*?)<\/blockquote>/g,
+      (match, type, title, content) => {
+        const typeClass = type.toLowerCase();
+        const icon = getCalloutIcon(type);
+        const titleText = title.trim() || type;
+        
+        // Clean up content and remove any extra paragraph tags if present
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('<p>') && cleanContent.endsWith('</p>')) {
+          cleanContent = cleanContent.slice(3, -4);
+        }
+        
+        return `<div class="callout callout-${typeClass}">
+          <div class="callout-header">
+            <span class="callout-icon">${icon}</span>
+            <span class="callout-title">${titleText}</span>
+          </div>
+          <div class="callout-content">${cleanContent}</div>
+        </div>`;
+      }
+    );
 
     // Transform image paths to use the API route
     const imageVersion = version || (await getDefaultVersion());
@@ -375,4 +399,23 @@ export async function getAllWikiPagesForVersion(version?: string): Promise<WikiP
 
   await walkDirectory(versionDir);
   return pages;
+}
+
+function getCalloutIcon(type: string): string {
+  switch (type.toUpperCase()) {
+    case 'WARNING':
+      return '⚠️';
+    case 'INFO':
+      return 'ℹ️';
+    case 'NOTE':
+      return '📝';
+    case 'TIP':
+      return '💡';
+    case 'IMPORTANT':
+      return '❗';
+    case 'CAUTION':
+      return '🚨';
+    default:
+      return 'ℹ️';
+  }
 }

@@ -7,9 +7,10 @@ import { Link } from '@heroui/link';
 
 interface WikiSearchProps {
   onResults?: (results: WikiPage[]) => void;
+  currentVersion?: string;
 }
 
-export function WikiSearch({ onResults }: WikiSearchProps) {
+export function WikiSearch({ onResults, currentVersion = 'latest' }: WikiSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<WikiPage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +25,7 @@ export function WikiSearch({ onResults }: WikiSearchProps) {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/wiki/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/wiki/search?q=${encodeURIComponent(query)}&version=${encodeURIComponent(currentVersion)}`);
         const searchResults = await response.json();
         setResults(searchResults);
         onResults?.(searchResults);
@@ -38,7 +39,7 @@ export function WikiSearch({ onResults }: WikiSearchProps) {
 
     const debounceTimer = setTimeout(searchPages, 300);
     return () => clearTimeout(debounceTimer);
-  }, [query, onResults]);
+  }, [query, onResults, currentVersion]);
 
   return (
     <div className="relative">
@@ -61,19 +62,30 @@ export function WikiSearch({ onResults }: WikiSearchProps) {
             <div className="p-4 text-center text-default-500">Searching...</div>
           ) : results.length > 0 ? (
             <div className="p-2">
-              {results.map((page) => (
-                <Link
-                  key={page.slug.join('/')}
-                  href={`/wiki/${page.slug.join('/')}`}
-                  className="block p-3 hover:bg-default-100 rounded-md transition-colors"
-                  onPress={() => setQuery('')}
-                >
-                  <div className="font-medium text-sm text-default-700">{page.title}</div>
-                  <div className="text-xs text-default-500 mt-1">
-                    /{page.slug.join('/')}
-                  </div>
-                </Link>
-              ))}
+              {results.map((page) => {
+                const href = currentVersion === 'latest' 
+                  ? `/wiki/${page.slug.join('/')}`
+                  : `/wiki/${currentVersion}/${page.slug.join('/')}`;
+                
+                return (
+                  <Link
+                    key={page.slug.join('/')}
+                    href={href}
+                    className="block p-3 hover:bg-default-100 rounded-md transition-colors"
+                    onPress={() => setQuery('')}
+                  >
+                    <div className="font-medium text-sm text-default-700">{page.title}</div>
+                    <div className="text-xs text-default-500 mt-1 flex items-center gap-2">
+                      <span>/{page.slug.join('/')}</span>
+                      {page.version && page.version !== 'latest' && (
+                        <span className="bg-primary-100 text-primary-700 px-1 py-0.5 rounded text-xs">
+                          {page.version}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="p-4 text-center text-default-500">No results found</div>

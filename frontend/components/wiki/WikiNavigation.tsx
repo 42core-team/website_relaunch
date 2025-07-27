@@ -27,10 +27,28 @@ const ChevronDownIcon = ({ className }: { className: string }) => (
 interface WikiNavigationProps {
   items: WikiNavItem[];
   currentSlug: string[];
+  currentVersion?: string;
 }
 
-export function WikiNavigation({ items, currentSlug }: WikiNavigationProps) {
-  const currentPath = currentSlug.join('/');
+export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }: WikiNavigationProps) {
+  // Remove version from currentSlug to get the actual page path
+  const getPagePath = (slug: string[]) => {
+    if (currentVersion !== 'latest' && slug.length > 0 && slug[0] === currentVersion) {
+      return slug.slice(1).join('/');
+    }
+    return slug.join('/');
+  };
+
+  const currentPath = getPagePath(currentSlug);
+
+  // Helper function to generate version-aware URLs
+  const getVersionAwareUrl = (itemPath: string) => {
+    if (currentVersion === 'latest') {
+      return `/wiki/${itemPath}`;
+    } else {
+      return `/wiki/${currentVersion}/${itemPath}`;
+    }
+  };
 
   const renderNavItem = (item: WikiNavItem, depth: number = 0) => {
     const itemPath = item.slug.join('/');
@@ -41,7 +59,7 @@ export function WikiNavigation({ items, currentSlug }: WikiNavigationProps) {
       return (
         <Link
           key={itemPath}
-          href={`/wiki/${itemPath}`}
+          href={getVersionAwareUrl(itemPath)}
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
             isActive ? 'bg-primary-50 text-primary-600' : 'text-default-600'
           }`}
@@ -83,7 +101,7 @@ export function WikiNavigation({ items, currentSlug }: WikiNavigationProps) {
     return (
       <Link
         key={itemPath}
-        href={`/wiki/${itemPath}`}
+        href={getVersionAwareUrl(itemPath)}
         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
           isActive ? 'bg-primary-50 text-primary-600' : 'text-default-600'
         }`}

@@ -11,6 +11,7 @@ export interface WikiPage {
   content: string;
   frontmatter: { [key: string]: any };
   lastModified: Date;
+  version?: string;
 }
 
 export interface WikiNavItem {
@@ -20,11 +21,55 @@ export interface WikiNavItem {
   children?: WikiNavItem[];
 }
 
+export interface WikiVersion {
+  name: string;
+  slug: string;
+  isDefault?: boolean;
+}
+
 const contentDirectory = path.join(process.cwd(), 'content/wiki');
 
-export async function getWikiPage(slug: string[]): Promise<WikiPage | null> {
+export async function getAvailableVersions(): Promise<WikiVersion[]> {
   try {
-    const filePath = getFilePathFromSlug(slug);
+    const entries = await fs.readdir(contentDirectory, { withFileTypes: true });
+    const versions: WikiVersion[] = [];
+    
+    // Add root-level files as "latest" version
+    const hasRootFiles = entries.some(entry => entry.isFile() && entry.name.endsWith('.md'));
+    if (hasRootFiles) {
+      versions.push({
+        name: 'Latest',
+        slug: 'latest',
+        isDefault: true,
+      });
+    }
+    
+    // Add directories as versions
+    for (const entry of entries) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && 
+          entry.name !== 'images' && entry.name !== 'assets') {
+        versions.push({
+          name: formatVersionName(entry.name),
+          slug: entry.name,
+          isDefault: false,
+        });
+      }
+    }
+    
+    return versions.sort((a, b) => {
+      if (a.isDefault) return -1;
+      if (b.isDefault) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  } catch (error) {
+    console.error('Error reading versions:', error);
+    return [];
+  }
+}
+
+export async function getWikiPageWithVersion(slug: string[], version?: string): Promise<WikiPage | null> {
+  try {
+    const filePath = await getFilePathFromSlugWithVersion(slug, version);
     const fileContent = await fs.readFile(filePath, 'utf8');
     const { data, content } = matter(fileContent);
 
@@ -55,37 +100,23 @@ export async function getWikiPage(slug: string[]): Promise<WikiPage | null> {
       content: htmlContent,
       frontmatter: data,
       lastModified: stats.mtime,
+      version,
     };
   } catch (error) {
-    console.error(`Error reading wiki page ${slug.join('/')}:`, error);
+    console.error(`Error reading wiki page ${slug?.join('/') || 'unknown'} for version ${version}:`, error);
     return null;
   }
 }
 
 export async function getAllWikiPages(): Promise<WikiPage[]> {
-  const pages: WikiPage[] = [];
-
-  async function walkDirectory(dir: string, basePath: string[] = []): Promise<void> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        await walkDirectory(path.join(dir, entry.name), [...basePath, entry.name]);
-      } else if (entry.name.endsWith('.md')) {
-        const slug = [...basePath, entry.name.replace('.md', '')];
-        const page = await getWikiPage(slug);
-        if (page) {
-          pages.push(page);
-        }
-      }
-    }
-  }
-
-  await walkDirectory(contentDirectory);
-  return pages;
+  return getAllWikiPagesForVersion('latest');
 }
 
-export async function getWikiNavigation(): Promise<WikiNavItem[]> {
+export async function getWikiNavigationWithVersion(version?: string): Promise<WikiNavItem[]> {
+  const versionDir = version && version !== 'latest' 
+    ? path.join(contentDirectory, version) 
+    : contentDirectory;
+    
   const buildNavigation = async (dir: string, basePath: string[] = []): Promise<WikiNavItem[]> => {
     const items: WikiNavItem[] = [];
 
@@ -95,6 +126,14 @@ export async function getWikiNavigation(): Promise<WikiNavItem[]> {
       for (const entry of entries) {
         if (entry.name.startsWith('.') || entry.name === 'index.html' || entry.name === 'script.js' || entry.name === 'style.css' || entry.name === 'favicon.ico') {
           continue;
+        }
+
+        // Skip version directories when we're in the root and looking at a specific version
+        if (basePath.length === 0 && version === 'latest' && entry.isDirectory()) {
+          const versions = await getAvailableVersions();
+          if (versions.some(v => v.slug === entry.name && !v.isDefault)) {
+            continue;
+          }
         }
 
         if (entry.isDirectory()) {
@@ -131,26 +170,59 @@ export async function getWikiNavigation(): Promise<WikiNavItem[]> {
     });
   };
 
-  return buildNavigation(contentDirectory);
+  return buildNavigation(versionDir);
 }
 
-function getFilePathFromSlug(slug: string[]): string {
+// Legacy function for backward compatibility
+export async function getWikiPage(slug: string[]): Promise<WikiPage | null> {
+  return getWikiPageWithVersion(slug, 'latest');
+}
+
+// Legacy function for backward compatibility  
+export async function getWikiNavigation(): Promise<WikiNavItem[]> {
+  return getWikiNavigationWithVersion('latest');
+}
+
+async function getFilePathFromSlugWithVersion(slug: string[], version?: string): Promise<string> {
+  const versionDir = version && version !== 'latest' 
+    ? path.join(contentDirectory, version) 
+    : contentDirectory;
+
   // Handle root README
   if (slug.length === 0 || (slug.length === 1 && slug[0] === '')) {
-    return path.join(contentDirectory, 'README.md');
+    return path.join(versionDir, 'README.md');
   }
 
   // Try direct file path first
-  const directPath = path.join(contentDirectory, ...slug) + '.md';
+  const directPath = path.join(versionDir, ...slug) + '.md';
 
-  // If direct path doesn't exist, try README in directory
+  // Check if direct path exists
   try {
-    const fs = require('fs');
-    fs.accessSync(directPath);
+    await fs.access(directPath);
     return directPath;
   } catch {
-    return path.join(contentDirectory, ...slug, 'README.md');
+    // If direct path doesn't exist, try README in directory
+    return path.join(versionDir, ...slug, 'README.md');
   }
+}
+
+async function getFilePathFromSlug(slug: string[]): Promise<string> {
+  return getFilePathFromSlugWithVersion(slug, 'latest');
+}
+
+function formatVersionName(slug: string): string {
+  // Handle special version naming
+  if (slug.toLowerCase().includes('season')) {
+    return slug.replace(/([a-z])(\d)/, '$1 $2').replace(/^./, c => c.toUpperCase());
+  }
+  if (slug.toLowerCase().includes('rush')) {
+    return slug.replace(/([a-z])(\d)/, '$1 $2').replace(/^./, c => c.toUpperCase());
+  }
+  
+  // Convert kebab-case or snake_case to Title Case
+  return slug
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase());
 }
 
 function getTitleFromSlug(slug: string[]): string {
@@ -171,12 +243,49 @@ function formatTitle(name: string): string {
     .replace(/\b\w/g, l => l.toUpperCase());
 }
 
-export async function searchWikiPages(query: string): Promise<WikiPage[]> {
-  const allPages = await getAllWikiPages();
+export async function searchWikiPages(query: string, version?: string): Promise<WikiPage[]> {
+  const allPages = await getAllWikiPagesForVersion(version);
   const lowercaseQuery = query.toLowerCase();
 
   return allPages.filter(page =>
     page.title.toLowerCase().includes(lowercaseQuery) ||
     page.content.toLowerCase().includes(lowercaseQuery)
   );
+}
+
+export async function getAllWikiPagesForVersion(version?: string): Promise<WikiPage[]> {
+  const pages: WikiPage[] = [];
+  const versionDir = version && version !== 'latest' 
+    ? path.join(contentDirectory, version) 
+    : contentDirectory;
+
+  async function walkDirectory(dir: string, basePath: string[] = []): Promise<void> {
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          // Skip version directories when we're in the root and looking at latest
+          if (basePath.length === 0 && version === 'latest') {
+            const versions = await getAvailableVersions();
+            if (versions.some(v => v.slug === entry.name && !v.isDefault)) {
+              continue;
+            }
+          }
+          await walkDirectory(path.join(dir, entry.name), [...basePath, entry.name]);
+        } else if (entry.name.endsWith('.md')) {
+          const slug = [...basePath, entry.name.replace('.md', '')];
+          const page = await getWikiPageWithVersion(slug, version);
+          if (page) {
+            pages.push(page);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error walking directory ${dir}:`, error);
+    }
+  }
+
+  await walkDirectory(versionDir);
+  return pages;
 }

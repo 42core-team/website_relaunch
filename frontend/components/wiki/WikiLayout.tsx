@@ -3,28 +3,36 @@
 import React from 'react';
 import { WikiNavigation } from './WikiNavigation';
 import { WikiSearch } from './WikiSearch';
-import { WikiNavItem } from '@/lib/markdown';
+import { VersionSelector } from './VersionSelector';
+import { WikiNavItem, WikiVersion } from '@/lib/markdown';
 
 interface WikiLayoutProps {
   children: React.ReactNode;
   navigation: WikiNavItem[];
   currentSlug: string[];
+  versions?: WikiVersion[];
+  currentVersion?: string;
 }
 
-export function WikiLayout({ children, navigation, currentSlug }: WikiLayoutProps) {
+export function WikiLayout({ children, navigation, currentSlug, versions = [], currentVersion = 'latest' }: WikiLayoutProps) {
   return (
     <div className="flex bg-background">
       {/* Sidebar Navigation */}
       <div className="w-64 h-screen sticky top-0 flex-shrink-0">
-        <WikiNavigation items={navigation} currentSlug={currentSlug} />
+        <WikiNavigation items={navigation} currentSlug={currentSlug} currentVersion={currentVersion} />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Header with Search */}
+        {/* Header with Search and Version Selector */}
         <header className="border-b border-divider bg-content1 p-4 shadow-sm sticky top-0 z-10">
-          <div className="max-w-md">
-            <WikiSearch />
+          <div className="flex items-center justify-between gap-4">
+            <div className="max-w-md flex-1">
+              <WikiSearch currentVersion={currentVersion} />
+            </div>
+            {versions.length > 1 && (
+              <VersionSelector versions={versions} currentVersion={currentVersion} />
+            )}
           </div>
         </header>
 

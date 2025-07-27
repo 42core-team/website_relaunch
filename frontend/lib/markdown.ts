@@ -200,12 +200,15 @@ export async function getWikiNavigationWithVersion(version?: string): Promise<Wi
 
         if (entry.isDirectory()) {
           const children = await buildNavigation(path.join(dir, entry.name), [...basePath, entry.name]);
-          items.push({
-            title: formatTitle(entry.name),
-            slug: [...basePath, entry.name],
-            isFile: false,
-            children: children.length > 0 ? children : undefined,
-          });
+          // Only include directories that have markdown files (either directly or in subdirectories)
+          if (children.length > 0) {
+            items.push({
+              title: formatTitle(entry.name),
+              slug: [...basePath, entry.name],
+              isFile: false,
+              children: children,
+            });
+          }
         } else if (entry.name.endsWith('.md')) {
           const slug = [...basePath, entry.name.replace('.md', '')];
           items.push({

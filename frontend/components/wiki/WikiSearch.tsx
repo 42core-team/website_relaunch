@@ -63,10 +63,10 @@ export function WikiSearch({ onResults, currentVersion = 'latest' }: WikiSearchP
           ) : results.length > 0 ? (
             <div className="p-2">
               {results.map((page) => {
-                const href = currentVersion === 'latest' 
+                const href = currentVersion === 'latest'
                   ? `/wiki/${page.slug.join('/')}`
                   : `/wiki/${currentVersion}/${page.slug.join('/')}`;
-                
+
                 return (
                   <Link
                     key={page.slug.join('/')}

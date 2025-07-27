@@ -17,16 +17,16 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
   const handleVersionChange = (version: string) => {
     // Parse current path to extract the page slug
     const pathParts = pathname.split('/').filter(Boolean);
-    
+
     if (pathParts[0] === 'wiki') {
       // Remove 'wiki' from the path
       pathParts.shift();
-      
+
       // Remove current version if it exists
       if (pathParts.length > 0 && versions.some(v => v.slug === pathParts[0])) {
         pathParts.shift();
       }
-      
+
       // For version switching, try the same page first, fallback to version home
       if (version === 'latest') {
         // For latest, we don't include version in URL

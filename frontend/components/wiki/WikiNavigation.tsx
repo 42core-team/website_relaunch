@@ -1,36 +1,71 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { WikiNavItem } from '@/lib/markdown';
 import { Link } from '@heroui/link';
 import { Accordion, AccordionItem } from '@heroui/react';
 
-// Simple icon components
-const DocumentIcon = ({ className }: { className: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-4.5A1.125 1.125 0 0110.5 9h-2.25A3.375 3.375 0 005.25 12.375v2.625M19.5 14.25l-2.25 2.25L15 18.75M19.5 14.25L21 15.75" />
-  </svg>
-);
-
-const FolderIcon = ({ className }: { className: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25H11.69z" />
-  </svg>
-);
-
-const ChevronDownIcon = ({ className }: { className: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-  </svg>
-);
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
 
 interface WikiNavigationProps {
   items: WikiNavItem[];
   currentSlug: string[];
   currentVersion?: string;
+  pageContent?: string; // Add page content for table of contents
 }
 
-export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }: WikiNavigationProps) {
+export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', pageContent }: WikiNavigationProps) {
+  const [toc, setToc] = useState<TocItem[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
+
+  // Parse table of contents from page content
+  useEffect(() => {
+    if (!pageContent) {
+      setToc([]);
+      return;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(pageContent, 'text/html');
+    const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    const tocItems: TocItem[] = Array.from(headings).map((heading) => ({
+      id: heading.id,
+      text: heading.textContent || '',
+      level: parseInt(heading.tagName.charAt(1)),
+    })).filter(item => item.id && item.text);
+
+    setToc(tocItems);
+  }, [pageContent]);
+
+  // Track which heading is currently visible
+  useEffect(() => {
+    if (toc.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0% -35% 0%' }
+    );
+
+    toc.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [toc]);
   // Remove version from currentSlug to get the actual page path
   const getPagePath = (slug: string[]) => {
     if (currentVersion !== 'latest' && slug.length > 0 && slug[0] === currentVersion) {
@@ -57,17 +92,42 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }
 
     if (item.isFile) {
       return (
-        <Link
-          key={itemPath}
-          href={getVersionAwareUrl(itemPath)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
-            isActive ? 'bg-primary-50 text-primary-600' : 'text-default-600'
-          }`}
-          style={{ paddingLeft: `${depth * 16 + 12}px` }}
-        >
-          <DocumentIcon className="w-4 h-4 flex-shrink-0" />
-          {item.title}
-        </Link>
+        <div key={itemPath}>
+          <Link
+            href={getVersionAwareUrl(itemPath)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
+              isActive ? 'bg-primary-50 text-primary-600' : 'text-default-600'
+            }`}
+            style={{ paddingLeft: `${depth * 16 + 12}px` }}
+          >
+            {item.title}
+          </Link>
+
+          {/* Show table of contents under the active page */}
+          {isActive && toc.length > 0 && (
+            <div className="ml-4 mt-1 mb-2 bg-default-50 border border-default-200 rounded-md p-2">
+              <div className="text-xs font-semibold text-default-600 mb-2 px-2 py-1 bg-default-100 rounded">
+                On this page
+              </div>
+              <div className="space-y-0.5">
+                {toc.map((tocItem) => (
+                  <Link
+                    key={tocItem.id}
+                    href={`#${tocItem.id}`}
+                    className={`block text-xs px-2 py-1 rounded-sm transition-colors hover:bg-default-100 hover:text-primary ${
+                      activeId === tocItem.id
+                        ? 'text-primary font-medium bg-primary-50 border-l-2 border-primary'
+                        : 'text-default-500'
+                    }`}
+                    style={{ paddingLeft: `${(tocItem.level - 1) * 8 + 8}px` }}
+                  >
+                    {tocItem.text}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       );
     }
 
@@ -83,11 +143,10 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }
             aria-label={item.title}
             title={
               <div className="flex items-center gap-2 text-default-700">
-                <FolderIcon className="w-4 h-4" />
                 {item.title}
               </div>
             }
-            indicator={<ChevronDownIcon className="w-4 h-4" />}
+            indicator={<span className="text-default-400">▼</span>}
             className="border-none"
           >
             <div className="ml-4">
@@ -107,7 +166,6 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }
         }`}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
       >
-        <FolderIcon className="w-4 h-4 flex-shrink-0" />
         {item.title}
       </Link>
     );
@@ -116,7 +174,7 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest' }
   return (
     <nav className="w-64 h-full overflow-y-auto border-r border-divider bg-content1">
       <div className="p-4">
-        <h2 className="text-lg font-semibold mb-4 text-default-700">Documentation</h2>
+        <h2 className="text-lg font-semibold mb-4 text-default-700">Wiki</h2>
         <div className="space-y-1">
           {items.map(item => renderNavItem(item))}
         </div>

@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { WikiNavItem } from '@/lib/markdown';
 import { Link } from '@heroui/link';
 import { Accordion, AccordionItem } from '@heroui/react';
@@ -21,7 +19,8 @@ interface WikiNavigationProps {
 export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', pageContent }: WikiNavigationProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  const [isScrolling, setIsScrolling] = useState(false);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse table of contents from page content
   useEffect(() => {
@@ -47,60 +46,68 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
   useEffect(() => {
     if (toc.length === 0) return;
 
-    let scrollTimeout: NodeJS.Timeout | null = null;
+    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+      if (isScrollingRef.current) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Don't update during programmatic scrolling
-        if (isScrolling) return;
+      const intersectingEntries = entries.filter(e => e.isIntersecting);
+      if (intersectingEntries.length === 0) return;
 
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-20% 0% -60% 0%' }
-    );
+      // The ideal position is 100px from the top, matching the scroll-margin-top
+      const idealPosition = 100;
+
+      // Find the entry closest to the ideal position
+      const closestEntry = intersectingEntries.reduce((prev, curr) => {
+        const prevDistance = Math.abs(prev.boundingClientRect.top - idealPosition);
+        const currDistance = Math.abs(curr.boundingClientRect.top - idealPosition);
+        return (currDistance < prevDistance) ? curr : prev;
+      });
+
+      if (closestEntry) {
+        setActiveId(closestEntry.target.id);
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, {
+      rootMargin: '0px 0px -80% 0px', // Observe the top 20% of the viewport
+    });
 
     toc.forEach(({ id }) => {
       const element = document.getElementById(id);
-      if (element) {
-        observer.observe(element);
-      }
+      if (element) observer.observe(element);
     });
-
-    // Handle scroll events to detect programmatic scrolling
-    const handleScroll = () => {
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-      scrollTimeout = setTimeout(() => {
-        setIsScrolling(false);
-      }, 100);
-    };
-
-    window.addEventListener('scroll', handleScroll);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
     };
   }, [toc]);
 
   const handleTocClick = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
-    setIsScrolling(true);
+    isScrollingRef.current = true;
+    setActiveId(id); // Immediate feedback
+
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      // Set active immediately for better UX
-      setActiveId(id);
     }
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 400); // A generous timeout for smooth scrolling
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Remove version from currentSlug to get the actual page path
   const getPagePath = (slug: string[]) => {
     return slug.join('/');

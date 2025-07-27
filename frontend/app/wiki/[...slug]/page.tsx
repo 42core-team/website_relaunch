@@ -57,11 +57,74 @@ export default async function WikiPage({ params }: WikiPageProps) {
   const { slug = [] } = await params;
   const { version, pagePath } = await parseSlugForVersion(slug);
 
-  const [page, navigation, versions] = await Promise.all([
-    getWikiPageWithVersion(pagePath, version),
+  let page: any = null;
+  let isImageError = false;
+
+  try {
+    page = await getWikiPageWithVersion(pagePath, version);
+  } catch (error: any) {
+    // Check if this is an image file error
+    if (error.message && error.message.includes('Cannot load image file')) {
+      isImageError = true;
+    } else {
+      throw error; // Re-throw other errors
+    }
+  }
+
+  const [navigation, versions] = await Promise.all([
     getWikiNavigationWithVersion(version),
     getAvailableVersions(),
   ]);
+
+  // If this is an image file error, redirect to parent directory
+  if (isImageError && pagePath.length > 0) {
+    const parentPath = pagePath.slice(0, -1);
+    try {
+      const parentPage = await getWikiPageWithVersion(parentPath, version);
+      if (parentPage) {
+        return (
+          <WikiLayout
+            navigation={navigation}
+            currentSlug={parentPath}
+            versions={versions}
+            currentVersion={version}
+            pageContent={parentPage.content}
+          >
+            <article className="prose prose-lg dark:prose-invert max-w-none">
+              <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
+                <h3 className="text-warning-800 font-semibold mb-2">Image File Accessed</h3>
+                <p className="text-warning-700">
+                  You tried to access an image file <code>{pagePath[pagePath.length - 1]}</code> as a page.
+                  Showing the parent page instead.
+                </p>
+              </div>
+
+              <header className="mb-8">
+                <h1 className="text-4xl font-bold text-foreground mb-2">
+                  {parentPage.title}
+                </h1>
+                <div className="text-sm text-default-500 flex items-center gap-4">
+                  <span>Last updated: {parentPage.lastModified.toLocaleDateString()}</span>
+                  {version !== 'latest' && (
+                    <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                      {version}
+                    </span>
+                  )}
+                </div>
+              </header>
+
+              <div
+                className="wiki-content"
+                dangerouslySetInnerHTML={{ __html: parentPage.content }}
+              />
+            </article>
+          </WikiLayout>
+        );
+      }
+    } catch {
+      // If parent page doesn't exist, fall through to notFound
+    }
+  }
 
   // If page doesn't exist and we have a specific path, try to fallback
   if (!page && pagePath.length > 0) {

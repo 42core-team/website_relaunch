@@ -78,14 +78,15 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
     return `/wiki/${currentVersion}/${itemPath}`;
   };
 
-  const renderNavItem = (item: WikiNavItem, depth: number = 0) => {
+  const renderNavItem = (item: WikiNavItem, depth: number = 0, index: number = 0) => {
     const itemPath = item.slug.join('/');
+    const uniqueKey = `${itemPath}-${depth}-${index}-${item.isFile ? 'file' : 'dir'}`;
     const isActive = currentPath === itemPath;
     const isParentActive = currentPath.startsWith(itemPath + '/');
 
     if (item.isFile) {
       return (
-        <div key={itemPath}>
+        <div key={uniqueKey}>
           <Link
             href={getVersionAwareUrl(itemPath)}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
@@ -103,9 +104,9 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
                 On this page
               </div>
               <div className="space-y-0.5">
-                {toc.map((tocItem) => (
+                {toc.map((tocItem, index) => (
                   <Link
-                    key={tocItem.id}
+                    key={`toc-${index}-${tocItem.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`}
                     href={`#${tocItem.id}`}
                     className={`block text-xs px-2 py-1 rounded-sm transition-colors hover:bg-default-100 hover:text-primary ${
                       activeId === tocItem.id
@@ -127,7 +128,7 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
     if (item.children && item.children.length > 0) {
       return (
         <Accordion
-          key={itemPath}
+          key={uniqueKey}
           variant="light"
           defaultExpandedKeys={isParentActive ? [itemPath] : []}
         >
@@ -143,7 +144,11 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
             className="border-none"
           >
             <div className="ml-4">
-              {item.children.map(child => renderNavItem(child, depth + 1))}
+              {item.children.map((child, index) => (
+                <React.Fragment key={`${item.slug.join('/')}-child-${index}`}>
+                  {renderNavItem(child, depth + 1, index)}
+                </React.Fragment>
+              ))}
             </div>
           </AccordionItem>
         </Accordion>
@@ -152,7 +157,7 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
 
     return (
       <Link
-        key={itemPath}
+        key={uniqueKey}
         href={getVersionAwareUrl(itemPath)}
         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
           isActive ? 'bg-primary-50 text-primary-600' : 'text-default-600'
@@ -169,7 +174,11 @@ export function WikiNavigation({ items, currentSlug, currentVersion = 'latest', 
       <div className="p-4">
         <h2 className="text-lg font-semibold mb-4 text-default-700">Wiki</h2>
         <div className="space-y-1">
-          {items.map(item => renderNavItem(item))}
+          {items.map((item, index) => (
+            <React.Fragment key={`root-${index}-${item.slug.join('/')}`}>
+              {renderNavItem(item, 0, index)}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </nav>

@@ -87,6 +87,31 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
     // Post-process the HTML to add IDs to headings
     let htmlContent = processedContent.toString();
 
+    // Transform image paths to use the API route
+    const imageVersion = version || (await getDefaultVersion());
+    htmlContent = htmlContent.replace(/<img([^>]*)\ssrc="([^"]+)"([^>]*)>/g, (match, beforeSrc, src, afterSrc) => {
+      // Skip if already an absolute URL or API path
+      if (src.startsWith('http') || src.startsWith('/api/wiki-images/')) {
+        return match;
+      }
+
+      // For relative image paths, determine the correct directory
+      let imagePath: string;
+
+      if (path.basename(filePath) === 'README.md') {
+        // For README files, images are relative to the directory containing the README
+        const readmeDir = path.dirname(path.relative(path.join(contentDirectory, imageVersion), filePath));
+        imagePath = readmeDir ? path.posix.join(imageVersion, readmeDir, src) : path.posix.join(imageVersion, src);
+      } else {
+        // For regular .md files, images are relative to the file's directory
+        const fileDir = path.dirname(path.relative(path.join(contentDirectory, imageVersion), filePath));
+        imagePath = fileDir ? path.posix.join(imageVersion, fileDir, src) : path.posix.join(imageVersion, src);
+      }
+
+      const apiPath = `/api/wiki-images/${imagePath}`;
+      return `<img${beforeSrc} src="${apiPath}"${afterSrc}>`;
+    });
+
     // Simple regex to add IDs to headings
     htmlContent = htmlContent.replace(/<h([1-6])>(.*?)<\/h[1-6]>/g, (match, level, text) => {
       const id = text

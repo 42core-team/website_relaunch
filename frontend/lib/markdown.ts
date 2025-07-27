@@ -94,13 +94,13 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
         const typeClass = type.toLowerCase();
         const icon = getCalloutIcon(type);
         const titleText = title.trim() || type;
-        
+
         // Clean up content and remove any extra paragraph tags if present
         let cleanContent = content.trim();
         if (cleanContent.startsWith('<p>') && cleanContent.endsWith('</p>')) {
           cleanContent = cleanContent.slice(3, -4);
         }
-        
+
         return `<div class="callout callout-${typeClass}">
           <div class="callout-header">
             <span class="callout-icon">${icon}</span>

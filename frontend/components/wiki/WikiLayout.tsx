@@ -1,0 +1,40 @@
+'use client';
+
+import React from 'react';
+import { WikiNavigation } from './WikiNavigation';
+import { WikiSearch } from './WikiSearch';
+import { WikiNavItem } from '@/lib/markdown';
+
+interface WikiLayoutProps {
+  children: React.ReactNode;
+  navigation: WikiNavItem[];
+  currentSlug: string[];
+}
+
+export function WikiLayout({ children, navigation, currentSlug }: WikiLayoutProps) {
+  return (
+    <div className="flex bg-background">
+      {/* Sidebar Navigation */}
+      <div className="w-64 h-screen sticky top-0 flex-shrink-0">
+        <WikiNavigation items={navigation} currentSlug={currentSlug} />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Header with Search */}
+        <header className="border-b border-divider bg-content1 p-4 shadow-sm sticky top-0 z-10">
+          <div className="max-w-md">
+            <WikiSearch />
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="p-6 bg-background">
+          <div className="max-w-4xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

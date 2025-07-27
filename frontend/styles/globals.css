@@ -14,3 +14,141 @@
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
 }
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset for sticky header when jumping to anchors */
+h1[id]::before,
+h2[id]::before,
+h3[id]::before,
+h4[id]::before,
+h5[id]::before,
+h6[id]::before {
+  content: '';
+  display: block;
+  height: 80px;
+  margin-top: -80px;
+  visibility: hidden;
+}
+
+/* Wiki content styles */
+.wiki-content {
+  @apply text-foreground;
+}
+
+.wiki-content h1 {
+  @apply text-3xl font-bold mt-8 mb-4 text-foreground border-b border-divider pb-2;
+}
+
+.wiki-content h2 {
+  @apply text-2xl font-semibold mt-6 mb-3 text-foreground;
+}
+
+.wiki-content h3 {
+  @apply text-xl font-semibold mt-4 mb-2 text-foreground;
+}
+
+.wiki-content h4 {
+  @apply text-lg font-semibold mt-3 mb-2 text-foreground;
+}
+
+.wiki-content p {
+  @apply mb-4 leading-relaxed text-default-700;
+}
+
+.wiki-content ul, .wiki-content ol {
+  @apply mb-4 ml-6;
+}
+
+.wiki-content li {
+  @apply mb-2;
+}
+
+.wiki-content ul li {
+  @apply list-disc;
+}
+
+.wiki-content ol li {
+  @apply list-decimal;
+}
+
+.wiki-content a {
+  @apply text-primary hover:text-primary-600 underline;
+}
+
+.wiki-content code {
+  @apply bg-default-100 px-2 py-1 rounded text-sm font-mono text-default-800;
+}
+
+.wiki-content pre {
+  @apply bg-default-100 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.wiki-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.wiki-content blockquote {
+  @apply border-l-4 border-primary pl-4 italic text-default-600 mb-4;
+}
+
+.wiki-content table {
+  @apply w-full border-collapse border border-divider mb-4;
+}
+
+.wiki-content th,
+.wiki-content td {
+  @apply border border-divider px-4 py-2 text-left;
+}
+
+.wiki-content th {
+  @apply bg-default-100 font-semibold;
+}
+
+.wiki-content img {
+  @apply max-w-full h-auto rounded-lg shadow-md;
+}
+
+.wiki-content hr {
+  @apply border-divider my-8;
+}
+
+/* Heading anchor styles */
+.wiki-content .heading-anchor {
+  @apply text-inherit no-underline;
+}
+
+.wiki-content .heading-anchor:hover {
+  @apply text-inherit;
+}
+
+.wiki-content h1 .heading-anchor,
+.wiki-content h2 .heading-anchor,
+.wiki-content h3 .heading-anchor,
+.wiki-content h4 .heading-anchor,
+.wiki-content h5 .heading-anchor,
+.wiki-content h6 .heading-anchor {
+  @apply relative;
+}
+
+.wiki-content h1 .heading-anchor::before,
+.wiki-content h2 .heading-anchor::before,
+.wiki-content h3 .heading-anchor::before,
+.wiki-content h4 .heading-anchor::before,
+.wiki-content h5 .heading-anchor::before,
+.wiki-content h6 .heading-anchor::before {
+  content: '#';
+  @apply absolute -left-6 text-default-400 opacity-0 transition-opacity;
+}
+
+.wiki-content h1:hover .heading-anchor::before,
+.wiki-content h2:hover .heading-anchor::before,
+.wiki-content h3:hover .heading-anchor::before,
+.wiki-content h4:hover .heading-anchor::before,
+.wiki-content h5:hover .heading-anchor::before,
+.wiki-content h6:hover .heading-anchor::before {
+  @apply opacity-100;
+}

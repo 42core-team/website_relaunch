@@ -22,7 +22,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
     const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    
+
     const tocItems: TocItem[] = Array.from(headings).map((heading) => ({
       id: heading.id,
       text: heading.textContent || '',

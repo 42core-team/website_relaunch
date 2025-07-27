@@ -54,7 +54,7 @@ export function WikiSearch({ onResults }: WikiSearchProps) {
           </svg>
         }
       />
-      
+
       {query && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-content1 border border-divider rounded-lg shadow-lg max-h-96 overflow-y-auto z-10">
           {isLoading ? (

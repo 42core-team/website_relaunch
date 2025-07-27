@@ -49,13 +49,13 @@ export default async function WikiPage({ params }: WikiPageProps) {
               Last updated: {page.lastModified.toLocaleDateString()}
             </div>
           </header>
-          
+
           <div
             className="wiki-content"
             dangerouslySetInnerHTML={{ __html: page.content }}
           />
         </article>
-        
+
         <aside className="w-64 flex-shrink-0">
           <TableOfContents content={page.content} />
         </aside>

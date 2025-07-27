@@ -96,12 +96,22 @@ export function WikiSearch({ onResults, currentVersion = 'latest' }: WikiSearchP
 
                               // Temporarily highlight the element
                               const originalBg = (element as HTMLElement).style.backgroundColor;
+                              const originalBorder = (element as HTMLElement).style.border;
+                              const originalOpacity = (element as HTMLElement).style.opacity;
                               (element as HTMLElement).style.backgroundColor = '#fef3c7';
-                              (element as HTMLElement).style.transition = 'background-color 0.3s';
+                              (element as HTMLElement).style.border = '1px solid #e5e7eb';
+                              (element as HTMLElement).style.borderRadius = '4px';
+                              (element as HTMLElement).style.transition = 'all 0.3s ease';
+                              (element as HTMLElement).style.padding = '2px';
+                              (element as HTMLElement).style.opacity = '0.65';
 
                               setTimeout(() => {
                                 (element as HTMLElement).style.backgroundColor = originalBg;
-                              }, 2000);
+                                (element as HTMLElement).style.border = originalBorder;
+                                (element as HTMLElement).style.borderRadius = '';
+                                (element as HTMLElement).style.padding = '';
+                                (element as HTMLElement).style.opacity = originalOpacity;
+                              }, 1800);
 
                               return; // Exit after first match
                             }

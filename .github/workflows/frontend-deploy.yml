@@ -33,7 +33,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: ${{ inputs.environment }}
 
     permissions:
@@ -94,7 +94,20 @@ jobs:
             exit 1
           fi
 
-          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
+          # Debug: Check secret length and first few characters
+          SECRET_LENGTH=$(echo "${{ secrets.KUBECONFIG_DATA }}" | wc -c)
+          echo "Secret length: $SECRET_LENGTH characters"
+          echo "First 50 characters: $(echo "${{ secrets.KUBECONFIG_DATA }}" | head -c 50)"
+
+          # Try to decode with better error handling
+          if ! echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config 2>/tmp/base64_error; then
+            echo "ERROR: Failed to decode base64 secret"
+            echo "Base64 error output:"
+            cat /tmp/base64_error
+            echo "This usually means the secret is not properly base64 encoded"
+            exit 1
+          fi
+
           chmod 600 ~/.kube/config
 
           # Debug: Check if config file was created

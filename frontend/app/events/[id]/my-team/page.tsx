@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { redirect } from "next/navigation";
-import { getTeam, Team } from "@/app/actions/team";
+import { getMyEventTeam, Team } from "@/app/actions/team";
 import { isUserRegisteredForEvent } from "@/app/actions/event";
 import TeamView from "./teamView";
 
@@ -16,14 +16,13 @@ export default async function Page({
   }
 
   const eventId = (await params).id;
-  const userId = session.user.id;
 
-  const userRegistered = await isUserRegisteredForEvent(userId, eventId);
+  const userRegistered = await isUserRegisteredForEvent(eventId);
   if (!userRegistered) {
     redirect(`/events/${eventId}`);
   }
 
-  const team = await getTeam(userId, eventId);
+  const team = await getMyEventTeam(eventId);
 
   return <TeamView initialTeam={team} />;
 }

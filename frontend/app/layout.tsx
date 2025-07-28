@@ -6,6 +6,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import "@/styles/globals.css";
 import DefaultLayout from "@/layouts/default";
 import { SessionProvider } from "next-auth/react";
+import { NavbarProvider } from "@/contexts/NavbarContext";
 
 export default function App({ children }: { children: React.ReactNode }) {
   return (
@@ -21,7 +22,9 @@ export default function App({ children }: { children: React.ReactNode }) {
         <HeroUIProvider>
           <NextThemesProvider>
             <SessionProvider>
-              <DefaultLayout>{children}</DefaultLayout>
+              <NavbarProvider>
+                <DefaultLayout>{children}</DefaultLayout>
+              </NavbarProvider>
             </SessionProvider>
           </NextThemesProvider>
         </HeroUIProvider>

@@ -14,7 +14,7 @@ import {
 } from "@heroui/react";
 import { title } from "@/components/primitives";
 import { createEvent, canUserCreateEvent } from "@/app/actions/event";
-import { events_type_enum } from "@/generated/prisma";
+import { isActionError } from "@/app/actions/errors";
 
 export default function CreateEventPage() {
   const { status } = useSession();
@@ -22,15 +22,14 @@ export default function CreateEventPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [githubOrg, setGithubOrg] = useState("42core-team");
+  const [githubOrgSecret, setGithubOrgSecret] = useState("");
   const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(0);
+  const [endDate, setEndDate] = useState(0);
   const [minTeamSize, setMinTeamSize] = useState(1);
   const [maxTeamSize, setMaxTeamSize] = useState(4);
   const [treeFormat, setTreeFormat] = useState(16);
-  const [eventType, setEventType] = useState<string>(
-    events_type_enum.REGULAR.toString(),
-  );
   const [repoTemplateOwner, setRepoTemplateOwner] = useState("");
   const [repoTemplateName, setRepoTemplateName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,32 +66,27 @@ export default function CreateEventPage() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const result = await createEvent({
-        name,
-        description,
-        location,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        minTeamSize,
-        maxTeamSize,
-        treeFormat,
-        eventType: eventType.toString(),
-        repoTemplateOwner: repoTemplateOwner,
-        repoTemplateName: repoTemplateName,
-      });
+    const result = await createEvent({
+      name,
+      description,
+      githubOrg,
+      githubOrgSecret,
+      location,
+      startDate,
+      endDate,
+      minTeamSize,
+      maxTeamSize,
+      treeFormat,
+      repoTemplateOwner: repoTemplateOwner,
+      repoTemplateName: repoTemplateName,
+    });
 
-      if ("error" in result) {
-        setError(result.error);
-      } else {
-        router.push(`/events/${result.id}`);
-      }
-    } catch (err) {
-      console.error("Error creating event:", err);
-      setError("An unexpected error occurred while creating the event.");
-    } finally {
-      setIsLoading(false);
+    if (isActionError(result)) {
+      setError(result.error);
+      return;
     }
+
+    router.push(`/events/${result.id}`);
   };
 
   return (
@@ -117,18 +111,6 @@ export default function CreateEventPage() {
               required
               placeholder="Enter event name"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Type</label>
-            <Select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              placeholder="Select event type"
-            >
-              <SelectItem key="REGULAR">Regular Event</SelectItem>
-              <SelectItem key="RUSH">Rush Event</SelectItem>
-            </Select>
           </div>
 
           <div>
@@ -159,8 +141,9 @@ export default function CreateEventPage() {
               </label>
               <Input
                 type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) =>
+                  setStartDate(new Date(e.target.value).getTime())
+                }
                 required
               />
             </div>
@@ -168,8 +151,7 @@ export default function CreateEventPage() {
               <label className="block text-sm font-medium mb-1">End Date</label>
               <Input
                 type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => setEndDate(new Date(e.target.value).getTime())}
                 required
               />
             </div>
@@ -223,6 +205,39 @@ export default function CreateEventPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium">
+                GitHub Organization
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Organization Name
+                </label>
+                <Input
+                  required={true}
+                  value={githubOrg}
+                  onChange={(e) => setGithubOrg(e.target.value)}
+                  placeholder="e.g. 42core-team"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  GitHub Organization Secret
+                </label>
+                <Input
+                  required={true}
+                  value={githubOrgSecret}
+                  type="password"
+                  onChange={(e) => setGithubOrgSecret(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">
                 GitHub Repository Template
               </label>
               <Chip color="warning" size="sm">
@@ -236,6 +251,7 @@ export default function CreateEventPage() {
                   Template Owner
                 </label>
                 <Input
+                  required={true}
                   value={repoTemplateOwner}
                   onChange={(e) => setRepoTemplateOwner(e.target.value)}
                   placeholder="e.g. 42core-team"
@@ -246,6 +262,7 @@ export default function CreateEventPage() {
                   Template Repository
                 </label>
                 <Input
+                  required={true}
                   value={repoTemplateName}
                   onChange={(e) => setRepoTemplateName(e.target.value)}
                   placeholder="e.g. rush-template"

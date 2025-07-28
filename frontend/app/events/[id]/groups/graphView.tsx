@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import ReactFlow, { useNodesState, Node } from "reactflow";
 import "reactflow/dist/style.css";
-import { Match } from "@/generated/prisma";
+import { Match } from "@/types";
 
 export default function GraphView({ matches }: { matches: Match[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

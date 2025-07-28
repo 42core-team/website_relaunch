@@ -5,7 +5,7 @@ import { Link } from "@heroui/link";
 import { button as buttonStyles } from "@heroui/theme";
 
 import { GithubIcon, WikiIcon } from "@/components/icons";
-import { CoreLogoWhite } from "../components/social";
+import { CoreLogoWhite } from "@/components/social";
 
 export default function IndexPage() {
   return (
@@ -22,13 +22,12 @@ export default function IndexPage() {
 
         <div className="flex gap-3">
           <Link
-            isExternal
             className={buttonStyles({
               color: "primary",
               radius: "full",
               variant: "shadow",
             })}
-            href="https://wiki.coregame.de"
+            href="/wiki"
           >
             <WikiIcon size={20} />
             Documentation

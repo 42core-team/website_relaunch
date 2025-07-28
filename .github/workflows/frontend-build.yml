@@ -63,7 +63,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr,prefix=pr-
-            type=sha,prefix={{branch}}-,format=short
+            type=sha,format=short
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6

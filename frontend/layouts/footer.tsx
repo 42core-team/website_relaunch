@@ -33,7 +33,7 @@ export default function Footer() {
                 About
               </Link>
               <Link
-                href="https://wiki.coregame.de"
+                href="/wiki"
                 className="text-default-500 hover:text-primary"
               >
                 Documentation
@@ -58,7 +58,7 @@ export default function Footer() {
                 variant="flat"
                 size="sm"
                 as={Link}
-                href="https://wiki.coregame.de"
+                href="/wiki"
               >
                 Get Started
               </Button>

@@ -40,6 +40,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      short_sha: ${{ steps.short-sha.outputs.short_sha }}
 
     steps:
       - name: Checkout repository
@@ -114,5 +116,5 @@ jobs:
     uses: ./.github/workflows/api-deploy.yml
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
-      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || steps.short-sha.outputs.short_sha }}
+      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || needs.build.outputs.short_sha }}
     secrets: inherit

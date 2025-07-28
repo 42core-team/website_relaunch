@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/clone-wiki-branches.js",
+    "clone:wiki": "node scripts/clone-wiki-branches.js",
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",

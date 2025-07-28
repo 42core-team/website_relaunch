@@ -11,6 +11,10 @@ on:
         description: 'Docker image tag to deploy'
         required: true
         type: string
+      image_repository:
+        description: 'Docker image repository'
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -84,6 +88,7 @@ jobs:
         run: |
           ENVIRONMENT="${{ inputs.environment }}"
           IMAGE_TAG="${{ inputs.image_tag }}"
+          IMAGE_REPO="${{ inputs.image_repository }}"
           
           # Sanitize branch name for Kubernetes resources
           BRANCH_NAME="${{ github.ref_name }}"
@@ -113,6 +118,7 @@ jobs:
           echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_repo=${IMAGE_REPO}" >> $GITHUB_OUTPUT
           echo "release_name=frontend-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
           echo "environment_url=${ENVIRONMENT_URL}" >> $GITHUB_OUTPUT
           
@@ -122,6 +128,7 @@ jobs:
           echo "- Values file: ${VALUES_FILE}"
           echo "- Namespace: ${NAMESPACE}"
           echo "- Image tag: ${IMAGE_TAG}"
+          echo "- Image repo: ${IMAGE_REPO}"
           echo "- Release name: frontend-${SANITIZED_BRANCH}"
           echo "- Environment URL: ${ENVIRONMENT_URL}"
 
@@ -147,7 +154,7 @@ jobs:
             --namespace ${{ steps.config.outputs.namespace }} \
             --values ${{ steps.config.outputs.values_file }} \
             --set image.tag=${{ steps.config.outputs.image_tag }} \
-            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set secrets.NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
@@ -159,7 +166,7 @@ jobs:
           
           echo "Deploying frontend to ${{ steps.config.outputs.environment }} environment..."
           echo "Using values file: ${{ steps.config.outputs.values_file }}"
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}"
+          echo "Image: ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}"
           
           helm upgrade --install \
             ${{ steps.config.outputs.release_name }} \
@@ -167,7 +174,7 @@ jobs:
             --namespace ${{ steps.config.outputs.namespace }} \
             --values ${{ steps.config.outputs.values_file }} \
             --set image.tag=${{ steps.config.outputs.image_tag }} \
-            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set secrets.NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
@@ -230,5 +237,5 @@ jobs:
           echo "- **Namespace:** ${{ steps.config.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Release name:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Values file:** ${{ steps.config.outputs.values_file }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY 

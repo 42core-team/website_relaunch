@@ -1,16 +1,31 @@
-name: Build Frontend
+name: Frontend
 
 on:
   push:
     branches: [main, dev]
     paths:
       - 'frontend/**'
-      - '.github/workflows/frontend-build.yml'
+      - '.github/workflows/frontend.yml'
   pull_request:
     branches: [main, dev]
     paths:
       - 'frontend/**'
-      - '.github/workflows/frontend-build.yml'
+      - '.github/workflows/frontend.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        default: 'latest'
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -69,4 +84,14 @@ jobs:
           echo "**Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY 
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+
+  # Deploy job - only runs on push events or manual dispatch
+  deploy:
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/frontend-deploy-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || 'dev') }}
+      image_tag: ${{ github.event.inputs.image_tag || (github.ref == 'refs/heads/main' && 'main' || 'dev') }}
+      image_repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} 

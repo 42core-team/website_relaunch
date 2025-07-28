@@ -7,6 +7,7 @@ import { WikiSearch } from "./WikiSearch";
 import { VersionSelector } from "./VersionSelector";
 import { WikiNavItem, WikiVersion } from "@/lib/markdown";
 import { buildVersionPath } from "@/lib/wiki-navigation";
+import { useNavbar } from "@/contexts/NavbarContext";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export function WikiLayout({
   const router = useRouter();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState(false);
+  const { isBasicNavbarMenuOpen } = useNavbar();
 
   const handleVersionChange = (newVersion: string) => {
     if (newVersion === currentVersion) return;
@@ -73,7 +75,9 @@ export function WikiLayout({
       {/* Main Content */}
       <div className="flex-1 min-w-0 lg:ml-0">
         {/* Header with Search and Version Selector */}
-        <header className="border-b border-divider bg-content1 p-4 shadow-sm sticky top-[60px] z-40">
+        <header
+          className={`border-b border-divider bg-content1 p-4 shadow-sm sticky top-[60px] z-40 transition-opacity duration-300 ${isBasicNavbarMenuOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
+        >
           <div className="flex items-center justify-between gap-4">
             {/* Mobile Menu Button */}
             <button

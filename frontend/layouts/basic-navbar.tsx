@@ -25,12 +25,14 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import GithubLoginButton from "@/components/github";
 import router from "next/router";
 import { signOut, useSession } from "next-auth/react";
+import { useNavbar } from "@/contexts/NavbarContext";
 
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
   ({ classNames = {}, ...props }, ref) => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const pathname = usePathname();
     const session = useSession();
+    const { setIsBasicNavbarMenuOpen } = useNavbar();
 
     return (
       <Navbar
@@ -46,7 +48,10 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
         }}
         height="60px"
         isMenuOpen={isMenuOpen}
-        onMenuOpenChange={setIsMenuOpen}
+        onMenuOpenChange={(open) => {
+          setIsMenuOpen(open);
+          setIsBasicNavbarMenuOpen(open);
+        }}
       >
         {/* Left Content */}
         <NavbarBrand>
@@ -85,7 +90,8 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname.startsWith("/wiki"),
+                "font-bold text-default-foreground":
+                  pathname.startsWith("/wiki"),
               })}
               href="/wiki"
               size="sm"

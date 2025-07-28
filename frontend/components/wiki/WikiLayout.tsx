@@ -100,24 +100,25 @@ export function WikiLayout({
               </svg>
             </button>
 
-            <div className="flex-1 max-w-md relative flex items-center gap-2">
-              <div className="flex-1">
-                <WikiSearch currentVersion={currentVersion} />
-              </div>
+            <div className="flex-1 max-w-md">
+              <WikiSearch currentVersion={currentVersion} />
+            </div>
 
-              {/* Version Selector Icon */}
-              {versions.length > 1 && (
-                <div className="relative">
+            {/* Version Selector - Desktop: Direct dropdown, Mobile: Icon */}
+            {versions.length > 1 && (
+              <div className="relative">
+                {/* Desktop Version Selector */}
+                <div className="hidden lg:block relative">
                   <button
                     onClick={() =>
                       setIsVersionDropdownOpen(!isVersionDropdownOpen)
                     }
-                    className="p-2 rounded-md hover:bg-default-100 transition-colors"
-                    aria-label="Select version"
-                    title="Select version"
+                    className="px-3 py-2 text-sm rounded-md border border-divider hover:bg-default-100 transition-colors flex items-center gap-2"
                   >
+                    {versions.find((v) => v.slug === currentVersion)?.name ||
+                      "Select Version"}
                     <svg
-                      className="w-5 h-5 text-default-600"
+                      className={`w-4 h-4 transition-transform ${isVersionDropdownOpen ? "rotate-180" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -126,30 +127,12 @@ export function WikiLayout({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7h-4V3"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 12h4"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 16h2"
+                        d="M19 9l-7 7-7-7"
                       />
                     </svg>
                   </button>
 
-                  {/* Version Dropdown */}
+                  {/* Desktop Dropdown Menu */}
                   {isVersionDropdownOpen && (
                     <>
                       {/* Backdrop */}
@@ -197,8 +180,100 @@ export function WikiLayout({
                     </>
                   )}
                 </div>
-              )}
-            </div>
+
+                {/* Mobile Version Selector - Icon Only */}
+                <div className="lg:hidden relative">
+                  <button
+                    onClick={() =>
+                      setIsVersionDropdownOpen(!isVersionDropdownOpen)
+                    }
+                    className="p-2 rounded-md hover:bg-default-100 transition-colors"
+                    aria-label="Select version"
+                    title="Select version"
+                  >
+                    <svg
+                      className="w-5 h-5 text-default-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7h-4V3"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 12h4"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 16h2"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Mobile Dropdown Menu */}
+                  {isVersionDropdownOpen && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsVersionDropdownOpen(false)}
+                      />
+
+                      {/* Dropdown Menu */}
+                      <div className="absolute right-0 top-full mt-2 bg-content1 border border-divider rounded-lg shadow-lg min-w-48 z-20">
+                        <div className="p-2">
+                          <div className="text-xs font-semibold text-default-600 mb-2 px-2">
+                            Select Version
+                          </div>
+                          {versions.map((version) => (
+                            <button
+                              key={version.slug}
+                              onClick={() => handleVersionChange(version.slug)}
+                              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
+                                currentVersion === version.slug
+                                  ? "bg-primary-50 text-primary-600"
+                                  : "text-default-700"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{version.name}</span>
+                                {currentVersion === version.slug && (
+                                  <svg
+                                    className="w-4 h-4 text-primary-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 

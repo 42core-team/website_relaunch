@@ -22,13 +22,12 @@ export default function IndexPage() {
 
         <div className="flex gap-3">
           <Link
-            isExternal
             className={buttonStyles({
               color: "primary",
               radius: "full",
               variant: "shadow",
             })}
-            href="https://wiki.coregame.de"
+            href="/wiki"
           >
             <WikiIcon size={20} />
             Documentation

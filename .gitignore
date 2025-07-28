@@ -3,3 +3,4 @@
 .DS_Store
 api.gen.go
 .env
+.claude

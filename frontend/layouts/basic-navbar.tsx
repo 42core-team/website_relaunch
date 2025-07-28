@@ -30,9 +30,18 @@ import { useNavbar } from "@/contexts/NavbarContext";
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
   ({ classNames = {}, ...props }, ref) => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [clickedItem, setClickedItem] = React.useState<string | null>(null);
     const pathname = usePathname();
     const session = useSession();
     const { setIsBasicNavbarMenuOpen } = useNavbar();
+
+    React.useEffect(() => {
+      setClickedItem(null);
+    }, [pathname]);
+
+    const handleNavClick = React.useCallback((path: string) => {
+      setClickedItem(path);
+    }, []);
 
     return (
       <Navbar
@@ -68,10 +77,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/",
+                "font-bold text-default-foreground":
+                  clickedItem === "/" ||
+                  (clickedItem === null && pathname === "/"),
               })}
               href="/"
               size="sm"
+              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -79,10 +91,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/events",
+                "font-bold text-default-foreground":
+                  clickedItem === "/events" ||
+                  (clickedItem === null && pathname === "/events"),
               })}
               href="/events"
               size="sm"
+              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
@@ -91,10 +106,12 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
             <Link
               className={cn("text-default-500", {
                 "font-bold text-default-foreground":
-                  pathname.startsWith("/wiki"),
+                  clickedItem === "/wiki" ||
+                  (clickedItem === null && pathname.startsWith("/wiki")),
               })}
               href="/wiki"
               size="sm"
+              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -102,10 +119,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/about",
+                "font-bold text-default-foreground":
+                  clickedItem === "/about" ||
+                  (clickedItem === null && pathname === "/about"),
               })}
               href="/about"
               size="sm"
+              onPress={() => handleNavClick("/about")}
             >
               About Us
             </Link>
@@ -182,10 +202,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/",
+                "font-bold text-default-foreground":
+                  clickedItem === "/" ||
+                  (clickedItem === null && pathname === "/"),
               })}
               href="/"
               size="md"
+              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -193,10 +216,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/events",
+                "font-bold text-default-foreground":
+                  clickedItem === "/events" ||
+                  (clickedItem === null && pathname === "/events"),
               })}
               href="/events"
               size="md"
+              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
@@ -205,10 +231,12 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
             <Link
               className={cn("mb-2 w-full text-default-500", {
                 "font-bold text-default-foreground":
-                  pathname.startsWith("/wiki"),
+                  clickedItem === "/wiki" ||
+                  (clickedItem === null && pathname.startsWith("/wiki")),
               })}
               href="/wiki"
               size="md"
+              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -216,10 +244,13 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/about",
+                "font-bold text-default-foreground":
+                  clickedItem === "/about" ||
+                  (clickedItem === null && pathname === "/about"),
               })}
               href="/about"
               size="md"
+              onPress={() => handleNavClick("/about")}
             >
               About us
             </Link>

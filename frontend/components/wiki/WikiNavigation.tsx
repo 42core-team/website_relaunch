@@ -148,7 +148,7 @@ export function WikiNavigation({
         <div key={uniqueKey}>
           <Link
             href={getVersionAwareUrl(itemPath)}
-            onClick={onItemClick}
+            onPress={onItemClick}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
               isActive ? "bg-primary-50 text-primary-600" : "text-default-600"
             }`}
@@ -225,7 +225,7 @@ export function WikiNavigation({
       <Link
         key={uniqueKey}
         href={getVersionAwareUrl(itemPath)}
-        onClick={onItemClick}
+        onPress={onItemClick}
         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
           isActive ? "bg-primary-50 text-primary-600" : "text-default-600"
         }`}

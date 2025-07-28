@@ -28,8 +28,6 @@ export const authOptions: NextAuthOptions = {
               throw new Error("No access token found");
             }
 
-            console.log("user not found, creating new user");
-
             await axiosInstance.post(`user/`, {
               email: user.email!,
               username: githubProfile?.login || user.name!,

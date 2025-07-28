@@ -4,54 +4,42 @@ This directory contains the frontend codebase, built with [Next.js](https://next
 
 ---
 
+# Migration to pnpm
+
+This project has been migrated from npm to [pnpm](https://pnpm.io/).
+
 ## Getting Started
 
-The preferred way to develop is to use the provided devcontainer that also starts a postgres database.
+1. **Install pnpm** (if not already installed):
 
-### 1. Install Dependencies
+   ```sh
+   corepack enable && corepack prepare pnpm@latest --activate
+   # or
+   brew install pnpm
+   ```
 
-```bash
-npm install
-```
+2. **Install dependencies:**
 
-**Note:** For the initial setup, you must also generate the Prisma client and run the initial database migration:
+   ```sh
+   pnpm install
+   ```
 
-```bash
-npx prisma generate
-npx prisma migrate dev
-```
+3. **Run the development server:**
 
-### 2. Environment Variables
+   ```sh
+   pnpm dev
+   ```
 
-- Copy `.env.example` to `.env` and fill in all required values (including your GitHub OAuth credentials and database connection string).
+4. **Build for production:**
 
----
+   ```sh
+   pnpm build
+   ```
 
-## Running the Development Server
-
-Start the Next.js development server:
-
-```bash
-npm run dev
-```
-
-The app will be available at [http://localhost:3000](http://localhost:3000).
-
----
-
-## Building for Production
-
-To build the optimized production bundle:
-
-```bash
-npm run build
-```
-
-To start the production server after building:
-
-```bash
-npm start
-```
+5. **Start the production server:**
+   ```sh
+   pnpm start
+   ```
 
 ---
 

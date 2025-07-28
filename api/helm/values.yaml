@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/42core-team/website_relaunch-api
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: "latest"
 
 imagePullSecrets:

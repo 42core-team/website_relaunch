@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/42core-team/website_relaunch-frontend
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets:
@@ -50,7 +50,6 @@ affinity: {}
 
 env:
   NODE_ENV: production
-  NEXT_TELEMETRY_DISABLED: "1"
   # Add other environment variables as needed
 
 # Secrets - these should be provided via GitHub secrets during deployment

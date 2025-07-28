@@ -162,6 +162,7 @@ jobs:
             --set env.DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
             --set secrets.DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
             --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
+            --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \
             --wait \
             --timeout=10m \
             --atomic \

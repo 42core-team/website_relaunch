@@ -64,6 +64,7 @@ env:
 secrets:
   DB_PASSWORD: ""
   API_SECRET_ENCRYPTION_KEY: ""
+  FRONTEND_SECRET: ""
 
 ingress:
   enabled: false

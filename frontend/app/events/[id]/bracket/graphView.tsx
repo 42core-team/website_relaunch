@@ -98,7 +98,8 @@ export default function GraphView({ matches }: { matches: SerializedMatch[] }) {
             display: none;
           }
           .react-flow__node {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            font-family:
+              -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
               "Helvetica Neue", Arial, sans-serif;
           }
         `}</style>

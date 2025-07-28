@@ -34,7 +34,7 @@ jobs:
           fi
 
       - name: Deploy to environment
-        uses: ./.github/workflows/frontend-deploy.yml
+        uses: ./.github/workflows/frontend-deploy-reusable.yml
         with:
           environment: ${{ steps.env.outputs.environment }}
           image_tag: ${{ steps.env.outputs.image_tag }} 

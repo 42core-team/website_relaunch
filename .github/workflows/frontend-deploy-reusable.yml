@@ -1,20 +1,15 @@
-name: Deploy Frontend
+name: Deploy Frontend (Reusable)
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       environment:
         description: 'Environment to deploy to'
         required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - prod
+        type: string
       image_tag:
         description: 'Docker image tag to deploy'
         required: true
-        default: 'latest'
         type: string
 
 env:

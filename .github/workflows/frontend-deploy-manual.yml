@@ -27,4 +27,4 @@ jobs:
     with:
       environment: ${{ github.event.inputs.environment }}
       image_tag: ${{ github.event.inputs.image_tag }}
-      image_repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      image_repository: ghcr.io/${{ github.repository }}-frontend

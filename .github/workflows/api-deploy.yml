@@ -156,10 +156,11 @@ jobs:
             --values ${{ steps.config.outputs.values_file }} \
             --set image.tag=${{ steps.config.outputs.image_tag }} \
             --set image.repository=${{ steps.config.outputs.image_repo }} \
-            --set env.DB_HOST="${{ secrets.DB_HOST }}" \
-            --set env.DB_USER="${{ secrets.DB_USER }}" \
-            --set env.DB_NAME="${{ secrets.DB_NAME }}" \
-            --set env.DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
+            --set env.DB_HOST="${{ vars.DB_HOST }}" \
+            --set env.DB_PORT="${{ vars.DB_PORT }}" \
+            --set env.DB_USER="${{ vars.DB_USER }}" \
+            --set env.DB_NAME="${{ vars.DB_NAME }}" \
+            --set env.DB_SCHEMA="${{ vars.DB_SCHEMA }}" \
             --set secrets.DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
             --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
             --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \

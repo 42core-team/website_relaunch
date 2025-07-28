@@ -5,8 +5,8 @@ import axiosInstance from "@/app/actions/axios";
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
+      clientId: process.env.CLIENT_ID_GITHUB!,
+      clientSecret: process.env.CLIENT_SECRET_GITHUB!,
       authorization: {
         params: {
           scope: "read:user user:email repo:invite",

@@ -2,7 +2,7 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const REPO = "git@github.com:42core-team/wiki.git";
+const repoUrl = "https://github.com/42core-team/wiki.git";
 const BRANCHES = ["season2-reloaded", "season2", "season1", "rush02"];
 const BASE_DIR = path.join(__dirname, "../content/wiki");
 
@@ -22,7 +22,7 @@ BRANCHES.forEach((branch) => {
     // Clone the specific branch
     console.log(`Cloning ${branch} into ${targetDir}...`);
     execSync(
-      `git clone --branch ${branch} --single-branch --depth 1 ${REPO} ${targetDir}`,
+      `git clone --branch ${branch} --single-branch --depth 1 ${repoUrl} ${targetDir}`,
       { stdio: "inherit" },
     );
   }

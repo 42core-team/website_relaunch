@@ -1,4 +1,4 @@
-name: Deploy Frontend (Reusable)
+name: Deploy Frontend
 
 on:
   workflow_call:
@@ -11,9 +11,20 @@ on:
         description: "Docker image tag to deploy"
         required: true
         type: string
-      image_repository:
-        description: "Docker image repository"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
         required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        default: "dev"
         type: string
 
 env:
@@ -104,7 +115,7 @@ jobs:
         run: |
           ENVIRONMENT="${{ inputs.environment }}"
           IMAGE_TAG="${{ inputs.image_tag }}"
-          IMAGE_REPO="${{ inputs.image_repository }}"
+          IMAGE_REPO="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
 
           # Sanitize branch name for Kubernetes resources
           BRANCH_NAME="${{ github.ref_name }}"

@@ -63,7 +63,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr,prefix=pr-
-            type=sha,prefix={{branch}}-,format=short
+            type=sha,format=short
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -71,7 +71,7 @@ jobs:
           context: ./api
           file: ./api/Dockerfile
           platforms: ${{ matrix.platform }}
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -79,12 +79,20 @@ jobs:
 
       - name: Output image details
         run: |
-          echo "## API Image Built" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "## ✅ API Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## 🔨 API Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **Note:** Image was built for testing but not pushed to registry (only pushes on direct commits to main/dev)" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # Deploy job - only runs on push events or manual dispatch
   deploy:

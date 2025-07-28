@@ -196,7 +196,7 @@ jobs:
             --set image.tag=${{ steps.config.outputs.image_tag }} \
             --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set secrets.NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
-            --set secrets.CLIENT_ID_GITHUB="${{ vars.CLIENT_ID_GITHUB }}" \
+            --set env.CLIENT_ID_GITHUB="${{ vars.CLIENT_ID_GITHUB }}" \
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
             --validate
@@ -217,7 +217,7 @@ jobs:
             --set image.tag=${{ steps.config.outputs.image_tag }} \
             --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set secrets.NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
-            --set secrets.CLIENT_ID_GITHUB="${{ vars.CLIENT_ID_GITHUB }}" \
+            --set env.CLIENT_ID_GITHUB="${{ vars.CLIENT_ID_GITHUB }}" \
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
             --wait \

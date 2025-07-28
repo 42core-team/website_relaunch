@@ -101,5 +101,5 @@ jobs:
     uses: ./.github/workflows/api-deploy.yml
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
-      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.sha }}
+      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
     secrets: inherit

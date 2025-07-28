@@ -49,4 +49,4 @@ affinity: {}
 secrets:
   NEXTAUTH_SECRET: ""
   CLIENT_SECRET_GITHUB: ""
-  BACKEND_SECRET: "" 
+  BACKEND_SECRET: ""

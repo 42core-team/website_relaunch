@@ -84,4 +84,4 @@ readinessProbe:
     path: /
     port: http
   initialDelaySeconds: 5
-  periodSeconds: 5 
+  periodSeconds: 5

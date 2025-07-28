@@ -25,7 +25,7 @@ ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
     - host: dev.coregame.de
@@ -45,4 +45,4 @@ affinity: {}
 secrets:
   NEXTAUTH_SECRET: ""
   CLIENT_SECRET_GITHUB: ""
-  BACKEND_SECRET: "" 
+  BACKEND_SECRET: ""

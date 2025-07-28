@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { WikiNavigation } from "./WikiNavigation";
 import { WikiSearch } from "./WikiSearch";
 import { VersionSelector } from "./VersionSelector";
 import { WikiNavItem, WikiVersion } from "@/lib/markdown";
+import { buildVersionPath } from "@/lib/wiki-navigation";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
@@ -23,8 +25,21 @@ export function WikiLayout({
   currentVersion = "latest",
   pageContent,
 }: WikiLayoutProps) {
+  const router = useRouter();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState(false);
+
+  const handleVersionChange = (newVersion: string) => {
+    if (newVersion === currentVersion) return;
+
+    const newPath = buildVersionPath(
+      window.location.pathname,
+      newVersion,
+      versions,
+    );
+    router.push(newPath);
+    setIsVersionDropdownOpen(false);
+  };
 
   return (
     <div className="flex bg-background">
@@ -148,35 +163,7 @@ export function WikiLayout({
                           {versions.map((version) => (
                             <button
                               key={version.slug}
-                              onClick={() => {
-                                if (version.slug !== currentVersion) {
-                                  // Use the same logic as VersionSelector
-                                  const pathParts = window.location.pathname
-                                    .split("/")
-                                    .filter(Boolean);
-                                  if (pathParts[0] === "wiki") {
-                                    pathParts.shift();
-                                    if (
-                                      pathParts.length > 0 &&
-                                      versions.some(
-                                        (v) => v.slug === pathParts[0],
-                                      )
-                                    ) {
-                                      pathParts.shift();
-                                    }
-                                    const newPath =
-                                      version.slug === "latest"
-                                        ? pathParts.length > 0
-                                          ? `/wiki/${pathParts.join("/")}`
-                                          : "/wiki"
-                                        : pathParts.length > 0
-                                          ? `/wiki/${version.slug}/${pathParts.join("/")}`
-                                          : `/wiki/${version.slug}`;
-                                    window.location.href = newPath;
-                                  }
-                                }
-                                setIsVersionDropdownOpen(false);
-                              }}
+                              onClick={() => handleVersionChange(version.slug)}
                               className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
                                 currentVersion === version.slug
                                   ? "bg-primary-50 text-primary-600"

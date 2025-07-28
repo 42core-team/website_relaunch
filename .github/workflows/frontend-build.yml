@@ -40,6 +40,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      short_sha: ${{ steps.short-sha.outputs.short_sha }}
 
     steps:
       - name: Checkout repository
@@ -77,6 +79,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Extract short SHA for deployment
+        id: short-sha
+        run: |
+          # Extract the short SHA from the tags
+          SHORT_SHA=$(echo "${{ steps.meta.outputs.tags }}" | grep -o '[a-f0-9]\{7\}' | head -1)
+          if [ -z "$SHORT_SHA" ]; then
+            # Fallback to github.sha if short SHA not found
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          fi
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Extracted short SHA: $SHORT_SHA"
+
       - name: Output image details
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
@@ -87,6 +101,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Short SHA:** ${{ steps.short-sha.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" != "push" ]; then
@@ -100,5 +115,5 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/frontend-deploy.yml
     with:
-      environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || 'dev') }}
-      image_tag: ${{ github.event.inputs.image_tag || (github.ref == 'refs/heads/main' && 'main' || 'dev') }}
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
+      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || format('sha-{0}', needs.build.outputs.short_sha) }}

@@ -31,7 +31,6 @@ Add the following secrets for development:
 | `DB_PASSWORD` | Database password | `secure_dev_password` |
 | `DB_NAME` | Development database name | `core_api_dev` |
 | `DB_SCHEMA` | Database schema | `public` |
-| `GITHUB_TOKEN` | GitHub personal access token | `ghp_xxxxxxxxxxxx` |
 | `API_SECRET_ENCRYPTION_KEY` | Encryption key (32 chars) | `dev_encryption_key_32_characters` |
 
 ### Step 3: Create API Production Environment
@@ -55,7 +54,6 @@ Add the following secrets for production:
 | `DB_PASSWORD` | Database password | `very_secure_prod_password` |
 | `DB_NAME` | Production database name | `core_api_prod` |
 | `DB_SCHEMA` | Database schema | `public` |
-| `GITHUB_TOKEN` | GitHub personal access token | `ghp_xxxxxxxxxxxx` |
 | `API_SECRET_ENCRYPTION_KEY` | Encryption key (32 chars) | `prod_encryption_key_32_characters` |
 
 ## Security Best Practices
@@ -66,12 +64,7 @@ Add the following secrets for production:
 - Use strong, unique passwords
 - Consider using managed database services with IAM authentication
 
-### GitHub Token
-- Use a dedicated service account or bot user
-- Grant minimal required permissions:
-  - `Contents: Read` (for accessing repository content)
-  - `Packages: Write` (for pushing Docker images)
-- Regularly rotate the token
+
 
 ### Encryption Key
 - Generate cryptographically secure random keys
@@ -91,7 +84,6 @@ DB_NAME=core_api_development
 DB_SCHEMA=public
 
 # Application Configuration  
-GITHUB_TOKEN=ghp_dev_token_here
 API_SECRET_ENCRYPTION_KEY=dev_key_32_chars_exactly_here_
 ```
 
@@ -105,7 +97,6 @@ DB_NAME=core_api_production
 DB_SCHEMA=public
 
 # Application Configuration
-GITHUB_TOKEN=ghp_prod_token_here
 API_SECRET_ENCRYPTION_KEY=prod_key_32_chars_exactly_here_
 ```
 

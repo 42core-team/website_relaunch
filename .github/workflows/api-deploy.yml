@@ -156,12 +156,11 @@ jobs:
             --values ${{ steps.config.outputs.values_file }} \
             --set image.tag=${{ steps.config.outputs.image_tag }} \
             --set image.repository=${{ steps.config.outputs.image_repo }} \
-            --set secrets.DB_HOST="${{ secrets.DB_HOST }}" \
-            --set secrets.DB_USER="${{ secrets.DB_USER }}" \
+            --set env.DB_HOST="${{ secrets.DB_HOST }}" \
+            --set env.DB_USER="${{ secrets.DB_USER }}" \
+            --set env.DB_NAME="${{ secrets.DB_NAME }}" \
+            --set env.DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
             --set secrets.DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
-            --set secrets.DB_NAME="${{ secrets.DB_NAME }}" \
-            --set secrets.DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
-            --set secrets.GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
             --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
             --wait \
             --timeout=10m \

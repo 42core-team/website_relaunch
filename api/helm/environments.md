@@ -35,23 +35,24 @@ This document describes the different environments available for the CORE API de
 - **Database**: Production database
 - **Deployment**: Automatic on push to `main` branch
 
-## Environment Variables
+## Environment Configuration
 
-Each environment requires the following secrets to be configured in GitHub environments:
+Each environment requires both environment variables and secrets to be configured:
 
 ### GitHub Environments
 - **Development**: `api-dev` environment
 - **Production**: `api-prod` environment
 
 ### Database Configuration
+
+**Environment Variables (set in values files or via --set):**
 - `DB_HOST` - Database host (environment-specific)
 - `DB_USER` - Database username
-- `DB_PASSWORD` - Database password
 - `DB_NAME` - Database name (environment-specific)
 - `DB_SCHEMA` - Database schema
 
-### Application Configuration
-- `GITHUB_TOKEN` - GitHub personal access token
+**Required Secrets (configured in GitHub environments):**
+- `DB_PASSWORD` - Database password
 - `API_SECRET_ENCRYPTION_KEY` - Encryption key for sensitive data
 
 ## CORS Configuration

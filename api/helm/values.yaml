@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/42core-team/website_relaunch-api
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets:
@@ -54,16 +54,15 @@ env:
   # Database configuration
   DB_TYPE: postgres
   DB_PORT: "5432"
+  DB_HOST: ""
+  DB_USER: ""
+  DB_NAME: ""
+  DB_SCHEMA: ""
   # Add other environment variables as needed
 
 # Secrets - these should be provided via GitHub secrets during deployment
 secrets:
-  DB_HOST: ""
-  DB_USER: ""
   DB_PASSWORD: ""
-  DB_NAME: ""
-  DB_SCHEMA: ""
-  GITHUB_TOKEN: ""
   API_SECRET_ENCRYPTION_KEY: ""
 
 ingress:
@@ -91,4 +90,4 @@ readinessProbe:
     path: /health
     port: http
   initialDelaySeconds: 5
-  periodSeconds: 5 
+  periodSeconds: 5

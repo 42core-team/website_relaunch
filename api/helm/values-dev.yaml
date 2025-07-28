@@ -18,6 +18,10 @@ env:
   # Database configuration
   DB_TYPE: postgres
   DB_PORT: "5432"
+  DB_HOST: ""
+  DB_USER: ""
+  DB_NAME: ""
+  DB_SCHEMA: ""
   # CORS configuration for dev
   CORS_ORIGIN: "https://dev.coregame.de"
 
@@ -45,10 +49,5 @@ affinity: {}
 
 # Secrets - these should be provided via GitHub secrets during deployment
 secrets:
-  DB_HOST: ""
-  DB_USER: ""
   DB_PASSWORD: ""
-  DB_NAME: ""
-  DB_SCHEMA: ""
-  GITHUB_TOKEN: ""
-  API_SECRET_ENCRYPTION_KEY: "" 
+  API_SECRET_ENCRYPTION_KEY: ""

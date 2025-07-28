@@ -43,36 +43,11 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             # Secrets from Kubernetes secrets
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "api.fullname" . }}-secrets
-                  key: DB_HOST
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "api.fullname" . }}-secrets
-                  key: DB_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "api.fullname" . }}-secrets
                   key: DB_PASSWORD
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "api.fullname" . }}-secrets
-                  key: DB_NAME
-            - name: DB_SCHEMA
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "api.fullname" . }}-secrets
-                  key: DB_SCHEMA
-            - name: GITHUB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "api.fullname" . }}-secrets
-                  key: GITHUB_TOKEN
             - name: API_SECRET_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:

@@ -14,22 +14,30 @@ This Helm chart deploys the CORE backend API (NestJS application) to Kubernetes.
 
 ```bash
 # Install to development environment
-# Note: Secrets are automatically injected from GitHub environment "api-dev"
+# Note: Database config is set via environment variables, secrets are injected from GitHub environment "api-dev"
 helm upgrade --install api-dev . \
   --namespace development \
   --values values-dev.yaml \
-  --set image.tag=latest
+  --set image.tag=latest \
+  --set env.DB_HOST="your-dev-db-host" \
+  --set env.DB_USER="your-dev-db-user" \
+  --set env.DB_NAME="your-dev-db-name" \
+  --set env.DB_SCHEMA="your-dev-schema"
 ```
 
 ### Production Deployment
 
 ```bash
 # Install to production environment  
-# Note: Secrets are automatically injected from GitHub environment "api-prod"
+# Note: Database config is set via environment variables, secrets are injected from GitHub environment "api-prod"
 helm upgrade --install api-prod . \
   --namespace production \
   --values values-prod.yaml \
-  --set image.tag=v1.0.0
+  --set image.tag=v1.0.0 \
+  --set env.DB_HOST="your-prod-db-host" \
+  --set env.DB_USER="your-prod-db-user" \
+  --set env.DB_NAME="your-prod-db-name" \
+  --set env.DB_SCHEMA="your-prod-schema"
 ```
 
 ## Configuration
@@ -42,13 +50,16 @@ The API requires the following environment variables to be configured in GitHub 
 - **Development**: Configure secrets in `api-dev` environment
 - **Production**: Configure secrets in `api-prod` environment
 
-#### Required Secrets
+#### Required Configuration
+
+**Environment Variables (set in values files or via --set):**
 - `DB_HOST`: PostgreSQL database host
-- `DB_USER`: Database username
-- `DB_PASSWORD`: Database password
+- `DB_USER`: Database username  
 - `DB_NAME`: Database name
 - `DB_SCHEMA`: Database schema
-- `GITHUB_TOKEN`: GitHub personal access token for API access
+
+**Required Secrets (configured in GitHub environments):**
+- `DB_PASSWORD`: Database password
 - `API_SECRET_ENCRYPTION_KEY`: Secret key for encrypting sensitive data
 
 ### Values Files

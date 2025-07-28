@@ -94,4 +94,4 @@ jobs:
     with:
       environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || 'dev') }}
       image_tag: ${{ github.event.inputs.image_tag || (github.ref == 'refs/heads/main' && 'main' || 'dev') }}
-      image_repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} 
+      image_repository: ghcr.io/${{ github.repository }}-frontend 

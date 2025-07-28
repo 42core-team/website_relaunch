@@ -1,0 +1,58 @@
+# Production environment values
+replicaCount: 2
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  NODE_ENV: production
+  PORT: "3001"
+  # Database configuration
+  DB_TYPE: postgres
+  DB_PORT: "5432"
+  # CORS configuration for prod
+  CORS_ORIGIN: "https://coregame.de"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://coregame.de"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  hosts:
+    - host: api.coregame.de
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.coregame.de
+      secretName: api-coregame-de-tls
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Secrets - these should be provided via GitHub secrets during deployment
+secrets:
+  DB_HOST: ""
+  DB_USER: ""
+  DB_PASSWORD: ""
+  DB_NAME: ""
+  DB_SCHEMA: ""
+  GITHUB_TOKEN: ""
+  API_SECRET_ENCRYPTION_KEY: "" 

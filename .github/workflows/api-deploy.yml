@@ -1,0 +1,176 @@
+name: Deploy API
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        default: "dev"
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-api
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: api-${{ inputs.environment }}
+
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure deployment settings
+        id: config
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          IMAGE_REPO="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+          # Sanitize branch name for Kubernetes resources
+          BRANCH_NAME="${{ github.ref_name }}"
+          SANITIZED_BRANCH=$(echo "${BRANCH_NAME}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+
+          # Set configuration based on environment
+          case "${ENVIRONMENT}" in
+            "prod")
+              VALUES_FILE="values-prod.yaml"
+              NAMESPACE="production"
+              ENVIRONMENT_URL="https://api.coregame.de"
+              ;;
+            "dev")
+              VALUES_FILE="values-dev.yaml"
+              NAMESPACE="development"
+              ENVIRONMENT_URL="https://dev.api.coregame.de"
+              ;;
+            *)
+              echo "Unknown environment: ${ENVIRONMENT}"
+              exit 1
+              ;;
+          esac
+
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "sanitized_branch=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_repo=${IMAGE_REPO}" >> $GITHUB_OUTPUT
+          echo "release_name=api-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "environment_url=${ENVIRONMENT_URL}" >> $GITHUB_OUTPUT
+
+          echo "Deployment Configuration:"
+          echo "- Environment: ${ENVIRONMENT}"
+          echo "- Branch: ${BRANCH_NAME} (sanitized: ${SANITIZED_BRANCH})"
+          echo "- Values file: ${VALUES_FILE}"
+          echo "- Namespace: ${NAMESPACE}"
+          echo "- Image tag: ${IMAGE_TAG}"
+          echo "- Image repo: ${IMAGE_REPO}"
+          echo "- Release name: api-${SANITIZED_BRANCH}"
+          echo "- Environment URL: ${ENVIRONMENT_URL}"
+
+      - name: Deploy API with Helm
+        run: |
+          cd api/helm
+
+          echo "Deploying API to ${{ steps.config.outputs.environment }} environment..."
+          echo "Using values file: ${{ steps.config.outputs.values_file }}"
+          echo "Image: ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}"
+
+          helm upgrade --install \
+            ${{ steps.config.outputs.release_name }} \
+            . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
+            --set secrets.DB_HOST="${{ secrets.DB_HOST }}" \
+            --set secrets.DB_USER="${{ secrets.DB_USER }}" \
+            --set secrets.DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+            --set secrets.DB_NAME="${{ secrets.DB_NAME }}" \
+            --set secrets.DB_SCHEMA="${{ secrets.DB_SCHEMA }}" \
+            --set secrets.GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
+            --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
+            --wait \
+            --timeout=10m \
+            --atomic \
+            --history-max=5
+
+      - name: Force redeploy pods to fetch new image
+        run: |
+          echo "Forcing redeploy of pods to fetch new image..."
+
+          # Get the deployment name
+          DEPLOYMENT_NAME="${{ steps.config.outputs.release_name }}"
+          NAMESPACE="${{ steps.config.outputs.namespace }}"
+
+          # Annotate the deployment to force a restart
+          kubectl patch deployment $DEPLOYMENT_NAME -n $NAMESPACE \
+            -p '{"spec":{"template":{"metadata":{"annotations":{"date":"'$(date +%s)'"}}}}}'
+
+          echo "Deployment patched to force restart with new image"
+
+          # Wait for the rollout to complete
+          kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=300s
+
+          echo "Pods have been redeployed successfully"
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying API deployment..."
+
+          DEPLOYMENT_NAME="${{ steps.config.outputs.release_name }}"
+          NAMESPACE="${{ steps.config.outputs.namespace }}"
+
+          # Check deployment status
+          kubectl get deployment $DEPLOYMENT_NAME -n $NAMESPACE
+
+          # Check pod status
+          kubectl get pods -l app.kubernetes.io/name=api,app.kubernetes.io/instance=${{ steps.config.outputs.release_name }} -n $NAMESPACE
+
+          # Check service status
+          kubectl get svc $DEPLOYMENT_NAME -n $NAMESPACE
+
+      - name: Update deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "## ✅ API Deployment Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Namespace:** ${{ steps.config.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Release:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Image:** ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+            echo "**URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ API Deployment Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Image:** ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Check the logs above for details**" >> $GITHUB_STEP_SUMMARY
+          fi

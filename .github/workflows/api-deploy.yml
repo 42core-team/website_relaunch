@@ -162,6 +162,7 @@ jobs:
             --set env.DB_NAME="${{ vars.DB_NAME }}" \
             --set env.DB_SCHEMA="${{ vars.DB_SCHEMA }}" \
             --set secrets.DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+            --set secrets.DB_URL="${{ secrets.DB_URL }}" \
             --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
             --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \
             --wait \

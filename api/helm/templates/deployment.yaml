@@ -48,6 +48,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "api.fullname" . }}-secrets
                   key: DB_PASSWORD
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "api.fullname" . }}-secrets
+                  key: DB_URL
             - name: API_SECRET_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:

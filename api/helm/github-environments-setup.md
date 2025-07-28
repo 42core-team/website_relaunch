@@ -24,14 +24,15 @@ This guide explains how to set up GitHub environments for the CORE API deploymen
 #### Environment Secrets
 Add the following secrets for development:
 
-| Secret Name | Description | Example Value |
-|-------------|-------------|---------------|
+| Variable | Description | Example Value |
+|----------|-------------|---------------|
 | `DB_HOST` | Development database host | `dev-postgres.example.com` |
 | `DB_USER` | Database username | `api_dev_user` |
 | `DB_PASSWORD` | Database password | `secure_dev_password` |
 | `DB_NAME` | Development database name | `core_api_dev` |
 | `DB_SCHEMA` | Database schema | `public` |
-| `API_SECRET_ENCRYPTION_KEY` | Encryption key (32 chars) | `dev_encryption_key_32_characters` |
+| `DB_URL` | Full database connection URL | `postgresql://user:pass@host:port/db?sslmode=require` |
+| `API_SECRET_ENCRYPTION_KEY` | Secret key for API encryption | `your-secret-key-here` |
 
 ### Step 3: Create API Production Environment
 
@@ -54,6 +55,7 @@ Add the following secrets for production:
 | `DB_PASSWORD` | Database password | `very_secure_prod_password` |
 | `DB_NAME` | Production database name | `core_api_prod` |
 | `DB_SCHEMA` | Database schema | `public` |
+| `DB_URL` | Full database connection URL | `postgresql://user:pass@host:port/db?sslmode=require` |
 | `API_SECRET_ENCRYPTION_KEY` | Encryption key (32 chars) | `prod_encryption_key_32_characters` |
 
 ## Security Best Practices
@@ -82,22 +84,22 @@ DB_USER=api_dev
 DB_PASSWORD=dev_secure_password_123
 DB_NAME=core_api_development
 DB_SCHEMA=public
+DB_URL=postgresql://api_dev:dev_secure_password_123@dev-postgres.internal.company.com:5432/core_api_development?sslmode=require
 
 # Application Configuration  
-API_SECRET_ENCRYPTION_KEY=dev_key_32_chars_exactly_here_
+API_SECRET_ENCRYPTION_KEY=dev_encryption_key_32_characters
 ```
 
 ### Production Environment (`api-prod`)
 ```bash
-# Database Configuration
+# Production Environment Variables
 DB_HOST=prod-postgres.internal.company.com
 DB_USER=api_prod
 DB_PASSWORD=super_secure_prod_password_456
 DB_NAME=core_api_production
 DB_SCHEMA=public
-
-# Application Configuration
-API_SECRET_ENCRYPTION_KEY=prod_key_32_chars_exactly_here_
+DB_URL=postgresql://api_prod:super_secure_prod_password_456@prod-postgres.internal.company.com:5432/core_api_production?sslmode=require
+API_SECRET_ENCRYPTION_KEY=prod_encryption_key_32_characters
 ```
 
 ## Verification

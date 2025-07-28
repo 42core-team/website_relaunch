@@ -4,15 +4,15 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
         type: string
       image_tag:
-        description: 'Docker image tag to deploy'
+        description: "Docker image tag to deploy"
         required: true
         type: string
       image_repository:
-        description: 'Docker image repository'
+        description: "Docker image repository"
         required: true
         type: string
 
@@ -24,12 +24,12 @@ jobs:
   deploy:
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
-    
+
     permissions:
       contents: read
       packages: read
       deployments: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
               auto_merge: false,
               required_contexts: []
             });
-            
+
             core.setOutput('deployment_id', deployment.data.id);
             return deployment.data.id;
 
@@ -67,18 +67,18 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
         with:
-          version: 'v3.13.3'
+          version: "v3.13.3"
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.28.4'
+          version: "v1.28.4"
 
       - name: Configure Kubernetes context
         run: |
           echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
-          
+
           # Verify connection
           kubectl cluster-info
           kubectl get nodes
@@ -89,11 +89,11 @@ jobs:
           ENVIRONMENT="${{ inputs.environment }}"
           IMAGE_TAG="${{ inputs.image_tag }}"
           IMAGE_REPO="${{ inputs.image_repository }}"
-          
+
           # Sanitize branch name for Kubernetes resources
           BRANCH_NAME="${{ github.ref_name }}"
           SANITIZED_BRANCH=$(echo "${BRANCH_NAME}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-          
+
           # Set configuration based on environment
           case "${ENVIRONMENT}" in
             "prod")
@@ -111,7 +111,7 @@ jobs:
               exit 1
               ;;
           esac
-          
+
           echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
           echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
           echo "sanitized_branch=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
@@ -121,7 +121,7 @@ jobs:
           echo "image_repo=${IMAGE_REPO}" >> $GITHUB_OUTPUT
           echo "release_name=frontend-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
           echo "environment_url=${ENVIRONMENT_URL}" >> $GITHUB_OUTPUT
-          
+
           echo "Deployment Configuration:"
           echo "- Environment: ${ENVIRONMENT}"
           echo "- Branch: ${BRANCH_NAME} (sanitized: ${SANITIZED_BRANCH})"
@@ -163,11 +163,11 @@ jobs:
       - name: Deploy with Helm
         run: |
           cd frontend/helm
-          
+
           echo "Deploying frontend to ${{ steps.config.outputs.environment }} environment..."
           echo "Using values file: ${{ steps.config.outputs.values_file }}"
           echo "Image: ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}"
-          
+
           helm upgrade --install \
             ${{ steps.config.outputs.release_name }} \
             . \
@@ -186,15 +186,15 @@ jobs:
       - name: Verify deployment
         run: |
           echo "Verifying deployment in namespace: ${{ steps.config.outputs.namespace }}"
-          
+
           # Wait for rollout to complete
           kubectl rollout status deployment/${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }} --timeout=300s
-          
+
           # Show deployment status
           kubectl get pods -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=frontend
           kubectl get services -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=frontend
           kubectl get ingress -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=frontend
-          
+
           # Show Helm release status
           helm status ${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }}
 
@@ -238,4 +238,4 @@ jobs:
           echo "- **Release name:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Values file:** ${{ steps.config.outputs.values_file }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY 
+          echo "- **Environment URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY

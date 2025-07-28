@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
           - prod
       image_tag:
-        description: 'Docker image tag to deploy'
+        description: "Docker image tag to deploy"
         required: true
-        default: 'latest'
+        default: "latest"
         type: string
 
 env:
@@ -27,4 +27,4 @@ jobs:
     with:
       environment: ${{ github.event.inputs.environment }}
       image_tag: ${{ github.event.inputs.image_tag }}
-      image_repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} 
+      image_repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}

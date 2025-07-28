@@ -4,27 +4,27 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   pull_request:
     branches: [main, dev]
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
           - prod
       image_tag:
-        description: 'Docker image tag to deploy'
+        description: "Docker image tag to deploy"
         required: true
-        default: 'latest'
+        default: "latest"
         type: string
 
 env:
@@ -33,14 +33,14 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted, x64
+    runs-on: [self-hosted, x64]
     strategy:
       matrix:
         platform: [linux/amd64]
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -94,4 +94,4 @@ jobs:
     with:
       environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || 'dev') }}
       image_tag: ${{ github.event.inputs.image_tag || (github.ref == 'refs/heads/main' && 'main' || 'dev') }}
-      image_repository: ghcr.io/${{ github.repository }}-frontend 
+      image_repository: ghcr.io/${{ github.repository }}-frontend

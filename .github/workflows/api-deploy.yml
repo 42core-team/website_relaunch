@@ -50,6 +50,38 @@ jobs:
         with:
           version: "v3.13.3"
 
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.28.4"
+
+      - name: Configure Kubernetes context
+        run: |
+          # Debug: Check if KUBECONFIG_DATA is set
+          if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
+            echo "ERROR: KUBECONFIG_DATA secret is empty or not set!"
+            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: api-${{ inputs.environment }}"
+            exit 1
+          fi
+
+          # Create .kube directory
+          mkdir -p ~/.kube
+
+          # Try to decode with better error handling
+          if ! echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config 2>/tmp/base64_error; then
+            echo "ERROR: Failed to decode base64 secret"
+            echo "Base64 error output:"
+            cat /tmp/base64_error
+            echo "This usually means the secret is not properly base64 encoded"
+            exit 1
+          fi
+
+          chmod 600 ~/.kube/config
+
+          # Verify connection
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Configure deployment settings
         id: config
         run: |
@@ -98,6 +130,16 @@ jobs:
           echo "- Image repo: ${IMAGE_REPO}"
           echo "- Release name: api-${SANITIZED_BRANCH}"
           echo "- Environment URL: ${ENVIRONMENT_URL}"
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-email=${{ github.actor }}@users.noreply.github.com \
+            --namespace=${{ steps.config.outputs.namespace }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy API with Helm
         run: |

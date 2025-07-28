@@ -60,6 +60,7 @@ The API requires the following environment variables to be configured in GitHub 
 
 **Required Secrets (configured in GitHub environments):**
 - `DB_PASSWORD`: Database password
+- `DB_URL`: Full database connection URL (alternative to individual DB_* variables)
 - `API_SECRET_ENCRYPTION_KEY`: Secret key for encrypting sensitive data
 
 ### Values Files

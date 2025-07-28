@@ -90,8 +90,7 @@ jobs:
   deploy:
     needs: build
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/frontend-deploy-reusable.yml
+    uses: ./.github/workflows/frontend-deploy.yml
     with:
       environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || 'dev') }}
       image_tag: ${{ github.event.inputs.image_tag || (github.ref == 'refs/heads/main' && 'main' || 'dev') }}
-      image_repository: ghcr.io/${{ github.repository }}-frontend

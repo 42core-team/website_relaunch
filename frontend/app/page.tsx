@@ -5,7 +5,7 @@ import { Link } from "@heroui/link";
 import { button as buttonStyles } from "@heroui/theme";
 
 import { GithubIcon, WikiIcon } from "@/components/icons";
-import { CoreLogoWhite } from "../components/social";
+import { CoreLogoWhite } from "@/components/social";
 
 export default function IndexPage() {
   return (

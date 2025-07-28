@@ -25,7 +25,6 @@ interface TeamInviteModalProps {
 export const TeamInviteModal = ({
   isOpen,
   onClose,
-  teamId,
   eventId,
 }: TeamInviteModalProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,7 +39,7 @@ export const TeamInviteModal = ({
     if (value.length >= 2) {
       setIsSearching(true);
       try {
-        const results = await searchUsersForInvite(teamId, eventId, value);
+        const results = await searchUsersForInvite(eventId, value);
         setSearchResults(results);
       } catch (error) {
         console.error("Error searching users:", error);
@@ -55,20 +54,21 @@ export const TeamInviteModal = ({
   // Send invite to a user
   const handleInviteUser = async (userId: string) => {
     setIsInviting((prev) => ({ ...prev, [userId]: true }));
-
     try {
-      const success = await sendTeamInvite(teamId, userId);
+      await sendTeamInvite(eventId, userId);
 
-      if (success) {
-        // Update the search results to show the user as invited
-        setSearchResults((prev) =>
-          prev.map((user) =>
-            user.id === userId ? { ...user, isInvited: true } : user,
-          ),
-        );
-      }
-    } catch (error) {
-      console.error("Error inviting user:", error);
+      setSearchResults((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, isInvited: true } : user,
+        ),
+      );
+    } catch (error: any) {
+      // You can customize this error message as needed
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to send invite.",
+      );
     } finally {
       setIsInviting((prev) => ({ ...prev, [userId]: false }));
     }

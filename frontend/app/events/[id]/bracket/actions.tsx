@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/clientHeroui";
-import {
-  calculateNextGroupPhaseMatches,
-  createSingleEliminationBracket,
-} from "@/app/actions/event";
+
 import { useParams } from "next/navigation";
 
 export default function Actions() {
@@ -12,12 +9,7 @@ export default function Actions() {
 
   return (
     <>
-      <Button
-        onPress={() => createSingleEliminationBracket(params?.id as string)}
-        color={"primary"}
-      >
-        next{" "}
-      </Button>
+      <Button color={"primary"}>next </Button>
     </>
   );
 }

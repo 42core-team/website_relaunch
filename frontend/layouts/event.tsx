@@ -9,7 +9,7 @@ import {
 } from "@/app/actions/event";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
-import { events_type_enum } from "@/generated/prisma";
+import { isActionError } from "@/app/actions/errors";
 
 export default async function EventLayout({
   children,
@@ -20,27 +20,39 @@ export default async function EventLayout({
 }) {
   const eventId = params.id;
   const session = await getServerSession(authOptions);
-  let isEventAdminState = false;
   const userId = session?.user?.id;
 
-  let showJoinNotice = false;
-  let isUserRegistered = false;
-  let event = null;
+  if (!userId) {
+    return (
+      <div className="container mx-auto max-w-7xl px-6">
+        You must be logged in to view this event.
+      </div>
+    );
+  }
 
-  event = await getEventById(eventId);
+  const event = await getEventById(eventId);
+  if (isActionError(event))
+    return (
+      <div className="container mx-auto max-w-7xl px-6">
+        Error: {event.error}
+      </div>
+    );
 
-  if (userId) {
-    isEventAdminState = await isEventAdmin(session.user.id, eventId);
-    isUserRegistered = await isUserRegisteredForEvent(userId, eventId);
+  const isEventAdminState = await isEventAdmin(eventId);
+  const isUserRegistered = await isUserRegisteredForEvent(eventId);
+  const showJoinNotice = await shouldShowJoinNotice(eventId);
 
-    showJoinNotice = await shouldShowJoinNotice(userId, eventId);
+  if (isActionError(isEventAdminState) || isActionError(isUserRegistered)) {
+    return (
+      <div className="container mx-auto max-w-7xl px-6">
+        Error: Unable to fetch event details.
+      </div>
+    );
   }
 
   if (!event) {
     return <div>Event not found</div>;
   }
-
-  const isRushEvent = event.event_type === events_type_enum.RUSH;
 
   return (
     <div className="relative flex flex-col h-screen">
@@ -51,7 +63,6 @@ export default async function EventLayout({
         eventId={eventId}
         isUserRegistered={isUserRegistered}
         isEventAdmin={isEventAdminState}
-        isRushEvent={isRushEvent}
       />
       <main className="container mx-auto max-w-7xl px-6 flex-grow">
         {children}

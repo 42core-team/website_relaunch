@@ -1,0 +1,40 @@
+name: Auto Deploy Frontend
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-auto-deploy.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-frontend
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "image_tag=main" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "image_tag=dev" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown branch: ${{ github.ref }}"
+            exit 1
+          fi
+
+      - name: Deploy to environment
+        uses: ./.github/workflows/frontend-deploy.yml
+        with:
+          environment: ${{ steps.env.outputs.environment }}
+          image_tag: ${{ steps.env.outputs.image_tag }} 

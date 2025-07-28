@@ -33,7 +33,7 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: self-hosted, x64
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -66,7 +66,7 @@ jobs:
             type=sha,prefix={{branch}}-,format=short
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           file: ./frontend/Dockerfile

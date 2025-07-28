@@ -45,6 +45,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.13.3"
+
       - name: Configure deployment settings
         id: config
         run: |

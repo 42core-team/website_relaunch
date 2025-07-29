@@ -1,6 +1,7 @@
 "use client";
 import { Link } from "@heroui/react";
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 
 interface EventNavbarProps {
   eventId: string;
@@ -14,27 +15,30 @@ export default function EventNavbar({
   isEventAdmin = false,
 }: EventNavbarProps) {
   const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState(pathname);
 
-  let navItems = [
-    { name: "Info", path: `/events/${eventId}` },
-    ...(isUserRegistered
-      ? [{ name: "My Team", path: `/events/${eventId}/my-team` }]
-      : []),
-    { name: "Teams", path: `/events/${eventId}/teams` },
-  ];
+  useEffect(() => {
+    setActiveTab(pathname);
+  }, [pathname]);
 
-  navItems = [
-    ...navItems,
-    { name: "Group Phase", path: `/events/${eventId}/groups` },
-    { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
-  ];
-
-  if (isEventAdmin) {
-    navItems = [
-      ...navItems,
-      { name: "Dashboard", path: `/events/${eventId}/dashboard` },
+  const navItems = useMemo(() => {
+    const baseItems = [
+      { name: "Info", path: `/events/${eventId}` },
+      ...(isUserRegistered
+        ? [{ name: "My Team", path: `/events/${eventId}/my-team` }]
+        : []),
+      { name: "Teams", path: `/events/${eventId}/teams` },
+      { name: "Group Phase", path: `/events/${eventId}/groups` },
+      { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
     ];
-  }
+
+    return isEventAdmin
+      ? [
+          ...baseItems,
+          { name: "Dashboard", path: `/events/${eventId}/dashboard` },
+        ]
+      : baseItems;
+  }, [eventId, isUserRegistered, isEventAdmin]);
 
   return (
     <div className="w-full border-t border-divider">
@@ -43,8 +47,10 @@ export default function EventNavbar({
           <Link
             key={item.path}
             href={item.path}
+            onPress={() => setActiveTab(item.path)}
+            aria-current={activeTab === item.path ? "page" : undefined}
             className={`text-base hover:text-primary transition-colors ${
-              pathname === item.path
+              activeTab === item.path
                 ? "text-primary font-medium border-b-2 border-primary pb-1"
                 : "text-foreground-500"
             }`}

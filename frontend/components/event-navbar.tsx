@@ -15,7 +15,7 @@ export default function EventNavbar({
   isEventAdmin = false,
 }: EventNavbarProps) {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState(pathname);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(pathname);
@@ -48,9 +48,11 @@ export default function EventNavbar({
             key={item.path}
             href={item.path}
             onPress={() => setActiveTab(item.path)}
-            aria-current={activeTab === item.path ? "page" : undefined}
+            aria-current={
+              (activeTab || pathname) === item.path ? "page" : undefined
+            }
             className={`text-base hover:text-primary transition-colors ${
-              activeTab === item.path
+              (activeTab || pathname) === item.path
                 ? "text-primary font-medium border-b-2 border-primary pb-1"
                 : "text-foreground-500"
             }`}

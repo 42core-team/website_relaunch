@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import {EventEntity} from "../../event/entities/event.entity";
 import {TeamEntity} from "../../team/entities/team.entity";
+import {SocialAccountEntity} from "./social-account.entity";
 import {Exclude} from "class-transformer";
 
 @Entity('users')
@@ -50,6 +51,9 @@ export class UserEntity {
 
     @ManyToMany(() => EventEntity, event => event.users)
     events: EventEntity[]
+
+    @OneToMany(() => SocialAccountEntity, socialAccount => socialAccount.user)
+    socialAccounts: SocialAccountEntity[];
 
     @Exclude()
     @OneToMany(() => UserEventPermissionEntity, (permission: UserEventPermissionEntity) => permission.user)

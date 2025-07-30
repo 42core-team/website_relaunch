@@ -1,5 +1,0 @@
-run
- 
-´´´
-go mod tidy
-´´´

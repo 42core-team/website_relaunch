@@ -9,7 +9,7 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 ENV HUSKY=0
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Builder stage
 FROM base AS builder

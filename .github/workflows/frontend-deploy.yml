@@ -229,24 +229,24 @@ jobs:
             --atomic \
             --history-max=5
 
-      - name: Force redeploy pods to fetch new image
-        run: |
-          echo "Forcing redeploy of pods to fetch new image..."
+      # - name: Force redeploy pods to fetch new image
+      #   run: |
+      #     echo "Forcing redeploy of pods to fetch new image..."
           
-          # Get the deployment name
-          DEPLOYMENT_NAME="${{ steps.config.outputs.release_name }}"
-          NAMESPACE="${{ steps.config.outputs.namespace }}"
+      #     # Get the deployment name
+      #     DEPLOYMENT_NAME="${{ steps.config.outputs.release_name }}"
+      #     NAMESPACE="${{ steps.config.outputs.namespace }}"
           
-          # Annotate the deployment to force a restart
-          kubectl patch deployment $DEPLOYMENT_NAME -n $NAMESPACE \
-            -p '{"spec":{"template":{"metadata":{"annotations":{"date":"'$(date +%s)'"}}}}}'
+      #     # Annotate the deployment to force a restart
+      #     kubectl patch deployment $DEPLOYMENT_NAME -n $NAMESPACE \
+      #       -p '{"spec":{"template":{"metadata":{"annotations":{"date":"'$(date +%s)'"}}}}}'
           
-          echo "Deployment patched to force restart with new image"
+      #     echo "Deployment patched to force restart with new image"
           
-          # Wait for the rollout to complete
-          kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=300s
+      #     # Wait for the rollout to complete
+      #     kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=300s
           
-          echo "Pods have been redeployed successfully"
+      #     echo "Pods have been redeployed successfully"
 
       - name: Verify deployment
         run: |

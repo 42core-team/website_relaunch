@@ -39,6 +39,12 @@ export class MatchService {
             teams: true
         });
 
+        const maxSwissRounds = this.getMaxSwissRounds(event.teams.length);
+        if (event.currentRound >= maxSwissRounds) {
+            this.logger.error(`Cannot create Swiss matches for event ${event.name} in round ${event.currentRound}. Maximum rounds reached: ${maxSwissRounds}`);
+            throw new Error(`Maximum Swiss rounds reached for event ${event.name}.`);
+        }
+
         const players: Player[] = event.teams.map(team => ({
             id: team.id,
             score: team.score,

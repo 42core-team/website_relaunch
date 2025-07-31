@@ -53,23 +53,7 @@ export async function isEventAdmin(
 
 // Get all events
 export async function getEvents(): Promise<Event[]> {
-  const events = (await axiosInstance.get("event")).data;
-
-  return events.map((event: any) => ({
-    id: event.id,
-    name: event.name,
-    description: event.description,
-    location: event.location,
-    start_date: event.startDate,
-    end_date: event.endDate,
-    min_team_size: event.minTeamSize,
-    max_team_size: event.maxTeamSize,
-    currentRound: event.currentRound,
-    event_type: event.type,
-    tree_format: event.treeFormat,
-    repo_template_owner: event.repoTemplateOwner,
-    repo_template_name: event.repoTemplateName,
-  }));
+  return (await axiosInstance.get("event")).data as Event[];
 }
 
 export async function getTeamsCountForEvent(eventId: string): Promise<number> {

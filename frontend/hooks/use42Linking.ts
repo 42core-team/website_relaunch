@@ -48,17 +48,29 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
     setIsInitiating(true);
     processedRef.current = null;
 
+    // Check if environment variable is available
+    const clientId = process.env.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID;
+    if (!clientId) {
+      console.error("NEXT_PUBLIC_FORTY_TWO_CLIENT_ID is not set");
+      setMessage({
+        type: "error",
+        text: "OAuth configuration is missing. Please contact support.",
+      });
+      setIsInitiating(false);
+      return;
+    }
+
     // Small delay to show the loading state before redirect
     setTimeout(() => {
-      const state = Math.random()
-        .toString(36)
-        .substring(OAUTH_CONFIG.STATE_LENGTH);
+      // Generate a cryptographically secure random state string
+      const array = new Uint8Array(OAUTH_CONFIG.STATE_LENGTH);
+      window.crypto.getRandomValues(array);
+      const state = Array.from(array, (b) =>
+        b.toString(16).padStart(2, "0"),
+      ).join("");
       const authUrl = new URL(OAUTH_URLS.FORTY_TWO_AUTHORIZE);
 
-      authUrl.searchParams.set(
-        "client_id",
-        process.env.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID!,
-      );
+      authUrl.searchParams.set("client_id", clientId);
       authUrl.searchParams.set(
         "redirect_uri",
         `${window.location.origin}/auth/callback/${OAUTH_PROVIDERS.FORTY_TWO}`,
@@ -66,9 +78,6 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
       authUrl.searchParams.set("response_type", "code");
       authUrl.searchParams.set("scope", "public");
       authUrl.searchParams.set("state", state);
-
-      console.log("authUrl", authUrl.toString());
-      console.log("state", state);
 
       // Store state in sessionStorage for verification
       sessionStorage.setItem(

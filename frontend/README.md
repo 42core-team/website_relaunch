@@ -60,18 +60,6 @@ This project has been migrated from npm to [pnpm](https://pnpm.io/).
 
 ---
 
-## Docker Configuration
-
-This project uses **normal Next.js mode** (not standalone) to ensure environment variables are properly available at runtime. The Dockerfile is configured to:
-
-- Build the Next.js application normally
-- Install production dependencies in the final image
-- Use `pnpm start` to run the application
-
-This approach ensures that `NEXT_PUBLIC_*` environment variables are properly available to the client-side code.
-
----
-
 ## Environment Variables
 
 ### Required for OAuth

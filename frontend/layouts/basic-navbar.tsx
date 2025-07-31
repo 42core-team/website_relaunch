@@ -158,10 +158,10 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                   ></Avatar>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Profile Actions" variant="flat">
-                  {/* <DropdownItem key="profile" href="/profile">
-                                        Profile
-                                    </DropdownItem>
-                                    <DropdownItem key="settings" href="/settings">
+                  <DropdownItem key="profile" href="/profile">
+                    Profile
+                  </DropdownItem>
+                  {/* <DropdownItem key="settings" href="/settings">
                                         Settings
                                     </DropdownItem> */}
                   <DropdownItem

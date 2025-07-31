@@ -38,6 +38,7 @@
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "tournament-pairings": "^2.0.0",
     "typeorm": "^0.3.24"
   },
   "devDependencies": {

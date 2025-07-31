@@ -1,11 +1,12 @@
 import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {EventEntity} from "./entities/event.entity";
-import {DeepPartial, Repository} from "typeorm";
+import {Repository, UpdateResult} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
 import * as CryptoJS from "crypto-js";
 import {ConfigService} from "@nestjs/config";
 import {TeamService} from "../team/team.service";
+import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
 
 @Injectable()
 export class EventService {
@@ -27,9 +28,10 @@ export class EventService {
         });
     }
 
-    async getEventById(id: string): Promise<EventEntity> {
-        return await this.eventRepository.findOneByOrFail({
-            id
+    async getEventById(id: string, relations: FindOptionsRelations<EventEntity> = {}): Promise<EventEntity> {
+        return await this.eventRepository.findOneOrFail({
+            where: {id},
+            relations
         });
     }
 
@@ -73,6 +75,10 @@ export class EventService {
             ]
 
         });
+    }
+
+    increaseEventRound(eventId: string): Promise<UpdateResult> {
+        return this.eventRepository.increment({id: eventId}, "currentRound", 1)
     }
 
     isUserRegisteredForEvent(eventId: string, userId: string) {

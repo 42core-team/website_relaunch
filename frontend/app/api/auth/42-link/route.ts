@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
     // Link the account via backend API
     try {
       const linkResult = await axiosInstance.post("/social-accounts/link", {
-        userId: session.user.id,
         platform: "42",
         username: profile.login,
         platformUserId: profile.id.toString(),

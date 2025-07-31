@@ -15,10 +15,9 @@ import {
   SocialAccountEntity,
   SocialPlatform,
 } from "./entities/social-account.entity";
-import { FrontendGuard } from "src/guards/FrontendGuard";
+import { FrontendGuard, UserId } from "src/guards/FrontendGuard";
 
 class LinkSocialAccountDto {
-  userId: string;
   platform: SocialPlatform;
   username: string;
   platformUserId: string;
@@ -31,7 +30,7 @@ export class SocialAccountController {
   constructor(private readonly socialAccountService: SocialAccountService) {}
 
   @Post("link")
-  @ApiOperation({ summary: "Link a social account to a user" })
+  @ApiOperation({ summary: "Link a social account to the authenticated user" })
   @ApiResponse({
     status: 200,
     description: "Social account linked successfully",
@@ -41,52 +40,53 @@ export class SocialAccountController {
     description: "Social account already linked to another user",
   })
   async linkSocialAccount(
+    @UserId() userId: string,
     @Body() linkDto: LinkSocialAccountDto,
   ): Promise<SocialAccountEntity> {
     return await this.socialAccountService.linkSocialAccount(
-      linkDto.userId,
+      userId,
       linkDto.platform,
       linkDto.username,
       linkDto.platformUserId,
     );
   }
 
-  @Delete(":userId/:platform")
+  @Delete(":platform")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Unlink a social account from a user" })
+  @ApiOperation({ summary: "Unlink a social account from the authenticated user" })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: "Social account unlinked successfully",
   })
   @ApiResponse({ status: 404, description: "Social account link not found" })
   async unlinkSocialAccount(
-    @Param("userId") userId: string,
+    @UserId() userId: string,
     @Param("platform") platform: SocialPlatform,
   ): Promise<void> {
     await this.socialAccountService.unlinkSocialAccount(userId, platform);
   }
 
-  @Get(":userId")
-  @ApiOperation({ summary: "Get all social accounts for a user" })
+  @Get()
+  @ApiOperation({ summary: "Get all social accounts for the authenticated user" })
   @ApiResponse({
     status: 200,
     description: "Social accounts retrieved successfully",
   })
   async getSocialAccounts(
-    @Param("userId") userId: string,
+    @UserId() userId: string,
   ): Promise<SocialAccountEntity[]> {
     return await this.socialAccountService.getSocialAccounts(userId);
   }
 
-  @Get(":userId/:platform")
-  @ApiOperation({ summary: "Get a specific social account for a user" })
+  @Get(":platform")
+  @ApiOperation({ summary: "Get a specific social account for the authenticated user" })
   @ApiResponse({
     status: 200,
     description: "Social account retrieved successfully",
   })
   @ApiResponse({ status: 404, description: "Social account not found" })
   async getSocialAccountByPlatform(
-    @Param("userId") userId: string,
+    @UserId() userId: string,
     @Param("platform") platform: SocialPlatform,
   ): Promise<SocialAccountEntity | null> {
     return await this.socialAccountService.getSocialAccountByPlatform(

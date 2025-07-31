@@ -27,7 +27,7 @@ export default function SocialAccountsDisplay() {
     if (!session?.user?.id) return;
 
     try {
-      const accounts = await getSocialAccounts(session.user.id);
+      const accounts = await getSocialAccounts();
       setSocialAccounts(accounts);
     } catch (error) {
       console.error("Error loading social accounts:", error);
@@ -45,7 +45,7 @@ export default function SocialAccountsDisplay() {
 
     setUnlinkingAccount(platform);
     try {
-      await unlinkSocialAccount(session.user.id, platform);
+      await unlinkSocialAccount(platform);
       setSocialAccounts((accounts) =>
         accounts.filter((account) => account.platform !== platform),
       );

@@ -13,7 +13,6 @@ export interface SocialAccount {
 }
 
 export interface LinkSocialAccountData {
-  userId: string;
   platform: string;
   username: string;
   platformUserId: string;
@@ -33,12 +32,9 @@ export async function linkSocialAccount(
   }
 }
 
-export async function unlinkSocialAccount(
-  userId: string,
-  platform: string,
-): Promise<void> {
+export async function unlinkSocialAccount(platform: string): Promise<void> {
   try {
-    await axiosInstance.delete(`/social-accounts/${userId}/${platform}`);
+    await axiosInstance.delete(`/social-accounts/${platform}`);
   } catch (error: any) {
     console.error("Error unlinking social account:", error);
     throw new Error(
@@ -47,11 +43,9 @@ export async function unlinkSocialAccount(
   }
 }
 
-export async function getSocialAccounts(
-  userId: string,
-): Promise<SocialAccount[]> {
+export async function getSocialAccounts(): Promise<SocialAccount[]> {
   try {
-    const response = await axiosInstance.get(`/social-accounts/${userId}`);
+    const response = await axiosInstance.get("/social-accounts");
     return response.data;
   } catch (error: any) {
     console.error("Error fetching social accounts:", error);
@@ -62,13 +56,10 @@ export async function getSocialAccounts(
 }
 
 export async function getSocialAccountByPlatform(
-  userId: string,
   platform: string,
 ): Promise<SocialAccount | null> {
   try {
-    const response = await axiosInstance.get(
-      `/social-accounts/${userId}/${platform}`,
-    );
+    const response = await axiosInstance.get(`/social-accounts/${platform}`);
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 404) {

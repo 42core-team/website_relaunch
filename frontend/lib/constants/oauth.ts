@@ -17,7 +17,7 @@ export const OAUTH_URLS = {
 } as const;
 
 export const OAUTH_CONFIG = {
-  STATE_LENGTH: 7,
+  STATE_LENGTH: 10,
   LOADING_DELAY: 100, // ms delay to show loading state before redirect
   SESSION_STORAGE_KEYS: {
     OAUTH_STATE: "oauth_state",

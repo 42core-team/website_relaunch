@@ -237,4 +237,8 @@ export class TeamService {
             userCount: parseInt(result.raw[idx].userCount, 10)
         }));
     }
+
+    setHadBye(teamId: string, hadBye: boolean){
+        return this.teamRepository.update(teamId, { hadBye })
+    }
 }

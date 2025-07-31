@@ -26,6 +26,10 @@ export async function getSwissMatches(eventId: string) {
   return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
 }
 
+export async function createSwissMatches(eventId: string) {
+  return (await axiosInstance.put(`/match/swiss/${eventId}`)).data;
+}
+
 // Functions:
 // General:
 // - Increase round!!!!!!!!!

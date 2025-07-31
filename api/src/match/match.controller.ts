@@ -1,4 +1,4 @@
-import {Controller, Get, Param} from '@nestjs/common';
+import {Controller, Get, Param, Put} from '@nestjs/common';
 import {MatchService} from "./match.service";
 
 @Controller('match')
@@ -9,5 +9,10 @@ export class MatchController {
     @Get("swiss/:eventId")
     getSwissMatches(@Param("eventId") eventId: string) {
         return this.matchService.getSwissMatches(eventId);
+    }
+
+    @Put("swiss/:eventId")
+    createSwissMatches(@Param("eventId") eventId: string) {
+        return this.matchService.createSwissMatches(eventId);
     }
 }

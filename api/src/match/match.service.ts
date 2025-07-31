@@ -21,10 +21,9 @@ export class MatchService {
     logger = new Logger("MatchService");
 
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {
+        console.log("create match with teamIds: ", teamIds, " round: ", round, " phase: ", phase);
         const match = this.matchRepository.create({
-            teams: teamIds.map(id => {
-                id
-            }) as any,
+            teams: teamIds.map(id => ({ id })),
             round,
             phase,
             state: MatchState.PLANNED
@@ -52,27 +51,31 @@ export class MatchService {
         }))
 
         const matches = Swiss(players, event.currentRound)
-        const matchEntities: MatchEntity[] = await Promise.all(matches.map(async match => {
+        const matchEntities: (MatchEntity | null)[]  = await Promise.all(matches.map(async match => {
             if (match.player1 === match.player2) {
                 this.logger.error(`Player ${match.player1} cannot be paired with themselves in Swiss pairing.`);
                 throw new Error("A player cannot be paired with themselves in Swiss pairing.");
             }
 
+
             if (!match.player1 || !match.player2) {
-                this.logger.error(`Invalid match pairing: ${JSON.stringify(match)}`);
-                throw new Error("Invalid match pairing detected.");
+                this.logger.log(`The team ${match.player1 || match.player2} got a bye in round ${event.currentRound} of event ${event.name}.`);
+                await this.teamService.setHadBye((match.player1 || match.player2) as string , true);
+                return null;
             }
             return this.createMatch([match.player1 as string, match.player2 as string], event.currentRound, MatchPhase.SWISS);
         }));
+        const filteredMatchEntities = matchEntities.filter((match): match is MatchEntity => match !== null);
 
-        this.logger.log(`Created ${matchEntities.length} Swiss matches for event ${event.name} in round ${event.currentRound}.`);
+        this.logger.log(`Created ${filteredMatchEntities.length} Swiss matches for event ${event.name} in round ${event.currentRound}.`);
         await this.eventService.increaseEventRound(eventId);
-        this.logger.log("Increased event round for event " + event.name + " to " + event.currentRound);
-        return matchEntities;
+        this.logger.log("Increased event round for event " + event.name + " to " + (event.currentRound + 1));
+        return filteredMatchEntities;
     }
 
-    getSwissMatches(eventId: string) {
-        return this.matchRepository.findBy({
+    async getSwissMatches(eventId: string) {
+        console.log(`Getting matches for event ${eventId}`);
+        const matches = await  this.matchRepository.findBy({
             teams: {
                 event: {
                     id: eventId
@@ -80,6 +83,8 @@ export class MatchService {
             },
             phase: MatchPhase.SWISS
         })
+        console.log(matches)
+        return matches
     }
 
     getMaxSwissRounds(teams: number): number {

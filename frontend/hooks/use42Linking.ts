@@ -67,6 +67,9 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
       authUrl.searchParams.set("scope", "public");
       authUrl.searchParams.set("state", state);
 
+      console.log("authUrl", authUrl.toString());
+      console.log("state", state);
+
       // Store state in sessionStorage for verification
       sessionStorage.setItem(
         OAUTH_CONFIG.SESSION_STORAGE_KEYS.OAUTH_STATE,

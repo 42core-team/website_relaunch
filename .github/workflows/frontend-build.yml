@@ -78,6 +78,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
 
       - name: Extract short SHA for deployment
         id: short-sha

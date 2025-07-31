@@ -36,7 +36,7 @@ function ProfileContent() {
           <CardHeader>
             <h2 className="text-xl font-semibold">Account Information</h2>
           </CardHeader>
-          <CardBody>
+          <CardBody className="pt-2 pb-4">
             <User
               name={session.user?.name}
               description={session.user?.email}
@@ -45,7 +45,7 @@ function ProfileContent() {
                 size: "lg",
                 isBordered: true,
               }}
-              className="justify-start"
+              className="justify-start gap-4"
             />
           </CardBody>
         </Card>

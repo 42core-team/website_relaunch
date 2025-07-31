@@ -4,8 +4,16 @@ import { authOptions } from "@/app/utils/authOptions";
 import axiosInstance from "@/app/actions/axios";
 import { OAUTH_URLS, OAUTH_PROVIDERS } from "@/lib/constants/oauth";
 
-export async function POST(request: NextRequest) {
+interface RouteParams {
+  params: Promise<{
+    provider: string;
+  }>;
+}
+
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const { provider } = await params;
+
     // Check if user is authenticated
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -21,6 +29,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate provider
+    const validProviders = Object.values(OAUTH_PROVIDERS);
+    if (!validProviders.includes(provider as any)) {
+      return NextResponse.json(
+        { error: "Invalid OAuth provider" },
+        { status: 400 },
+      );
+    }
+
+    // Handle provider-specific OAuth flows
+    if (provider === OAUTH_PROVIDERS.FORTY_TWO) {
+      return handle42OAuth(code, state, session);
+    }
+
+    // Add other providers here in the future
+    return NextResponse.json(
+      { error: `OAuth provider ${provider} not yet implemented` },
+      { status: 400 },
+    );
+  } catch (error) {
+    console.error("OAuth linking error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+async function handle42OAuth(code: string, state: string, session: any) {
+  try {
     // Exchange authorization code for access token
     const tokenResponse = await fetch(OAUTH_URLS.FORTY_TWO_TOKEN, {
       method: "POST",
@@ -91,9 +129,9 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("42 linking error:", error);
+    console.error("42 OAuth error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to process 42 OAuth" },
       { status: 500 },
     );
   }

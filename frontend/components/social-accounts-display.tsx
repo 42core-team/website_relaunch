@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@heroui/react";
 import { Card, CardBody, CardHeader } from "@heroui/react";
@@ -22,29 +22,7 @@ export default function SocialAccountsDisplay() {
   const [loading, setLoading] = useState(true);
   const [unlinkingAccount, setUnlinkingAccount] = useState<string | null>(null);
 
-  const { error, isInitiating, initiate42OAuth, clearState } = use42Linking(
-    () => {
-      loadSocialAccounts(); // Refresh the accounts list on successful linking
-    },
-  );
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadSocialAccounts();
-    }
-  }, [session]);
-
-  // Clear any lingering errors when we detect a new 42 account
-  useEffect(() => {
-    const has42Account = socialAccounts.some(
-      (account) => account.platform === OAUTH_PROVIDERS.FORTY_TWO,
-    );
-    if (has42Account && error) {
-      clearState(); // Clear error if we now have a 42 account (successful link)
-    }
-  }, [socialAccounts, error, clearState]);
-
-  const loadSocialAccounts = async () => {
+  const loadSocialAccounts = useCallback(async () => {
     if (!session?.user?.id) return;
 
     try {
@@ -55,7 +33,28 @@ export default function SocialAccountsDisplay() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.id]);
+
+  const { message, isInitiating, initiate42OAuth, clearMessage } = use42Linking(
+    loadSocialAccounts, // Use the stable callback
+  );
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadSocialAccounts();
+    }
+  }, [session, loadSocialAccounts]);
+
+  // Clear any lingering error messages when we detect a new 42 account
+  useEffect(() => {
+    const has42Account = socialAccounts.some(
+      (account) => account.platform === OAUTH_PROVIDERS.FORTY_TWO,
+    );
+    if (has42Account && message?.type === "error") {
+      // Clear error message after account is successfully linked
+      clearMessage();
+    }
+  }, [socialAccounts, message, clearMessage]);
 
   const handleUnlink = async (platform: string) => {
     if (
@@ -179,7 +178,7 @@ export default function SocialAccountsDisplay() {
           </div>
         )}
 
-        {error && (
+        {message && message.type === "error" && (
           <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg dark:bg-danger-100/10">
             <div className="flex items-start gap-3">
               <span className="text-danger text-lg flex-shrink-0 mt-0.5">
@@ -187,10 +186,10 @@ export default function SocialAccountsDisplay() {
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-danger">
-                  Failed to connect 42 account
+                  Connection Failed
                 </p>
                 <p className="text-xs text-danger-600 mt-1 break-words">
-                  {error}
+                  {message.text}
                 </p>
                 <div className="flex gap-2 mt-3">
                   <Button
@@ -206,7 +205,7 @@ export default function SocialAccountsDisplay() {
                     size="sm"
                     variant="light"
                     color="danger"
-                    onPress={clearState}
+                    onPress={clearMessage}
                     className="h-8"
                   >
                     Dismiss

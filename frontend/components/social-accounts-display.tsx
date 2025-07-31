@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button, Chip } from "@heroui/react";
 import { Card, CardBody, CardHeader } from "@heroui/react";
+import Image from "next/image";
 import {
   getSocialAccounts,
   unlinkSocialAccount,
@@ -78,7 +79,15 @@ export default function SocialAccountsDisplay() {
       case "github":
         return "🐙";
       case "42":
-        return "🎯";
+        return (
+          <Image
+            src="/42-logo.svg"
+            alt="42 School"
+            width={24}
+            height={24}
+            className="w-6 h-6 invert dark:invert-0"
+          />
+        );
       case "discord":
         return "💬";
       case "twitter":
@@ -134,9 +143,9 @@ export default function SocialAccountsDisplay() {
                 className="flex items-center justify-between p-3 border border-default-200 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">
+                  <div className="text-2xl flex items-center justify-center w-8 h-8">
                     {getPlatformIcon(account.platform)}
-                  </span>
+                  </div>
                   <div>
                     <p className="font-medium">
                       {getPlatformName(account.platform)}
@@ -164,7 +173,15 @@ export default function SocialAccountsDisplay() {
           <div className="border-t border-default-200 pt-4">
             <div className="flex items-center justify-between p-3 border border-default-200 rounded-lg border-dashed">
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">🎯</span>
+                <div className="text-2xl flex items-center justify-center w-8 h-8">
+                  <Image
+                    src="/42-logo.svg"
+                    alt="42 School"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 invert dark:invert-0"
+                  />
+                </div>
                 <div>
                   <p className="font-medium">42 School</p>
                   <p className="text-sm text-default-500">Not connected</p>

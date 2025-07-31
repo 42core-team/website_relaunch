@@ -20,7 +20,11 @@ export default function App({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <HeroUIProvider>
-          <NextThemesProvider>
+          <NextThemesProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+          >
             <SessionProvider>
               <NavbarProvider>
                 <DefaultLayout>{children}</DefaultLayout>

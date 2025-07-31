@@ -95,7 +95,11 @@ export default function SocialAccountsDisplay() {
     socialAccounts.find((account) => account.platform === "42");
 
   if (loading) {
-    return <div>Loading social accounts...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[100px]">
+        <div className="text-default-500">Loading social accounts...</div>
+      </div>
+    );
   }
 
   return (
@@ -105,13 +109,13 @@ export default function SocialAccountsDisplay() {
       </CardHeader>
       <CardBody className="space-y-4">
         {socialAccounts.length === 0 ? (
-          <p className="text-gray-600">No social accounts linked yet.</p>
+          <p className="text-default-600">No social accounts linked yet.</p>
         ) : (
           <div className="space-y-3">
             {socialAccounts.map((account) => (
               <div
                 key={account.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
+                className="flex items-center justify-between p-3 border border-default-200 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">
@@ -121,7 +125,9 @@ export default function SocialAccountsDisplay() {
                     <p className="font-medium">
                       {getPlatformName(account.platform)}
                     </p>
-                    <p className="text-sm text-gray-600">@{account.username}</p>
+                    <p className="text-sm text-default-500">
+                      @{account.username}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -139,13 +145,13 @@ export default function SocialAccountsDisplay() {
         )}
 
         {!get42Account() && (
-          <div className="border-t pt-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg border-dashed">
+          <div className="border-t border-default-200 pt-4">
+            <div className="flex items-center justify-between p-3 border border-default-200 rounded-lg border-dashed">
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">🎯</span>
                 <div>
                   <p className="font-medium">42 School</p>
-                  <p className="text-sm text-gray-600">Not connected</p>
+                  <p className="text-sm text-default-500">Not connected</p>
                 </div>
               </div>
               <Button

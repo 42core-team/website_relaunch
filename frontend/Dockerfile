@@ -17,6 +17,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Add build argument for NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
+ARG NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
+ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=$NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
+
 RUN apk add --no-cache git openssh
 RUN pnpm build
 

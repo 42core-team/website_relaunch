@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import axiosInstance from "@/app/actions/axios";
+import { OAUTH_URLS, OAUTH_PROVIDERS } from "@/lib/constants/oauth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Exchange authorization code for access token
-    const tokenResponse = await fetch("https://api.intra.42.fr/oauth/token", {
+    const tokenResponse = await fetch(OAUTH_URLS.FORTY_TWO_TOKEN, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     const tokenData = await tokenResponse.json();
 
     // Get user profile from 42 API
-    const profileResponse = await fetch("https://api.intra.42.fr/v2/me", {
+    const profileResponse = await fetch(OAUTH_URLS.FORTY_TWO_PROFILE, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
       },
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Link the account via backend API
     try {
       const linkResult = await axiosInstance.post("/social-accounts/link", {
-        platform: "42",
+        platform: OAUTH_PROVIDERS.FORTY_TWO,
         username: profile.login,
         platformUserId: profile.id.toString(),
       });

@@ -1,12 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { OAUTH_URLS, OAUTH_CONFIG } from "@/lib/constants/oauth";
 
+/**
+ * Hook for handling 42 School OAuth integration
+ *
+ * Features:
+ * - Handles OAuth authorization flow
+ * - Prevents duplicate requests with ref-based tracking
+ * - Provides loading states and error handling
+ * - Auto-cleanup of URL parameters and session storage
+ */
 interface Use42LinkingReturn {
+  /** True when processing the OAuth callback and linking account */
   isLinking: boolean;
+  /** True when initiating OAuth flow (shows loading spinner) */
   isInitiating: boolean;
+  /** Current error message, null if no error */
   error: string | null;
+  /** Initiates the 42 OAuth authorization flow */
   initiate42OAuth: () => void;
+  /** Clears all state and session storage */
   clearState: () => void;
 }
 
@@ -25,8 +40,8 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
     setIsInitiating(false);
     processingRef.current = null;
     // Clean up all OAuth-related session storage
-    sessionStorage.removeItem("oauth_state");
-    sessionStorage.removeItem("processed_oauth_code");
+    sessionStorage.removeItem(OAUTH_CONFIG.SESSION_STORAGE_KEYS.OAUTH_STATE);
+    sessionStorage.removeItem(OAUTH_CONFIG.SESSION_STORAGE_KEYS.PROCESSED_CODE);
   }, []);
 
   const initiate42OAuth = useCallback(() => {
@@ -36,8 +51,10 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
 
     // Small delay to show the loading state before redirect
     setTimeout(() => {
-      const state = Math.random().toString(36).substring(7);
-      const authUrl = new URL("https://api.intra.42.fr/oauth/authorize");
+      const state = Math.random()
+        .toString(36)
+        .substring(OAUTH_CONFIG.STATE_LENGTH);
+      const authUrl = new URL(OAUTH_URLS.FORTY_TWO_AUTHORIZE);
 
       authUrl.searchParams.set(
         "client_id",
@@ -52,10 +69,13 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
       authUrl.searchParams.set("state", state);
 
       // Store state in sessionStorage for verification
-      sessionStorage.setItem("oauth_state", state);
+      sessionStorage.setItem(
+        OAUTH_CONFIG.SESSION_STORAGE_KEYS.OAUTH_STATE,
+        state,
+      );
 
       window.location.href = authUrl.toString();
-    }, 100); // Brief delay to show loading state
+    }, OAUTH_CONFIG.LOADING_DELAY);
   }, []);
 
   const handleLink42Account = useCallback(
@@ -93,13 +113,17 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
         url.searchParams.delete("code");
         url.searchParams.delete("state");
         window.history.replaceState({}, "", url.toString());
-        sessionStorage.removeItem("processed_oauth_code");
+        sessionStorage.removeItem(
+          OAUTH_CONFIG.SESSION_STORAGE_KEYS.PROCESSED_CODE,
+        );
         processingRef.current = null;
       } catch (err: any) {
         console.error("Error linking 42 account:", err);
         setError(err.message || "Failed to link 42 account");
         // Clean up session storage and processing ref on error
-        sessionStorage.removeItem("processed_oauth_code");
+        sessionStorage.removeItem(
+          OAUTH_CONFIG.SESSION_STORAGE_KEYS.PROCESSED_CODE,
+        );
         processingRef.current = null;
       } finally {
         setIsLinking(false);
@@ -122,13 +146,17 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
       }
 
       // Also check sessionStorage as backup
-      const processedCode = sessionStorage.getItem("processed_oauth_code");
+      const processedCode = sessionStorage.getItem(
+        OAUTH_CONFIG.SESSION_STORAGE_KEYS.PROCESSED_CODE,
+      );
       if (processedCode === code) {
         return; // Already processed this code
       }
 
-      const storedState = sessionStorage.getItem("oauth_state");
-      sessionStorage.removeItem("oauth_state");
+      const storedState = sessionStorage.getItem(
+        OAUTH_CONFIG.SESSION_STORAGE_KEYS.OAUTH_STATE,
+      );
+      sessionStorage.removeItem(OAUTH_CONFIG.SESSION_STORAGE_KEYS.OAUTH_STATE);
 
       // Mark as processing immediately
       processingRef.current = code;
@@ -139,7 +167,10 @@ export function use42Linking(onSuccess?: () => void): Use42LinkingReturn {
       // Verify state matches what we stored
       if (storedState === state) {
         // Mark this code as being processed in sessionStorage
-        sessionStorage.setItem("processed_oauth_code", code);
+        sessionStorage.setItem(
+          OAUTH_CONFIG.SESSION_STORAGE_KEYS.PROCESSED_CODE,
+          code,
+        );
         handleLink42Account(code, state);
       } else {
         setError("Invalid OAuth state. Please try again.");

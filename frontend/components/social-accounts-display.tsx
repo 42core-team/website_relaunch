@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Button, Chip } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { Card, CardBody, CardHeader } from "@heroui/react";
-import Image from "next/image";
 import {
   getSocialAccounts,
   unlinkSocialAccount,
   type SocialAccount,
 } from "@/app/actions/social-accounts";
 import { use42Linking } from "@/hooks/use42Linking";
+import {
+  getPlatformIcon,
+  getPlatformName,
+} from "@/lib/constants/platform-icons";
+import { OAUTH_PROVIDERS } from "@/lib/constants/oauth";
 
 export default function SocialAccountsDisplay() {
   const { data: session } = useSession();
@@ -30,10 +34,10 @@ export default function SocialAccountsDisplay() {
     }
   }, [session]);
 
-  // Clear any lingering errors when the component mounts or when we detect a new 42 account
+  // Clear any lingering errors when we detect a new 42 account
   useEffect(() => {
     const has42Account = socialAccounts.some(
-      (account) => account.platform === "42",
+      (account) => account.platform === OAUTH_PROVIDERS.FORTY_TWO,
     );
     if (has42Account && error) {
       clearState(); // Clear error if we now have a 42 account (successful link)
@@ -74,50 +78,10 @@ export default function SocialAccountsDisplay() {
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case "github":
-        return "🐙";
-      case "42":
-        return (
-          <Image
-            src="/42-logo.svg"
-            alt="42 School"
-            width={24}
-            height={24}
-            className="w-6 h-6 invert dark:invert-0"
-          />
-        );
-      case "discord":
-        return "💬";
-      case "twitter":
-        return "🐦";
-      case "linkedin":
-        return "💼";
-      default:
-        return "🔗";
-    }
-  };
-
-  const getPlatformName = (platform: string) => {
-    switch (platform) {
-      case "42":
-        return "42 School";
-      case "github":
-        return "GitHub";
-      case "discord":
-        return "Discord";
-      case "twitter":
-        return "Twitter";
-      case "linkedin":
-        return "LinkedIn";
-      default:
-        return platform;
-    }
-  };
-
   const get42Account = () =>
-    socialAccounts.find((account) => account.platform === "42");
+    socialAccounts.find(
+      (account) => account.platform === OAUTH_PROVIDERS.FORTY_TWO,
+    );
 
   if (loading) {
     return (
@@ -142,8 +106,8 @@ export default function SocialAccountsDisplay() {
                 key={account.id}
                 className="flex items-center justify-between p-3 border border-default-200 rounded-lg"
               >
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl flex items-center justify-center w-8 h-8">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 text-2xl">
                     {getPlatformIcon(account.platform)}
                   </div>
                   <div>
@@ -172,15 +136,9 @@ export default function SocialAccountsDisplay() {
         {!get42Account() && (
           <div className="border-t border-default-200 pt-4">
             <div className="flex items-center justify-between p-3 border border-default-200 rounded-lg border-dashed">
-              <div className="flex items-center space-x-3">
-                <div className="text-2xl flex items-center justify-center w-8 h-8">
-                  <Image
-                    src="/42-logo.svg"
-                    alt="42 School"
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 invert dark:invert-0"
-                  />
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 text-2xl">
+                  {getPlatformIcon(OAUTH_PROVIDERS.FORTY_TWO)}
                 </div>
                 <div>
                   <p className="font-medium">42 School</p>
@@ -222,7 +180,7 @@ export default function SocialAccountsDisplay() {
         )}
 
         {error && (
-          <div className="mt-4 p-3 bg-danger-50 border border-danger-200 rounded-lg">
+          <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg dark:bg-danger-100/10">
             <div className="flex items-start gap-3">
               <span className="text-danger text-lg flex-shrink-0 mt-0.5">
                 ⚠️
@@ -231,27 +189,30 @@ export default function SocialAccountsDisplay() {
                 <p className="text-sm font-medium text-danger">
                   Failed to connect 42 account
                 </p>
-                <p className="text-xs text-danger-600 mt-1">{error}</p>
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  onPress={initiate42OAuth}
-                  className="mt-2 h-7"
-                >
-                  Try Again
-                </Button>
+                <p className="text-xs text-danger-600 mt-1 break-words">
+                  {error}
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color="danger"
+                    onPress={initiate42OAuth}
+                    className="h-8"
+                  >
+                    Try Again
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    onPress={clearState}
+                    className="h-8"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
               </div>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                color="danger"
-                onPress={clearState}
-                className="min-w-0 w-6 h-6 flex-shrink-0"
-              >
-                ✕
-              </Button>
             </div>
           </div>
         )}

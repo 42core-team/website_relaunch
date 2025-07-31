@@ -1,5 +1,31 @@
 "use server";
 
+import axiosInstance from "@/app/actions/axios";
+
+export enum MatchPhase {
+  SWISS = "SWISS",
+  ELIMINATION = "ELIMINATION",
+}
+
+export enum MatchState {
+  PLANNED = "PLANNED",
+  READY = "READY",
+  FINISHED = "FINISHED",
+}
+
+export interface Match {
+  id: string;
+  round: number;
+  state: MatchState;
+  phase: MatchPhase;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getSwissMatches(eventId: string) {
+  return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
+}
+
 // Functions:
 // General:
 // - Increase round!!!!!!!!!

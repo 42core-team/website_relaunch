@@ -71,6 +71,17 @@ export class MatchService {
         return matchEntities;
     }
 
+    getSwissMatches(eventId: string) {
+        return this.matchRepository.findBy({
+            teams: {
+                event: {
+                    id: eventId
+                }
+            },
+            phase: MatchPhase.SWISS
+        })
+    }
+
     getMaxSwissRounds(teams: number): number {
         return Math.ceil(Math.log2(teams));
     }

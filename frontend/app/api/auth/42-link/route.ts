@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         client_id: process.env.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID!,
         client_secret: process.env.FORTY_TWO_CLIENT_SECRET!,
         code: code,
-        redirect_uri: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/link-42`,
+        redirect_uri: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/profile`,
       }),
     });
 

@@ -2,11 +2,12 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { Card, CardBody, CardHeader, Avatar, User } from "@heroui/react";
+import { Suspense } from "react";
+import { Card, CardBody, CardHeader, User } from "@heroui/react";
 import { title } from "@/components/primitives";
 import SocialAccountsDisplay from "@/components/social-accounts-display";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -52,5 +53,19 @@ export default function ProfilePage() {
         <SocialAccountsDisplay />
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="text-default-500">Loading...</div>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }

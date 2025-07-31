@@ -18,20 +18,6 @@ export interface LinkSocialAccountData {
   platformUserId: string;
 }
 
-export async function linkSocialAccount(
-  data: LinkSocialAccountData,
-): Promise<SocialAccount> {
-  try {
-    const response = await axiosInstance.post("/social-accounts/link", data);
-    return response.data;
-  } catch (error: any) {
-    console.error("Error linking social account:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to link social account",
-    );
-  }
-}
-
 export async function unlinkSocialAccount(platform: string): Promise<void> {
   try {
     await axiosInstance.delete(`/social-accounts/${platform}`);

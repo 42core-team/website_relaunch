@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Button } from "@heroui/button";
+import { Button, Chip } from "@heroui/react";
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import {
   getSocialAccounts,
   unlinkSocialAccount,
   type SocialAccount,
 } from "@/app/actions/social-accounts";
-import Link from "next/link";
+import { use42Linking } from "@/hooks/use42Linking";
 
 export default function SocialAccountsDisplay() {
   const { data: session } = useSession();
@@ -17,11 +17,27 @@ export default function SocialAccountsDisplay() {
   const [loading, setLoading] = useState(true);
   const [unlinkingAccount, setUnlinkingAccount] = useState<string | null>(null);
 
+  const { error, isInitiating, initiate42OAuth, clearState } = use42Linking(
+    () => {
+      loadSocialAccounts(); // Refresh the accounts list on successful linking
+    },
+  );
+
   useEffect(() => {
     if (session?.user?.id) {
       loadSocialAccounts();
     }
   }, [session]);
+
+  // Clear any lingering errors when the component mounts or when we detect a new 42 account
+  useEffect(() => {
+    const has42Account = socialAccounts.some(
+      (account) => account.platform === "42",
+    );
+    if (has42Account && error) {
+      clearState(); // Clear error if we now have a 42 account (successful link)
+    }
+  }, [socialAccounts, error, clearState]);
 
   const loadSocialAccounts = async () => {
     if (!session?.user?.id) return;
@@ -155,13 +171,69 @@ export default function SocialAccountsDisplay() {
                 </div>
               </div>
               <Button
-                as={Link}
-                href="/link-42"
                 size="sm"
                 color="primary"
                 variant="flat"
+                onPress={initiate42OAuth}
+                isLoading={isInitiating}
+                spinner={
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                }
               >
-                Connect
+                {isInitiating ? "Connecting..." : "Connect"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 p-3 bg-danger-50 border border-danger-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-danger text-lg flex-shrink-0 mt-0.5">
+                ⚠️
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-danger">
+                  Failed to connect 42 account
+                </p>
+                <p className="text-xs text-danger-600 mt-1">{error}</p>
+                <Button
+                  size="sm"
+                  variant="light"
+                  color="danger"
+                  onPress={initiate42OAuth}
+                  className="mt-2 h-7"
+                >
+                  Try Again
+                </Button>
+              </div>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                color="danger"
+                onPress={clearState}
+                className="min-w-0 w-6 h-6 flex-shrink-0"
+              >
+                ✕
               </Button>
             </div>
           </div>

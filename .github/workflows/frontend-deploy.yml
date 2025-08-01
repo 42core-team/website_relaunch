@@ -90,14 +90,12 @@ jobs:
           # Debug: Check if KUBECONFIG_DATA is set
           if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
             echo "ERROR: KUBECONFIG_DATA secret is empty or not set!"
-            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: ${{ inputs.environment }}"
+            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: api-${{ inputs.environment }}"
             exit 1
           fi
 
-          # Debug: Check secret length and first few characters
-          SECRET_LENGTH=$(echo "${{ secrets.KUBECONFIG_DATA }}" | wc -c)
-          echo "Secret length: $SECRET_LENGTH characters"
-          echo "First 50 characters: $(echo "${{ secrets.KUBECONFIG_DATA }}" | head -c 50)"
+          # Create .kube directory
+          mkdir -p ~/.kube
 
           # Try to decode with better error handling
           if ! echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config 2>/tmp/base64_error; then
@@ -109,15 +107,6 @@ jobs:
           fi
 
           chmod 600 ~/.kube/config
-
-          # Debug: Check if config file was created
-          if [ ! -f ~/.kube/config ]; then
-            echo "ERROR: Failed to create ~/.kube/config"
-            exit 1
-          fi
-
-          echo "Kubernetes config file created successfully"
-          echo "Config file size: $(wc -c < ~/.kube/config) bytes"
 
           # Verify connection
           kubectl cluster-info

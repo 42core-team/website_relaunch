@@ -34,7 +34,7 @@ env:
 jobs:
   build:
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
-    runs-on: [self-hosted, x64]
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         platform: [linux/amd64]

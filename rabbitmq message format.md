@@ -46,7 +46,7 @@ Game results will be published to the `game_results` queue in the following form
 
 ```json
 {
-  "pattern": "successfull",
+  "pattern": "game_server",
   "data": {
     "team_results": [
       {

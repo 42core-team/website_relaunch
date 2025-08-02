@@ -18,6 +18,8 @@ env:
   NEXTAUTH_URL: "https://dev.coregame.de"
   # GitHub OAuth Configuration
   CLIENT_ID_GITHUB: "dev-github-client-id"
+  # 42 OAuth Configuration - public variable
+  NEXT_PUBLIC_FORTY_TWO_CLIENT_ID: "dev-42-client-id"
   # Backend API Configuration
   BACKEND_URL: "https://dev.api.coregame.de"
 
@@ -46,3 +48,5 @@ secrets:
   NEXTAUTH_SECRET: ""
   CLIENT_SECRET_GITHUB: ""
   BACKEND_SECRET: ""
+  # 42 OAuth Client Secret - sensitive data
+  FORTY_TWO_CLIENT_SECRET: ""

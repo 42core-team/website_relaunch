@@ -24,24 +24,59 @@ This project has been migrated from npm to [pnpm](https://pnpm.io/).
    pnpm install
    ```
 
-3. **Run the development server:**
+3. **Set up environment variables:**
+
+   Create a `.env.local` file in the frontend directory with the following variables:
+
+   ```env
+   # 42 School OAuth Configuration
+   NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=your_42_client_id_here
+   FORTY_TWO_CLIENT_SECRET=your_42_client_secret_here
+
+   # NextAuth Configuration
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_nextauth_secret_here
+
+   # Database (if using local database)
+   # DATABASE_URL=your_database_url_here
+   ```
+
+4. **Run the development server:**
 
    ```sh
    pnpm dev
    ```
 
-4. **Build for production:**
+5. **Build for production:**
 
    ```sh
    pnpm build
    ```
 
-5. **Start the production server:**
+6. **Start the production server:**
    ```sh
    pnpm start
    ```
 
 ---
+
+## Environment Variables
+
+### Required for OAuth
+
+- `NEXT_PUBLIC_FORTY_TWO_CLIENT_ID`: Your 42 School OAuth application client ID
+- `FORTY_TWO_CLIENT_SECRET`: Your 42 School OAuth application client secret
+- `NEXTAUTH_URL`: The base URL of your application (e.g., `http://localhost:3000`)
+- `NEXTAUTH_SECRET`: A random string used to encrypt JWT tokens
+
+### OAuth Setup
+
+#### 42 School OAuth
+
+1. Go to **42 School** → **Settings** → **API** → **Applications**
+2. Create a new application
+3. Set the **Redirect URI** to: `http://localhost:3000/auth/callback/42`
+4. Copy the **Client ID** and **Client Secret** and add them to your `.env.local` file
 
 ## Prisma Setup
 

@@ -3,6 +3,7 @@ import {AppModule} from './app.module';
 import {ClassSerializerInterceptor, ValidationPipe} from "@nestjs/common";
 import {TypeormExceptionFilter} from "./common/TypeormExceptionFilter";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
+import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -10,6 +11,35 @@ async function bootstrap() {
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
     app.useGlobalFilters(new TypeormExceptionFilter());
     app.enableCors();
+
+    app.connectMicroservice<MicroserviceOptions>({
+        transport: Transport.RMQ,
+        options: {
+            urls: ['amqp://guest:guest@localhost:5672'],
+            queue: 'game_results',
+            queueOptions: {
+                durable: false,
+                arguments: {
+                    'x-queue-type': 'classic'
+                }
+            },
+        },
+    });
+
+    app.connectMicroservice<MicroserviceOptions>({
+        transport: Transport.RMQ,
+        options: {
+            urls: ['amqp://guest:guest@localhost:5672'],
+            queue: 'game_queue',
+            queueOptions: {
+                durable: true,
+                arguments: {
+                    'x-queue-type': 'quorum'
+                }
+            },
+        },
+    });
+
 
     if (process.env.NODE_ENV === 'development') {
         const config = new DocumentBuilder()
@@ -22,7 +52,7 @@ async function bootstrap() {
         SwaggerModule.setup('api', app, documentFactory);
     }
 
-
+    await app.startAllMicroservices();
     await app.listen(process.env.PORT ?? 4000);
 }
 

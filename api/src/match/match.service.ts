@@ -7,6 +7,7 @@ import {Swiss} from "tournament-pairings"
 import {EventService} from "../event/event.service";
 // @ts-ignore
 import {Match, Player} from "tournament-pairings/interfaces";
+import {MessagePattern} from "@nestjs/microservices";
 
 @Injectable()
 export class MatchService {
@@ -20,14 +21,19 @@ export class MatchService {
 
     logger = new Logger("MatchService");
 
+    @MessagePattern('success')
+    async handleMatchSuccess(data: { matchId: string, winnerId: string }) {
+        console.log("test")
+    }
+
+
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {
         console.log("create match with teamIds: ", teamIds, " round: ", round, " phase: ", phase);
         const match = this.matchRepository.create({
-            teams: teamIds.map(id => ({ id })),
+            teams: teamIds.map(id => ({id})),
             round,
             phase,
             state: MatchState.PLANNED
-
         });
 
         return this.matchRepository.save(match);
@@ -37,6 +43,20 @@ export class MatchService {
         const event = await this.eventService.getEventById(eventId, {
             teams: true
         });
+
+        if (event.currentRound != 0 && await this.matchRepository.findOneBy({
+            teams: {
+                event: {
+                    id: eventId
+                }
+            },
+            round: event.currentRound,
+            state: MatchState.PLANNED,
+            phase: MatchPhase.SWISS
+        })) {
+            this.logger.error("Not all matches of the current round are finished. Cannot create Swiss matches.");
+            throw new Error("Not all matches of the current round are finished. Cannot create Swiss matches.");
+        }
 
         const maxSwissRounds = this.getMaxSwissRounds(event.teams.length);
         if (event.currentRound >= maxSwissRounds) {
@@ -51,16 +71,15 @@ export class MatchService {
         }))
 
         const matches = Swiss(players, event.currentRound)
-        const matchEntities: (MatchEntity | null)[]  = await Promise.all(matches.map(async match => {
+        const matchEntities: (MatchEntity | null)[] = await Promise.all(matches.map(async match => {
             if (match.player1 === match.player2) {
                 this.logger.error(`Player ${match.player1} cannot be paired with themselves in Swiss pairing.`);
                 throw new Error("A player cannot be paired with themselves in Swiss pairing.");
             }
 
-
             if (!match.player1 || !match.player2) {
                 this.logger.log(`The team ${match.player1 || match.player2} got a bye in round ${event.currentRound} of event ${event.name}.`);
-                await this.teamService.setHadBye((match.player1 || match.player2) as string , true);
+                await this.teamService.setHadBye((match.player1 || match.player2) as string, true);
                 return null;
             }
             return this.createMatch([match.player1 as string, match.player2 as string], event.currentRound, MatchPhase.SWISS);
@@ -74,8 +93,7 @@ export class MatchService {
     }
 
     async getSwissMatches(eventId: string) {
-        console.log(`Getting matches for event ${eventId}`);
-        const matches = await  this.matchRepository.findBy({
+        return await this.matchRepository.findBy({
             teams: {
                 event: {
                     id: eventId
@@ -83,8 +101,6 @@ export class MatchService {
             },
             phase: MatchPhase.SWISS
         })
-        console.log(matches)
-        return matches
     }
 
     getMaxSwissRounds(teams: number): number {

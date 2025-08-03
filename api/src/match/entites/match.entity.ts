@@ -4,7 +4,7 @@ import {
   Entity,
   JoinColumn,
   JoinTable,
-  ManyToMany,
+  ManyToMany, ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -13,7 +13,7 @@ import { TeamEntity } from "../../team/entities/team.entity";
 
 export enum MatchState {
   PLANNED = "PLANNED",
-  READY = "READY", // In progress?
+  IN_PROGRESS = "IN_PROGRESS",
   FINISHED = "FINISHED",
 }
 
@@ -33,8 +33,7 @@ export class MatchEntity {
   @Column()
   round: number;
 
-  @JoinColumn()
-  @OneToOne(() => TeamEntity)
+  @ManyToOne(() => TeamEntity)
   winner: TeamEntity;
 
   @Column({ type: "enum", enum: MatchPhase, default: MatchPhase.SWISS })

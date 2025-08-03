@@ -2,30 +2,148 @@ import {Injectable, Logger} from '@nestjs/common';
 import {TeamService} from "../team/team.service";
 import {InjectRepository} from "@nestjs/typeorm";
 import {MatchEntity, MatchPhase, MatchState} from "./entites/match.entity";
-import {Repository} from "typeorm";
+import {Not, Repository} from "typeorm";
 import {Swiss} from "tournament-pairings"
 import {EventService} from "../event/event.service";
 // @ts-ignore
-import {Match, Player} from "tournament-pairings/interfaces";
-import {MessagePattern} from "@nestjs/microservices";
+import {Player} from "tournament-pairings/interfaces";
+import {EventEntity, EventState} from "../event/entities/event.entity";
+import {matches} from "class-validator";
+import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
+import {gameResultsTransport} from "../main";
 
 @Injectable()
 export class MatchService {
+
+    private gameResultsQueue: ClientProxy;
+    private logger = new Logger("MatchService");
+
     constructor(
         private readonly teamService: TeamService,
         private readonly eventService: EventService,
         @InjectRepository(MatchEntity)
         private readonly matchRepository: Repository<MatchEntity>
     ) {
+        this.gameResultsQueue = ClientProxyFactory.create(gameResultsTransport);
     }
 
-    logger = new Logger("MatchService");
+    async processMatchResult(matchId: string, winnerId: string) {
+        const match = await this.matchRepository.findOne({
+            where: {id: matchId},
+            relations: {
+                teams: {
+                    event: true
+                },
+                winner: true,
+            }
+        });
 
-    @MessagePattern('success')
-    async handleMatchSuccess(data: { matchId: string, winnerId: string }) {
-        console.log("test")
+        if (!match)
+            throw new Error(`Match with id ${matchId} not found.`);
+
+        if (match.state !== MatchState.IN_PROGRESS)
+            throw new Error(`Match with id ${matchId} is not in READY state.`);
+
+        const winner = match.teams.find(team => team.id === winnerId);
+        if (!winner)
+            throw new Error(`Winner with id ${winnerId} not found in match teams.`);
+
+        match.winner = winner;
+        match.state = MatchState.FINISHED;
+
+        await this.teamService.increaseTeamScore(winner.id, 1);
+        await this.matchRepository.save(match);
+        this.logger.log(`Match with id ${matchId} finished. Winner: ${winner.name}`);
+
+        const event = match.teams[0].event;
+        if (!event) {
+            throw new Error(`Event for match with id ${matchId} not found.`);
+        }
+
+        const notFinishedMatches = await this.matchRepository.count({
+            where: {
+                teams: {
+                    event: {
+                        id: event.id
+                    }
+                },
+                state: Not(MatchState.FINISHED),
+                phase: match.phase,
+                round: match.round
+            }
+        })
+
+        if (notFinishedMatches > 0)
+            return;
+
+        if (match.phase == MatchPhase.SWISS)
+            return this.processSwissFinishRound(event);
+        else if (match.phase == MatchPhase.ELIMINATION)
+            return this.processTournamentFinishRound(event);
+        throw new Error(`Unknown match phase: ${match.phase}`);
     }
 
+    async processSwissFinishRound(event: EventEntity) {
+        await this.eventService.increaseEventRound(event.id);
+        this.logger.log(`Event ${event.name} has finished round ${event.currentRound}.`);
+    }
+
+    async processTournamentFinishRound(event: EventEntity) {
+        const finishedMatches = await this.matchRepository.countBy({
+            teams: {
+                event: {
+                    id: event.id
+                }
+            },
+            state: MatchState.FINISHED,
+            phase: MatchPhase.ELIMINATION,
+            round: event.currentRound
+        })
+
+        if (finishedMatches == 0) {
+            throw new Error(`No finished matches found for event ${event.name} in round ${event.currentRound}.`);
+        }
+
+        if (finishedMatches == 1) {
+            this.logger.log(`Event ${event.name} has finished the final match.`);
+            await this.eventService.setEventState(event.id, EventState.FINISHED);
+            return;
+        }
+
+        await this.eventService.increaseEventRound(event.id);
+        this.logger.log(`Event ${event.name} has finished round ${event.currentRound}.`);
+    }
+
+    async startMatch(matchId: string) {
+        const match = await this.matchRepository.findOne({
+            where: {id: matchId},
+            relations: {
+                teams: true,
+                winner: true
+            }
+        });
+
+        if (!match)
+            throw new Error(`Match with id ${matchId} not found.`);
+
+        if (match.state !== MatchState.PLANNED)
+            throw new Error(`Match with id ${matchId} is not in PLANNED state.`);
+
+        match.state = MatchState.IN_PROGRESS;
+        await this.matchRepository.save(match);
+
+
+        this.gameResultsQueue.emit("success", {
+            team_results: match.teams.map(team => ({
+                id: team.id,
+                name: team.name,
+                place: Math.random() * 10
+            })),
+            "game_end_reason": 0,
+            "version": "1.0.0",
+            "game_id": matchId
+        })
+    }
 
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {
         console.log("create match with teamIds: ", teamIds, " round: ", round, " phase: ", phase);
@@ -39,7 +157,7 @@ export class MatchService {
         return this.matchRepository.save(match);
     }
 
-    async createSwissMatches(eventId: string) {
+    async createNextSwissMatches(eventId: string) {
         const event = await this.eventService.getEventById(eventId, {
             teams: true
         });
@@ -51,7 +169,7 @@ export class MatchService {
                 }
             },
             round: event.currentRound,
-            state: MatchState.PLANNED,
+            state: MatchState.IN_PROGRESS, // TODO need to change later to MatchState.PLANNED
             phase: MatchPhase.SWISS
         })) {
             this.logger.error("Not all matches of the current round are finished. Cannot create Swiss matches.");
@@ -87,9 +205,91 @@ export class MatchService {
         const filteredMatchEntities = matchEntities.filter((match): match is MatchEntity => match !== null);
 
         this.logger.log(`Created ${filteredMatchEntities.length} Swiss matches for event ${event.name} in round ${event.currentRound}.`);
-        await this.eventService.increaseEventRound(eventId);
-        this.logger.log("Increased event round for event " + event.name + " to " + (event.currentRound + 1));
+        for (let matchEntity of filteredMatchEntities)
+            await this.startMatch(matchEntity.id)
         return filteredMatchEntities;
+    }
+
+    async createFirstTournamentMatches(event: EventEntity) {
+        const teamsCount = event.teams.length;
+        const highestPowerOfTwo = Math.pow(2, Math.floor(Math.log2(teamsCount)));
+
+        if (highestPowerOfTwo < 2) {
+            throw new Error("Not enough teams to create matches for the first round of the tournament. Minimum 2 teams required.");
+        }
+
+        const sortedTeams = this.teamService.getSortedTeamsForTournament(event.id);
+
+        for (let i = 0; i < highestPowerOfTwo; i += 2) {
+            const team1 = sortedTeams[i];
+            const team2 = sortedTeams[i + 1];
+
+            if (!team1 || !team2) {
+                throw new Error("Not enough teams to create matches for the first round of the tournament.");
+            }
+
+            await this.createMatch([team1.id, team2.id], 1, MatchPhase.ELIMINATION);
+        }
+
+        this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound + 1}.`);
+    }
+
+    async createNextTournamentMatches(eventId: string) {
+        const event = await this.eventService.getEventById(eventId, {
+            teams: true
+        });
+
+        if (event.state != EventState.ELIMINATION_ROUND)
+            throw new Error("Event is not in elimination round state.");
+
+        if (event.currentRound == 0)
+            return this.createFirstTournamentMatches(event);
+
+        const lastMatches = await this.matchRepository.find({
+            where: {
+                teams: {
+                    event: {
+                        id: eventId
+                    }
+                },
+                round: event.currentRound - 1,
+                state: MatchState.FINISHED,
+                phase: MatchPhase.ELIMINATION
+            },
+            relations: {
+                winner: true
+            },
+            order: {
+                createdAt: "ASC"
+            }
+        })
+
+        if (lastMatches.length == 0) {
+            throw new Error("No finished matches found for the last round. Cannot create next tournament matches.");
+        }
+
+        if (lastMatches.length % 2 != 0) {
+            throw new Error("Odd number of matches in the last round. Cannot create next tournament matches.");
+        }
+
+        for (let i = 0; i < lastMatches.length; i += 2) {
+            const match = lastMatches[i];
+            const nextMatch = lastMatches[i + 1];
+
+            if (!match.winner || !nextMatch.winner) {
+                throw new Error("One of the matches does not have a winner. Cannot create next tournament matches.");
+            }
+
+            await this.createMatch([match.winner.id, nextMatch.winner.id], event.currentRound + 1, MatchPhase.ELIMINATION);
+        }
+
+        this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound + 1}.`);
+        await this.eventService.increaseEventRound(eventId);
+
+        if (lastMatches.length == 2) {
+            this.logger.log(`Event ${event.name} has reached the final match.`);
+            await this.eventService.setEventState(eventId, EventState.FINISHED);
+        }
     }
 
     async getSwissMatches(eventId: string) {

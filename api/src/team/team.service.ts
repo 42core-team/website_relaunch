@@ -238,6 +238,23 @@ export class TeamService {
         }));
     }
 
+    getSortedTeamsForTournament(eventId: string): Promise<TeamEntity[]> {
+        return this.teamRepository.find({
+            where: {
+                event: {
+                    id: eventId
+                }
+            },
+            order: {
+                score: "DESC",
+            }
+        })
+    }
+
+    increaseTeamScore(teamId: string, score: number) {
+        return this.teamRepository.increment({id: teamId}, "score", score);
+    }
+
     setHadBye(teamId: string, hadBye: boolean){
         return this.teamRepository.update(teamId, { hadBye })
     }

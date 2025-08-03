@@ -48,6 +48,20 @@ func (q *Queue) DeclareQueues() error {
 		return err
 	}
 	q.gameQ = &newQueue
+
+	_, err = q.ch.QueueDeclare(
+		"game_results",
+		true,
+		false,
+		false,
+		false,
+		amqp.Table{
+			amqp.QueueTypeArg: amqp.QueueTypeQuorum,
+		})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

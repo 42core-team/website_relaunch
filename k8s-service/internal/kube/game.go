@@ -13,7 +13,7 @@ import (
 func (c *Client) CreateGameJob(game *Game) error {
 	var botIDs []string
 	for ind := range game.Bots {
-		id, err := generateRandomID(16)
+		id, err := generateRandomID(2)
 		if err != nil {
 			return fmt.Errorf("error generating rnd IDs for bots %w", err)
 		}
@@ -66,9 +66,19 @@ func (c *Client) CreateGameJob(game *Game) error {
 	}
 
 	mainContainer := corev1.Container{
-		Name:    "game",
-		Image:   game.Image,
-		Command: append([]string{"./game"}, botIDs...),
+		Name:  "game",
+		Image: game.Image,
+		Args:  botIDs,
+		Env: []corev1.EnvVar{
+			{
+				Name:  "GAME_ID",
+				Value: game.ID.String(),
+			},
+			{
+				Name:  "SEND_RESULTS",
+				Value: "true",
+			},
+		},
 	}
 
 	podSpec := corev1.PodSpec{
@@ -96,7 +106,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 		return fmt.Errorf("failed to create job: %v", err)
 	}
 
-	c.logger.Infoln("Job with multiple containers created successfully", "jobName", job.Name)
+	c.logger.Infoln("Job to run a game successfully created", "jobName", job.Name)
 	return nil
 }
 

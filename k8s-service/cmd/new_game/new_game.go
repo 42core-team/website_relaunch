@@ -18,7 +18,7 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-	conn, err := amqp.Dial("amqp://guest:guest@host.docker.internal:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -60,16 +60,16 @@ func main() {
 func getDummyGame() kube.Game {
 	return kube.Game{
 		ID:    uuid.New(),
-		Image: "ghcr.io/42core-team/game-server:dev",
+		Image: "ghcr.io/42core-team/game-server:dev-415f977711c7cfadba128e53bc3a93ab6cf04a39",
 		Bots: []kube.Bot{
 			{
 				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev",
+				Image:   "ghcr.io/42core-team/my-core-bot:dev-46ee116290a9a3762272973a6b654849bab8951f",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 			{
 				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev",
+				Image:   "ghcr.io/42core-team/my-core-bot:dev-46ee116290a9a3762272973a6b654849bab8951f",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 		},

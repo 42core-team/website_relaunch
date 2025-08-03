@@ -78,6 +78,9 @@ Game results will be published to the `game_results` queue in the following form
 - `data.version`: API version
 - `data.game_id`: UUID of the completed game
 
+Look here for the game_end_reasons:
+https://github.com/42core-team/even_COREnier/blob/31f3628798926ea97b99aa1939182c723f382f42/inc/game/ReplayEncoder.h#L18
+
 ## Queue Names
 
 - **Input Queue**: `game_queue` - Send game start messages here

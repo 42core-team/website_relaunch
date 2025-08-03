@@ -1,6 +1,6 @@
 import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
-import {EventEntity} from "./entities/event.entity";
+import {EventEntity, EventState} from "./entities/event.entity";
 import {Repository, UpdateResult} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
 import * as CryptoJS from "crypto-js";
@@ -119,5 +119,11 @@ export class EventService {
                 this.logger.error(`Failed to lock team ${team.id} for event ${eventId}`, e);
             }
         }))
+    }
+
+    async setEventState(eventId: string, eventState: EventState) {
+        return this.eventRepository.update(eventId, {
+            state: eventState
+        })
     }
 }

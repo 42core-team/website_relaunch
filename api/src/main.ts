@@ -5,6 +5,16 @@ import {TypeormExceptionFilter} from "./common/TypeormExceptionFilter";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 
+export const gameResultsTransport: any = {
+    transport: Transport.RMQ,
+    options: {
+        urls: ['amqp://guest:guest@localhost:5672'],
+        queue: 'game_results',
+        queueOptions: {
+        },
+    },
+}
+
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.useGlobalPipes(new ValidationPipe());
@@ -12,19 +22,7 @@ async function bootstrap() {
     app.useGlobalFilters(new TypeormExceptionFilter());
     app.enableCors();
 
-    app.connectMicroservice<MicroserviceOptions>({
-        transport: Transport.RMQ,
-        options: {
-            urls: ['amqp://guest:guest@localhost:5672'],
-            queue: 'game_results',
-            queueOptions: {
-                durable: false,
-                arguments: {
-                    'x-queue-type': 'classic'
-                }
-            },
-        },
-    });
+    app.connectMicroservice<MicroserviceOptions>(gameResultsTransport);
 
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.RMQ,
@@ -32,10 +30,6 @@ async function bootstrap() {
             urls: ['amqp://guest:guest@localhost:5672'],
             queue: 'game_queue',
             queueOptions: {
-                durable: true,
-                arguments: {
-                    'x-queue-type': 'quorum'
-                }
             },
         },
     });

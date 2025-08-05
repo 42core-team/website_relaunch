@@ -9,7 +9,7 @@ export enum MatchPhase {
 
 export enum MatchState {
   PLANNED = "PLANNED",
-  READY = "READY",
+  IN_PROGRESS = "IN_PROGRESS",
   FINISHED = "FINISHED",
 }
 
@@ -20,6 +20,14 @@ export interface Match {
   phase: MatchPhase;
   createdAt: string;
   updatedAt: string;
+  teams: {
+    name: string;
+    score: number;
+  }[];
+  winner?: {
+    name: string;
+    score: number;
+  };
 }
 
 export async function getSwissMatches(eventId: string) {

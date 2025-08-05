@@ -293,13 +293,19 @@ export class MatchService {
     }
 
     async getSwissMatches(eventId: string) {
-        return await this.matchRepository.findBy({
-            teams: {
-                event: {
-                    id: eventId
-                }
+        return await this.matchRepository.find({
+            where: {
+                teams: {
+                    event: {
+                        id: eventId
+                    }
+                },
+                phase: MatchPhase.SWISS
             },
-            phase: MatchPhase.SWISS
+            relations: {
+                teams: true,
+                winner: true
+            }
         })
     }
 

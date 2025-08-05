@@ -7,46 +7,17 @@ import ReactFlow, {
   Background,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { MatchNode } from "@/components/match";
+import { Match } from "@/app/actions/tournament-model";
 
 const MATCH_WIDTH = 200;
 const MATCH_HEIGHT = 80;
 const ROUND_SPACING = 280;
 const VERTICAL_SPACING = 100;
 
-type SerializedMatch = {
-  id: string;
-  state: string;
-  round: number;
-  winner: { id: string; name: string } | null;
-  teams: { id: string; name: string }[];
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-const getMatchStatusColor = (state: string) => {
-  switch (state) {
-    case "FINISHED":
-      return "#e6f7ff";
-    case "READY":
-      return "#f0f9eb";
-    case "IN_PROGRESS":
-      return "#fff7e6";
-    default:
-      return "#f5f5f5";
-  }
-};
-
-const getMatchStatusBorder = (state: string) => {
-  switch (state) {
-    case "FINISHED":
-      return "#1890ff";
-    case "READY":
-      return "#52c41a";
-    case "IN_PROGRESS":
-      return "#fa8c16";
-    default:
-      return "#d9d9d9";
-  }
+// Custom node types for ReactFlow
+const nodeTypes = {
+  matchNode: MatchNode,
 };
 
 function createTreeCoordinate(matchCount: number): { x: number; y: number }[] {
@@ -68,27 +39,64 @@ function createTreeCoordinate(matchCount: number): { x: number; y: number }[] {
   return coordinates;
 }
 
-export default function GraphView({ matches }: { matches: SerializedMatch[] }) {
+export default function GraphView({ matches }: { matches: Match[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    console.log(createTreeCoordinate(16));
-    const newNodes = createTreeCoordinate(8).map((coord, index): Node => {
+    if (!matches || matches.length === 0) {
+      // Create placeholder nodes for visualization
+      const newNodes = createTreeCoordinate(8).map((coord, index): Node => {
+        const placeholderMatch: Match = {
+          id: `placeholder-${index}`,
+          round: index + 1,
+          state: "PLANNED" as any,
+          phase: "ELIMINATION" as any,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          teams: [],
+        };
+
+        return {
+          id: index.toString(),
+          type: "matchNode",
+          position: { x: coord.x, y: coord.y },
+          data: {
+            match: placeholderMatch,
+            width: MATCH_WIDTH,
+            height: MATCH_HEIGHT,
+          },
+        };
+      });
+      setNodes(newNodes);
+      return;
+    }
+
+    // Create nodes from actual match data
+    const newNodes: Node[] = matches.map((match, index) => {
+      const coordinates = createTreeCoordinate(matches.length);
+      const coord = coordinates[index] || {
+        x: 0,
+        y: index * (MATCH_HEIGHT + 20),
+      };
+
       return {
-        id: index.toString(),
+        id: match.id,
+        type: "matchNode",
         position: { x: coord.x, y: coord.y },
-        style: {
+        data: {
+          match,
           width: MATCH_WIDTH,
           height: MATCH_HEIGHT,
+          onClick: (clickedMatch: Match) => {
+            console.log("Match clicked:", clickedMatch);
+          },
         },
-        data: {},
       };
     });
 
-    console.log(newNodes);
     setNodes(newNodes);
-  }, [matches]);
+  }, [matches, setNodes]);
 
   return (
     <div className="w-full">
@@ -109,6 +117,7 @@ export default function GraphView({ matches }: { matches: SerializedMatch[] }) {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.3 }}
           nodesConnectable={false}

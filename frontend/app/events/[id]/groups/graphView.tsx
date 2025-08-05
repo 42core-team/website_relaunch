@@ -1,8 +1,19 @@
 "use client";
 import { useCallback, useEffect } from "react";
-import ReactFlow, { Node, NodeMouseHandler, useNodesState } from "reactflow";
+import ReactFlow, {
+  Background,
+  Node,
+  NodeMouseHandler,
+  useNodesState,
+} from "reactflow";
 import "reactflow/dist/style.css";
-import { Match } from "@/app/actions/tournament";
+import { MatchNode } from "@/components/match";
+import { Match } from "@/app/actions/tournament-model";
+
+// Custom node types for ReactFlow
+const nodeTypes = {
+  matchNode: MatchNode,
+};
 
 export default function GraphView({ matches }: { matches: Match[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -26,12 +37,15 @@ export default function GraphView({ matches }: { matches: Match[] }) {
     const newNodes: Node[] = [];
 
     const COLUMN_WIDTH = 300;
-    const ROW_HEIGHT = 80;
+    const ROW_HEIGHT = 130;
     const PADDING = 20;
+    const MATCH_WIDTH = 250;
+    const MATCH_HEIGHT = 80;
 
     rounds.forEach((round, roundIndex) => {
       const roundMatches = matchesByRound[round];
 
+      // Add round header
       newNodes.push({
         id: `round-${round}`,
         position: {
@@ -43,72 +57,43 @@ export default function GraphView({ matches }: { matches: Match[] }) {
         },
         style: {
           width: COLUMN_WIDTH - PADDING * 2,
+          height: 40,
           textAlign: "center",
           fontWeight: "bold",
           padding: "10px",
+          backgroundColor: "#f1f5f9",
+          border: "2px solid #cbd5e1",
+          borderRadius: "8px",
         },
+        draggable: false,
+        selectable: false,
       });
 
+      // Add match nodes
       roundMatches.forEach((match, matchIndex) => {
-        const nodeId = match.id;
-        const xPos = roundIndex * COLUMN_WIDTH + PADDING;
-        const yPos = (matchIndex + 1) * ROW_HEIGHT + PADDING;
+        const xPos =
+          roundIndex * COLUMN_WIDTH +
+          PADDING +
+          (COLUMN_WIDTH - MATCH_WIDTH - PADDING * 2) / 2;
+        const yPos = (matchIndex + 1) * ROW_HEIGHT + PADDING + 20; // +60 for header space
 
-        // Build match label with teams, score, and winner
-        let matchLabel = "";
-        if (match.teams && match.teams.length > 0) {
-          matchLabel = match.teams
-            .map((team, idx) => {
-              let teamStr = team?.name || `Team ${idx + 1}`;
-
-              return teamStr;
-            })
-            .join(" vs ");
-        } else {
-          matchLabel = `Match ${matchIndex + 1}`;
-        }
-
-        let winnerInfo = "";
-        if (match.winner && match.state === "FINISHED") {
-          winnerInfo = `Winner: ${match.winner.name}`;
-        }
-
-        let dateInfo = "";
-        if (match.createdAt) {
-          const date = new Date(match.createdAt);
-          dateInfo = `Date: ${date.toLocaleString()}`;
-        }
-
-        // Combine all info
-        const infoLines = [matchLabel];
-        if (winnerInfo) infoLines.push(winnerInfo);
-        if (dateInfo) infoLines.push(dateInfo);
-
-        console.log(match.state);
-
-        // Determine background color based on match state
-        let backgroundColor = "#fff";
-        if (match.state === "FINISHED") {
-          backgroundColor = "#d4edda";
-        } else if (match.state === "PLANNED") {
-          backgroundColor = "#f8f9fa";
-        } else if (match.state === "IN_PROGRESS") {
-          backgroundColor = "#fff3cd";
-        }
+        console.log("Creating node for match:", match.id, "at position:", {
+          x: xPos,
+          y: yPos,
+        });
 
         newNodes.push({
-          id: nodeId,
+          id: match.id,
+          type: "matchNode",
           position: { x: xPos, y: yPos },
           data: {
-            label: infoLines.join("\n"),
-          },
-          style: {
-            width: COLUMN_WIDTH - PADDING * 2,
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            whiteSpace: "pre-line",
-            backgroundColor,
+            match,
+            width: MATCH_WIDTH,
+            height: MATCH_HEIGHT,
+            onClick: (clickedMatch: Match) => {
+              console.log("Match clicked:", clickedMatch);
+              // Add any match interaction logic here
+            },
           },
         });
       });
@@ -120,32 +105,31 @@ export default function GraphView({ matches }: { matches: Match[] }) {
   const handleNodeClick: NodeMouseHandler = useCallback(
     (event, node) => {
       const match = matches.find((m) => m.id === node.id);
-
       if (match) {
         console.log("Match clicked:", match);
+        // Add any additional match interaction logic here
       }
     },
     [matches],
   );
 
   return (
-    <div className="w-full">
-      <div style={{ width: "100%", height: "80vh" }}>
-        <style jsx global>{`
-          .react-flow__handle {
-            display: none;
-          }
-        `}</style>
-        <ReactFlow
-          nodesDraggable={false}
-          onNodeClick={handleNodeClick}
-          nodes={nodes}
-          onNodesChange={onNodesChange}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          nodesConnectable={false}
-        />
-      </div>
+    <div className="w-full h-[80vh]">
+      <ReactFlow
+        nodes={nodes}
+        onNodesChange={onNodesChange}
+        onNodeClick={handleNodeClick}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={true}
+        minZoom={0.1}
+        maxZoom={2}
+      >
+        <Background color="#f0f0f0" gap={16} />
+      </ReactFlow>
     </div>
   );
 }

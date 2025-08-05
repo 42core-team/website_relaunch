@@ -1,34 +1,7 @@
 "use server";
 
 import axiosInstance from "@/app/actions/axios";
-
-export enum MatchPhase {
-  SWISS = "SWISS",
-  ELIMINATION = "ELIMINATION",
-}
-
-export enum MatchState {
-  PLANNED = "PLANNED",
-  IN_PROGRESS = "IN_PROGRESS",
-  FINISHED = "FINISHED",
-}
-
-export interface Match {
-  id: string;
-  round: number;
-  state: MatchState;
-  phase: MatchPhase;
-  createdAt: string;
-  updatedAt: string;
-  teams: {
-    name: string;
-    score: number;
-  }[];
-  winner?: {
-    name: string;
-    score: number;
-  };
-}
+import { Match } from "@/app/actions/tournament-model";
 
 export async function getSwissMatches(eventId: string) {
   return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];

@@ -51,4 +51,9 @@ export class MatchController {
     createTournamentMatches(@Param("eventId") eventId: string) {
         return this.matchService.createNextTournamentMatches(eventId);
     }
+
+    @Get("tournament/:eventId/teamCount")
+    getTournamentTeamCount(@Param("eventId") eventId: string) {
+        return this.matchService.getTournamentTeamCount(eventId);
+    }
 }

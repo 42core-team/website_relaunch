@@ -39,35 +39,43 @@ function createTreeCoordinate(matchCount: number): { x: number; y: number }[] {
   return coordinates;
 }
 
-export default function GraphView({ matches }: { matches: Match[] }) {
+export default function GraphView({
+  matches,
+  teamCount,
+}: {
+  matches: Match[];
+  teamCount: number;
+}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
     if (!matches || matches.length === 0) {
       // Create placeholder nodes for visualization
-      const newNodes = createTreeCoordinate(8).map((coord, index): Node => {
-        const placeholderMatch: Match = {
-          id: `placeholder-${index}`,
-          round: index + 1,
-          state: "PLANNED" as any,
-          phase: "ELIMINATION" as any,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          teams: [],
-        };
+      const newNodes = createTreeCoordinate(teamCount / 2).map(
+        (coord, index): Node => {
+          const placeholderMatch: Match = {
+            id: `placeholder-${index}`,
+            round: index + 1,
+            state: "PLANNED" as any,
+            phase: "ELIMINATION" as any,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            teams: [],
+          };
 
-        return {
-          id: index.toString(),
-          type: "matchNode",
-          position: { x: coord.x, y: coord.y },
-          data: {
-            match: placeholderMatch,
-            width: MATCH_WIDTH,
-            height: MATCH_HEIGHT,
-          },
-        };
-      });
+          return {
+            id: index.toString(),
+            type: "matchNode",
+            position: { x: coord.x, y: coord.y },
+            data: {
+              match: placeholderMatch,
+              width: MATCH_WIDTH,
+              height: MATCH_HEIGHT,
+            },
+          };
+        },
+      );
       setNodes(newNodes);
       return;
     }

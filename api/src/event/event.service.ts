@@ -126,4 +126,10 @@ export class EventService {
             state: eventState
         })
     }
+
+    async setCurrentRound(eventId: string, round: number): Promise<UpdateResult> {
+        return this.eventRepository.update(eventId, {
+            currentRound: round
+        });
+    }
 }

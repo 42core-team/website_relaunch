@@ -7,8 +7,17 @@ export async function getSwissMatches(eventId: string) {
   return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
 }
 
-export async function createSwissMatches(eventId: string) {
+export async function startSwissMatches(eventId: string) {
   return (await axiosInstance.put(`/match/swiss/${eventId}`)).data;
+}
+
+export async function startTournamentMatches(eventId: string) {
+  return (await axiosInstance.put(`/match/tournament/${eventId}`)).data;
+}
+
+export async function getTournamentTeamCount(eventId: string) {
+  return (await axiosInstance.get(`/match/tournament/${eventId}/teamCount`))
+    .data;
 }
 
 // Functions:

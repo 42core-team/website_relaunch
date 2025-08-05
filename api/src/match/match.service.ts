@@ -92,6 +92,7 @@ export class MatchService {
         this.logger.log(`Event ${event.name} has finished round ${event.currentRound}.`);
         if (event.currentRound + 1 >= this.getMaxSwissRounds(event.teams.length)) {
             this.logger.log(`Event ${event.name} has reached the maximum Swiss rounds.`);
+            await this.eventService.setCurrentRound(event.id, 0);
             await this.eventService.setEventState(event.id, EventState.ELIMINATION_ROUND);
             return;
         }
@@ -229,7 +230,9 @@ export class MatchService {
             throw new Error("Not enough teams to create matches for the first round of the tournament. Minimum 2 teams required.");
         }
 
-        const sortedTeams = this.teamService.getSortedTeamsForTournament(event.id);
+        const sortedTeams = await this.teamService.getSortedTeamsForTournament(event.id);
+
+        this.logger.log(`start tournament with ${highestPowerOfTwo} teams for event ${event.name}`);
 
         for (let i = 0; i < highestPowerOfTwo; i += 2) {
             const team1 = sortedTeams[i];
@@ -239,7 +242,8 @@ export class MatchService {
                 throw new Error("Not enough teams to create matches for the first round of the tournament.");
             }
 
-            await this.createMatch([team1.id, team2.id], 1, MatchPhase.ELIMINATION);
+            const newMatch = await this.createMatch([team1.id, team2.id], 0, MatchPhase.ELIMINATION);
+            await this.startMatch(newMatch.id);
         }
 
         this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound + 1}.`);
@@ -291,16 +295,11 @@ export class MatchService {
                 throw new Error("One of the matches does not have a winner. Cannot create next tournament matches.");
             }
 
-            await this.createMatch([match.winner.id, nextMatch.winner.id], event.currentRound + 1, MatchPhase.ELIMINATION);
+            const newMatch = await this.createMatch([match.winner.id, nextMatch.winner.id], event.currentRound, MatchPhase.ELIMINATION);
+            await this.startMatch(newMatch.id);
         }
 
-        this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound + 1}.`);
-        await this.eventService.increaseEventRound(eventId);
-
-        if (lastMatches.length == 2) {
-            this.logger.log(`Event ${event.name} has reached the final match.`);
-            await this.eventService.setEventState(eventId, EventState.FINISHED);
-        }
+        this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound}.`);
     }
 
     async getSwissMatches(eventId: string) {
@@ -322,5 +321,10 @@ export class MatchService {
 
     getMaxSwissRounds(teams: number): number {
         return Math.ceil(Math.log2(teams));
+    }
+
+    async getTournamentTeamCount(eventId: string) {
+        const teamsCount = await this.teamService.getTeamCountForEvent(eventId);
+        return Math.pow(2, Math.floor(Math.log2(teamsCount)));
     }
 }

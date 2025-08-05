@@ -20,6 +20,11 @@ export async function getTournamentTeamCount(eventId: string) {
     .data;
 }
 
+export async function getTournamentMatches(eventId: string) {
+  return (await axiosInstance.get(`/match/tournament/${eventId}`))
+    .data as Match[];
+}
+
 // Functions:
 // General:
 // - Increase round!!!!!!!!!

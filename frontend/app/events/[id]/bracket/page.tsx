@@ -1,6 +1,10 @@
 import GraphView from "@/app/events/[id]/bracket/graphView";
 import Actions from "@/app/events/[id]/bracket/actions";
-import { getTournamentTeamCount } from "@/app/actions/tournament";
+import {
+  getTournamentMatches,
+  getTournamentTeamCount,
+} from "@/app/actions/tournament";
+import { Match } from "@/app/actions/tournament-model";
 
 export default async function page({
   params,
@@ -8,7 +12,7 @@ export default async function page({
   params: Promise<{ id: string }>;
 }) {
   const eventId = (await params).id;
-  const serializedMatches: any[] = [];
+  const serializedMatches: Match[] = await getTournamentMatches(eventId);
   const teamCount = await getTournamentTeamCount(eventId);
 
   return (

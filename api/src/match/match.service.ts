@@ -327,4 +327,24 @@ export class MatchService {
         const teamsCount = await this.teamService.getTeamCountForEvent(eventId);
         return Math.pow(2, Math.floor(Math.log2(teamsCount)));
     }
+
+    getTournamentMatches(eventId: string) {
+        return this.matchRepository.find({
+            where: {
+                teams: {
+                    event: {
+                        id: eventId
+                    }
+                },
+                phase: MatchPhase.ELIMINATION
+            },
+            relations: {
+                teams: true,
+                winner: true
+            },
+            order: {
+                createdAt: "ASC"
+            }
+        });
+    }
 }

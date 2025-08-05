@@ -1,4 +1,4 @@
-import {BadRequestException, Controller, Get, Logger, Param, Put} from '@nestjs/common';
+import {BadRequestException, Controller, Get, Logger, Param, ParseUUIDPipe, Put} from '@nestjs/common';
 import {MatchService} from "./match.service";
 import {Ctx, EventPattern, Payload, RmqContext} from "@nestjs/microservices";
 import {EventService} from "../event/event.service";
@@ -33,12 +33,12 @@ export class MatchController {
     }
 
     @Get("swiss/:eventId")
-    getSwissMatches(@Param("eventId") eventId: string) {
+    getSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
         return this.matchService.getSwissMatches(eventId);
     }
 
     @Put("swiss/:eventId")
-    async startSwissMatches(@Param("eventId") eventId: string) {
+    async startSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
         const event = await this.eventService.getEventById(eventId);
         if(event.currentRound != 0 || event.state != EventState.SWISS_ROUND){
             throw new BadRequestException("swiss matches have already started")
@@ -48,12 +48,17 @@ export class MatchController {
     }
 
     @Put("tournament/:eventId")
-    createTournamentMatches(@Param("eventId") eventId: string) {
+    createTournamentMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
         return this.matchService.createNextTournamentMatches(eventId);
     }
 
     @Get("tournament/:eventId/teamCount")
-    getTournamentTeamCount(@Param("eventId") eventId: string) {
+    getTournamentTeamCount(@Param("eventId", ParseUUIDPipe) eventId: string) {
         return this.matchService.getTournamentTeamCount(eventId);
+    }
+
+    @Get("tournament/:eventId")
+    getTournamentMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
+        return this.matchService.getTournamentMatches(eventId);
     }
 }

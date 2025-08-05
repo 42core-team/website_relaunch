@@ -77,15 +77,26 @@ export class MatchService {
             return;
 
         if (match.phase == MatchPhase.SWISS)
-            return this.processSwissFinishRound(event);
+            return this.processSwissFinishRound(event.id);
         else if (match.phase == MatchPhase.ELIMINATION)
             return this.processTournamentFinishRound(event);
         throw new Error(`Unknown match phase: ${match.phase}`);
     }
 
-    async processSwissFinishRound(event: EventEntity) {
-        await this.eventService.increaseEventRound(event.id);
+    async processSwissFinishRound(evenId: string) {
+        const event = await this.eventService.getEventById(evenId, {
+            teams: true
+        })
+
+        await this.eventService.increaseEventRound(evenId);
         this.logger.log(`Event ${event.name} has finished round ${event.currentRound}.`);
+        if (event.currentRound + 1 >= this.getMaxSwissRounds(event.teams.length)) {
+            this.logger.log(`Event ${event.name} has reached the maximum Swiss rounds.`);
+            await this.eventService.setEventState(event.id, EventState.ELIMINATION_ROUND);
+            return;
+        }
+
+        await this.createNextSwissMatches(event.id);
     }
 
     async processTournamentFinishRound(event: EventEntity) {

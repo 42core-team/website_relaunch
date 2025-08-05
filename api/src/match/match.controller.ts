@@ -1,10 +1,15 @@
-import {Controller, Get, Logger, Param, Put} from '@nestjs/common';
+import {BadRequestException, Controller, Get, Logger, Param, Put} from '@nestjs/common';
 import {MatchService} from "./match.service";
 import {Ctx, EventPattern, Payload, RmqContext} from "@nestjs/microservices";
+import {EventService} from "../event/event.service";
+import {EventState} from "../event/entities/event.entity";
 
 @Controller('match')
 export class MatchController {
-    constructor(private readonly matchService: MatchService) {
+    constructor(
+        private readonly matchService: MatchService,
+        private readonly eventService: EventService
+    ) {
     }
 
     private logger = new Logger("MatchController");
@@ -33,8 +38,13 @@ export class MatchController {
     }
 
     @Put("swiss/:eventId")
-    createSwissMatches(@Param("eventId") eventId: string) {
-        return this.matchService.createNextSwissMatches(eventId);
+    async startSwissMatches(@Param("eventId") eventId: string) {
+        const event = await this.eventService.getEventById(eventId);
+        if(event.currentRound != 0 || event.state != EventState.SWISS_ROUND){
+            throw new BadRequestException("swiss matches have already started")
+        }
+
+        return await this.matchService.createNextSwissMatches(eventId);
     }
 
     @Put("tournament/:eventId")

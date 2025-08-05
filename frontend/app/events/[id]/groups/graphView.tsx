@@ -1,6 +1,6 @@
 "use client";
-import { useEffect } from "react";
-import ReactFlow, { Node, useNodesState } from "reactflow";
+import { useCallback, useEffect } from "react";
+import ReactFlow, { Node, NodeMouseHandler, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
 import { Match } from "@/app/actions/tournament";
 
@@ -50,7 +50,7 @@ export default function GraphView({ matches }: { matches: Match[] }) {
       });
 
       roundMatches.forEach((match, matchIndex) => {
-        const nodeId = `match-${match.id}`;
+        const nodeId = match.id;
         const xPos = roundIndex * COLUMN_WIDTH + PADDING;
         const yPos = (matchIndex + 1) * ROW_HEIGHT + PADDING;
 
@@ -117,6 +117,17 @@ export default function GraphView({ matches }: { matches: Match[] }) {
     setNodes(newNodes);
   }, [matches]);
 
+  const handleNodeClick: NodeMouseHandler = useCallback(
+    (event, node) => {
+      const match = matches.find((m) => m.id === node.id);
+
+      if (match) {
+        console.log("Match clicked:", match);
+      }
+    },
+    [matches],
+  );
+
   return (
     <div className="w-full">
       <div style={{ width: "100%", height: "80vh" }}>
@@ -127,6 +138,7 @@ export default function GraphView({ matches }: { matches: Match[] }) {
         `}</style>
         <ReactFlow
           nodesDraggable={false}
+          onNodeClick={handleNodeClick}
           nodes={nodes}
           onNodesChange={onNodesChange}
           fitView

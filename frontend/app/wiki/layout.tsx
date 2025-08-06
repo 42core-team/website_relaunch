@@ -7,7 +7,11 @@ import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Head } from "@/layouts/head";
 
-export default function WikiLayout({ children }: { children: React.ReactNode }) {
+export default function WikiLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -21,7 +25,7 @@ export default function WikiLayout({ children }: { children: React.ReactNode }) 
         <HeroUIProvider>
           <NextThemesProvider>
             <SessionProvider>
-              <div className="min-h-screen">
+              <div className="min-h-lvh">
                 <Head />
                 {children}
               </div>

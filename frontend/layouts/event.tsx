@@ -55,7 +55,7 @@ export default async function EventLayout({
   }
 
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col min-h-lvh">
       {showJoinNotice && userId && (
         <EventJoinNotice eventId={eventId} userId={userId} />
       )}

@@ -8,7 +8,6 @@ import {EventService} from "../event/event.service";
 // @ts-ignore
 import {Player} from "tournament-pairings/interfaces";
 import {EventEntity, EventState} from "../event/entities/event.entity";
-import {matches} from "class-validator";
 import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {gameResultsTransport} from "../main";
 
@@ -51,7 +50,10 @@ export class MatchService {
         match.winner = winner;
         match.state = MatchState.FINISHED;
 
-        await this.teamService.increaseTeamScore(winner.id, 1);
+        let opponentScore = match.teams.find(team => team.id !== winnerId)?.score || 0;
+        if(opponentScore == 0)
+           opponentScore = 1;
+        await this.teamService.increaseTeamScore(winner.id, opponentScore);
         await this.matchRepository.save(match);
         this.logger.log(`Match with id ${matchId} finished. Winner: ${winner.name}`);
 

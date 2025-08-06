@@ -1,5 +1,30 @@
 "use server";
 
+import axiosInstance from "@/app/actions/axios";
+import { Match } from "@/app/actions/tournament-model";
+
+export async function getSwissMatches(eventId: string) {
+  return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
+}
+
+export async function startSwissMatches(eventId: string) {
+  return (await axiosInstance.put(`/match/swiss/${eventId}`)).data;
+}
+
+export async function startTournamentMatches(eventId: string) {
+  return (await axiosInstance.put(`/match/tournament/${eventId}`)).data;
+}
+
+export async function getTournamentTeamCount(eventId: string) {
+  return (await axiosInstance.get(`/match/tournament/${eventId}/teamCount`))
+    .data;
+}
+
+export async function getTournamentMatches(eventId: string) {
+  return (await axiosInstance.get(`/match/tournament/${eventId}`))
+    .data as Match[];
+}
+
 // Functions:
 // General:
 // - Increase round!!!!!!!!!

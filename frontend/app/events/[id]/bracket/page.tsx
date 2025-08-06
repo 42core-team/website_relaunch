@@ -1,12 +1,19 @@
 import GraphView from "@/app/events/[id]/bracket/graphView";
 import Actions from "@/app/events/[id]/bracket/actions";
+import {
+  getTournamentMatches,
+  getTournamentTeamCount,
+} from "@/app/actions/tournament";
+import { Match } from "@/app/actions/tournament-model";
 
 export default async function page({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const serializedMatches: any[] = [];
+  const eventId = (await params).id;
+  const serializedMatches: Match[] = await getTournamentMatches(eventId);
+  const teamCount = await getTournamentTeamCount(eventId);
 
   return (
     <div>
@@ -18,7 +25,7 @@ export default async function page({
         Group phase is the first phase of the tournament where teams are divided
         into groups and play against each other.
       </p>
-      <GraphView matches={serializedMatches} />
+      <GraphView matches={serializedMatches} teamCount={teamCount} />
     </div>
   );
 }

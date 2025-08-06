@@ -1,11 +1,13 @@
 import Actions from "@/app/events/[id]/groups/actions";
+import { getSwissMatches } from "@/app/actions/tournament";
+import GraphView from "@/app/events/[id]/groups/graphView";
 
 export default async function page({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const serializedMatches = [];
+  const matches = await getSwissMatches((await params).id);
 
   return (
     <div>
@@ -17,7 +19,7 @@ export default async function page({
         Group phase is the first phase of the tournament where teams are divided
         into groups and play against each other.
       </p>
-      {/*<GraphView matches={serializedMatches as Match} />*/}
+      <GraphView matches={matches} />
     </div>
   );
 }

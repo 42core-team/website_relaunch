@@ -111,7 +111,7 @@ function MatchNode({ data }: MatchNodeProps) {
         {/* Match info */}
         <div className="flex-1">
           <div className="text-xs font-semibold mb-1 opacity-75">
-            Round {match.round}
+            Match {match.id.slice(0, 4)}
           </div>
 
           {/* Teams */}

@@ -75,7 +75,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 bg-gray-900 min-h-screen p-6">
+    <div className="flex flex-col gap-6 bg-gray-900 min-h-lvh p-6">
       <h1 className="text-3xl font-bold text-white">Event Dashboard</h1>
 
       {/* Event Overview */}

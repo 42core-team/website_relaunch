@@ -42,7 +42,7 @@ export default function HomePageClient() {
           </Link>
         </div>
       </section>
-      <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-screen">
+      <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-lvh">
         <motion.div
           className="flex flex-col gap-32"
           initial={{ opacity: 0 }}
@@ -109,7 +109,7 @@ export default function HomePageClient() {
           ].map((character, index) => (
             <motion.div
               key={character.alt}
-              className="flex flex-col items-center min-h-screen justify-center relative"
+              className="flex flex-col items-center min-h-lvh justify-center relative"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: false, margin: "-100px" }}

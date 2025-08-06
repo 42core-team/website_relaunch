@@ -120,7 +120,7 @@ export function OAuthCallbackHandler({ provider }: { provider: string }) {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-lvh">
         <div className="max-w-md mx-auto text-center">
           <div className="p-6 bg-danger-50 border border-danger-200 rounded-lg dark:bg-danger-100/10">
             <div className="flex items-start gap-3">
@@ -155,7 +155,7 @@ export function OAuthCallbackHandler({ provider }: { provider: string }) {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center min-h-lvh">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
         <p className="mt-4 text-lg text-default-600">

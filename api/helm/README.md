@@ -62,6 +62,7 @@ The API requires the following environment variables to be configured in GitHub 
 - `DB_PASSWORD`: Database password
 - `DB_URL`: Full database connection URL (alternative to individual DB_* variables)
 - `API_SECRET_ENCRYPTION_KEY`: Secret key for encrypting sensitive data
+- `RABBITMQ_URL`: Full rabbitmq connection url
 
 ### Values Files
 

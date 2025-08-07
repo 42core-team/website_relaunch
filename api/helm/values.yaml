@@ -67,6 +67,7 @@ secrets:
   DB_URL: ""
   API_SECRET_ENCRYPTION_KEY: ""
   FRONTEND_SECRET: ""
+  RABBITMQ_URL: ""
 
 ingress:
   enabled: false

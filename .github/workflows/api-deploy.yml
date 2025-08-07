@@ -165,6 +165,7 @@ jobs:
             --set secrets.DB_URL="${{ secrets.DB_URL }}" \
             --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
             --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \
+            --set secrets.RABBITMQ_URL="${{ secrets.RABBITMQ_URL }}" \
             --wait \
             --timeout=10m \
             --atomic \

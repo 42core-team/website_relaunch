@@ -9,7 +9,8 @@ import {EventService} from "../event/event.service";
 import {Player} from "tournament-pairings/interfaces";
 import {EventEntity, EventState} from "../event/entities/event.entity";
 import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
-import {gameResultsTransport} from "../main";
+import {getRabbitmqConfig} from "../main";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class MatchService {
@@ -21,9 +22,10 @@ export class MatchService {
         private readonly teamService: TeamService,
         private readonly eventService: EventService,
         @InjectRepository(MatchEntity)
-        private readonly matchRepository: Repository<MatchEntity>
+        private readonly matchRepository: Repository<MatchEntity>,
+        configService: ConfigService
     ) {
-        this.gameResultsQueue = ClientProxyFactory.create(gameResultsTransport);
+        this.gameResultsQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_results"));
     }
 
     async processMatchResult(matchId: string, winnerId: string) {
@@ -51,8 +53,8 @@ export class MatchService {
         match.state = MatchState.FINISHED;
 
         let opponentScore = match.teams.find(team => team.id !== winnerId)?.score || 0;
-        if(opponentScore == 0)
-           opponentScore = 1;
+        if (opponentScore == 0)
+            opponentScore = 1;
         await this.teamService.increaseTeamScore(winner.id, opponentScore);
         await this.matchRepository.save(match);
         this.logger.log(`Match with id ${matchId} finished. Winner: ${winner.name}`);

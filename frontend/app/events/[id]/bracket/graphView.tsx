@@ -15,7 +15,6 @@ const MATCH_HEIGHT = 80;
 const ROUND_SPACING = 280;
 const VERTICAL_SPACING = 100;
 
-// Custom node types for ReactFlow
 const nodeTypes = {
   matchNode: MatchNode,
 };

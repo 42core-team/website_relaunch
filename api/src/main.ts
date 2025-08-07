@@ -4,15 +4,21 @@ import {ClassSerializerInterceptor, ValidationPipe} from "@nestjs/common";
 import {TypeormExceptionFilter} from "./common/TypeormExceptionFilter";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+import {ConfigService} from "@nestjs/config";
 
-export const gameResultsTransport: any = {
-    transport: Transport.RMQ,
-    options: {
-        urls: ['amqp://guest:guest@localhost:5672'],
-        queue: 'game_results',
-        queueOptions: {
-        },
-    },
+export const getRabbitmqConfig: any = (configService: ConfigService, queue: string) => {
+    return {
+        transport: Transport.RMQ,
+        options: {
+            urls: [configService.getOrThrow<string>("RABBITMQ_URL")],
+            queue: queue,
+            queueOptions: {
+                arguments: {
+                    "x-queue-type": "quorum",
+                }
+            },
+        }
+    }
 }
 
 async function bootstrap() {
@@ -22,18 +28,10 @@ async function bootstrap() {
     app.useGlobalFilters(new TypeormExceptionFilter());
     app.enableCors();
 
-    app.connectMicroservice<MicroserviceOptions>(gameResultsTransport);
+    const configService = app.get(ConfigService);
 
-    app.connectMicroservice<MicroserviceOptions>({
-        transport: Transport.RMQ,
-        options: {
-            urls: ['amqp://guest:guest@localhost:5672'],
-            queue: 'game_queue',
-            queueOptions: {
-            },
-        },
-    });
-
+    app.connectMicroservice<MicroserviceOptions>(getRabbitmqConfig(configService, "game_results"));
+    app.connectMicroservice<MicroserviceOptions>(getRabbitmqConfig(configService, "game_queue"));
 
     if (process.env.NODE_ENV === 'development') {
         const config = new DocumentBuilder()

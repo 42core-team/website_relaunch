@@ -5,6 +5,7 @@ import {
   getParticipantsCountForEvent,
 } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
+import RepoLockCountdown from "@/app/events/[id]/repoLockCountdown";
 
 export default async function EventPage({
   params,
@@ -67,11 +68,16 @@ export default async function EventPage({
               </p>
             </div>
           </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Team Size</h3>
-            <p className="mt-1">
-              {event.minTeamSize} - {event.maxTeamSize} members
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Team Size</h3>
+              <p className="mt-1">
+                {event.minTeamSize} - {event.maxTeamSize} members
+              </p>
+            </div>
+            {event.repoLockDate && (
+              <RepoLockCountdown repoLockDate={event.repoLockDate} />
+            )}
           </div>
         </div>
       </Card>

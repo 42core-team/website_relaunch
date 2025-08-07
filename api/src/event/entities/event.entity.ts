@@ -65,6 +65,12 @@ export class EventEntity {
   @Column({ type: "timestamp" })
   endDate: Date;
 
+  @Column({ type: "timestamp", nullable: true })
+  repoLockDate: Date | null;
+
+  @Column({default: false})
+  areTeamsLocked: boolean;
+
   @Column({ type: "enum", enum: EventState, default: EventState.TEAM_FINDING })
   state: EventState;
 

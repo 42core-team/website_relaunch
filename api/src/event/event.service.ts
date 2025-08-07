@@ -1,12 +1,13 @@
 import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {EventEntity, EventState} from "./entities/event.entity";
-import {Repository, UpdateResult} from "typeorm";
+import {DataSource, LessThanOrEqual, Repository, UpdateResult} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
 import * as CryptoJS from "crypto-js";
 import {ConfigService} from "@nestjs/config";
 import {TeamService} from "../team/team.service";
 import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
+import {Cron, CronExpression} from "@nestjs/schedule";
 
 @Injectable()
 export class EventService {
@@ -14,11 +15,45 @@ export class EventService {
         @InjectRepository(EventEntity)
         private readonly eventRepository: Repository<EventEntity>,
         private readonly configService: ConfigService,
-        @Inject(forwardRef(() => TeamService)) private readonly teamService: TeamService
+        @Inject(forwardRef(() => TeamService)) private readonly teamService: TeamService,
+        private dataSource: DataSource
     ) {
     }
 
     logger = new Logger("EventService");
+
+    @Cron(CronExpression.EVERY_MINUTE)
+    async autoLockEvents() {
+        const lockKey = 12345;
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+            const gotLock = await queryRunner.query(
+                'SELECT pg_try_advisory_lock($1)',
+                [lockKey],
+            );
+
+            if (gotLock[0].pg_try_advisory_lock) {
+                try {
+                    const events = await this.eventRepository.findBy({
+                        areTeamsLocked: false,
+                        state: EventState.TEAM_FINDING,
+                        repoLockDate: LessThanOrEqual(new Date())
+                    })
+                    for (const event of events) {
+                        this.logger.log(`Locking event ${event.name} as it past its repoLockDate date.`);
+                        await this.lockEvent(event.id);
+                    }
+                } finally {
+                    await queryRunner.query('SELECT pg_advisory_unlock($1)', [lockKey]);
+                }
+            } else
+                this.logger.log('Another instance is running the job. Skipping.');
+        } finally {
+            await queryRunner.release();
+        }
+    }
 
     getAllEvents(): Promise<EventEntity[]> {
         return this.eventRepository.find({
@@ -119,6 +154,11 @@ export class EventService {
                 this.logger.error(`Failed to lock team ${team.id} for event ${eventId}`, e);
             }
         }))
+
+        await this.setEventState(event.id, EventState.SWISS_ROUND);
+        return this.eventRepository.update(eventId, {
+            areTeamsLocked: true
+        });
     }
 
     async setEventState(eventId: string, eventState: EventState) {
@@ -130,6 +170,12 @@ export class EventService {
     async setCurrentRound(eventId: string, round: number): Promise<UpdateResult> {
         return this.eventRepository.update(eventId, {
             currentRound: round
+        });
+    }
+
+    async setTeamsLockedDate(eventId: string, date: Date | null): Promise<UpdateResult> {
+        return this.eventRepository.update(eventId, {
+            repoLockDate: date,
         });
     }
 }

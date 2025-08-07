@@ -128,6 +128,7 @@ export class MatchService {
 
         await this.eventService.increaseEventRound(event.id);
         this.logger.log(`Event ${event.name} has finished round ${event.currentRound}.`);
+        await this.createNextTournamentMatches(event.id);
     }
 
     async startMatch(matchId: string) {
@@ -177,6 +178,9 @@ export class MatchService {
         const event = await this.eventService.getEventById(eventId, {
             teams: true
         });
+
+        if (event.state != EventState.SWISS_ROUND)
+            throw new Error("Event is not in swiss round state.");
 
         if (event.currentRound != 0 && await this.matchRepository.findOneBy({
             teams: {

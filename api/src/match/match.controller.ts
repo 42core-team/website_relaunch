@@ -1,9 +1,21 @@
-import {BadRequestException, Controller, Get, Logger, Param, ParseUUIDPipe, Put} from '@nestjs/common';
+import {
+    BadRequestException,
+    Controller,
+    Get,
+    Logger,
+    Param,
+    ParseUUIDPipe,
+    Put,
+    UnauthorizedException,
+    UseGuards
+} from '@nestjs/common';
 import {MatchService} from "./match.service";
 import {Ctx, EventPattern, Payload, RmqContext} from "@nestjs/microservices";
 import {EventService} from "../event/event.service";
 import {EventState} from "../event/entities/event.entity";
+import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 
+@UseGuards(FrontendGuard)
 @Controller('match')
 export class MatchController {
     constructor(
@@ -38,17 +50,29 @@ export class MatchController {
     }
 
     @Put("swiss/:eventId")
-    async startSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
+    async startSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string, @UserId() userId: string) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException(
+                "You are not authorized to lock this event.",
+            );
         const event = await this.eventService.getEventById(eventId);
-        if(event.currentRound != 0 || event.state != EventState.SWISS_ROUND){
+        if (event.currentRound != 0 || event.state != EventState.SWISS_ROUND) {
             throw new BadRequestException("swiss matches have already started")
         }
 
         return await this.matchService.createNextSwissMatches(eventId);
     }
 
+
     @Put("tournament/:eventId")
-    createTournamentMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
+    async startTournamentMatches(
+        @Param("eventId", ParseUUIDPipe) eventId: string,
+        @UserId() userId: string
+    ) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException(
+                "You are not authorized to lock this event.",
+            );
         return this.matchService.createNextTournamentMatches(eventId);
     }
 

@@ -2,14 +2,15 @@
 
 import axiosInstance, { handleError } from "@/app/actions/axios";
 import { isActionError, ServerActionResponse } from "@/app/actions/errors";
+import { EventState } from "@/app/actions/event-model";
 
 export interface Event {
   id: string;
-  startDate: number;
+  startDate: string;
   name: string;
   description?: string;
   location?: string;
-  endDate: number;
+  endDate: string;
   minTeamSize: number;
   maxTeamSize: number;
   currentRound: number;
@@ -18,6 +19,9 @@ export interface Event {
   repoTemplateOwner?: string;
   repoTemplateName?: string;
   githubOrg: string;
+  repoLockDate?: string;
+  areTeamsLocked: boolean;
+  state: EventState;
 }
 
 export async function getEventById(
@@ -98,4 +102,15 @@ export async function createEvent(
 
 export async function canUserCreateEvent(): Promise<boolean> {
   return (await axiosInstance.get<boolean>("user/canCreateEvent")).data;
+}
+
+export async function setEventTeamsLockDate(
+  eventId: string,
+  lockDate: string | null,
+): Promise<ServerActionResponse<Event>> {
+  return await handleError(
+    axiosInstance.put<Event>(`event/${eventId}/lockTeamsDate`, {
+      repoLockDate: lockDate,
+    }),
+  );
 }

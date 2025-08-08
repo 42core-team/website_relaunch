@@ -11,6 +11,7 @@ import {EventEntity, EventState} from "../event/entities/event.entity";
 import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {getRabbitmqConfig} from "../main";
 import {ConfigService} from "@nestjs/config";
+import {TeamEntity} from "../team/entities/team.entity";
 
 @Injectable()
 export class MatchService {
@@ -172,6 +173,33 @@ export class MatchService {
         return this.matchRepository.save(match);
     }
 
+    async getFormerOpponents(teamId: string): Promise<TeamEntity[]>{
+        const matches = await this.matchRepository.find({
+            where: {
+                teams: {
+                    id: teamId
+                },
+                state: MatchState.FINISHED,
+                phase: MatchPhase.SWISS
+            },
+            relations: {
+                teams: true
+            }
+        });
+
+        const opponents = new Set<TeamEntity>();
+        for (const match of matches) {
+            for (const team of match.teams) {
+                if (team.id !== teamId) {
+                    opponents.add(team);
+                }
+            }
+        }
+
+        return Array.from(opponents);
+
+    }
+
     async createNextSwissMatches(eventId: string) {
         const event = await this.eventService.getEventById(eventId, {
             teams: true
@@ -200,11 +228,13 @@ export class MatchService {
             throw new Error(`Maximum Swiss rounds reached for event ${event.name}.`);
         }
 
-        const players: Player[] = event.teams.map(team => ({
+        const players: Player[] = await Promise.all(event.teams.map(async team => ({
             id: team.id,
             score: team.score,
-            receivedBye: team.hadBye
-        }))
+            receivedBye: team.hadBye,
+            avoid: await this.getFormerOpponents(team.id).then(opponents => opponents.map(opponent => opponent.id)),
+            rating: true
+        })))
 
         const matches = Swiss(players, event.currentRound)
         const matchEntities: (MatchEntity | null)[] = await Promise.all(matches.map(async match => {

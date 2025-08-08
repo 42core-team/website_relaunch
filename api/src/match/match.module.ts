@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {forwardRef, Module} from '@nestjs/common';
 import {MatchEntity} from "./entites/match.entity";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MatchService} from './match.service';
@@ -10,10 +10,12 @@ import {ClientsModule, Transport} from "@nestjs/microservices";
 @Module({
     imports: [
         TypeOrmModule.forFeature([MatchEntity]),
-        TeamModule, EventModule],
+        forwardRef(() => TeamModule),
+        forwardRef(() => EventModule)
+    ],
     controllers: [MatchController],
     providers: [MatchService],
-    exports: []
+    exports: [MatchService]
 })
 export class MatchModule {
 }

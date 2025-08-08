@@ -306,6 +306,10 @@ export class TeamService {
         return this.teamRepository.update(teamId, {inQueue: false});
     }
 
+    async setQueueScore(teamId: string, score: number) {
+        return this.teamRepository.update(teamId, {queueScore: score});
+    }
+
     async getTeamsInQueue(eventId: string): Promise<TeamEntity[]> {
         return this.teamRepository.find({
             where: {

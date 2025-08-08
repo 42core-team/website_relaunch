@@ -369,7 +369,6 @@ export class MatchService {
 
         await Promise.all(teams.map(async (team) => {
             const buchholzPoints = await this.calculateBuchholzPointsForTeam(team.id, eventId);
-            this.logger.log(`Calculated Buchholz points for team ${team.name} (${team.id}): ${buchholzPoints}`);
             await this.teamService.updateBuchholzPoints(team.id, buchholzPoints);
         }))
     }
@@ -387,7 +386,6 @@ export class MatchService {
         })
 
         let sum = 0;
-        console.log("wonMatches: ", wonMatches.length);
         for (const match of wonMatches) {
             const opponent = match.teams.find(team => team.id !== teamId);
             if (opponent)

@@ -6,6 +6,7 @@ import {GithubApiService} from "../github-api/github-api.service";
 import {EventService} from "../event/event.service";
 import {UserService} from "../user/user.service";
 import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
+import {MatchService} from "../match/match.service";
 
 @Injectable()
 export class TeamService {
@@ -14,7 +15,8 @@ export class TeamService {
         private readonly teamRepository: Repository<TeamEntity>,
         private readonly githubApiService: GithubApiService,
         @Inject(forwardRef(() => EventService)) private readonly eventService: EventService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        @Inject(forwardRef(() => MatchService)) private readonly matchService: MatchService
     ) {
     }
 
@@ -238,6 +240,10 @@ export class TeamService {
         }));
     }
 
+    async joinQueue(teamId: string) {
+        return this.teamRepository.update(teamId, {inQueue: true});
+    }
+
     async getTeamsForEvent(eventId: string, relations: FindOptionsRelations<TeamEntity> = {}): Promise<TeamEntity[]> {
         return this.teamRepository.find({
             where: {
@@ -275,5 +281,42 @@ export class TeamService {
 
     setHadBye(teamId: string, hadBye: boolean) {
         return this.teamRepository.update(teamId, {hadBye})
+    }
+
+    async getQueueState(teamId: string) {
+        const team = await this.getTeamById(teamId, {
+            event: true
+        });
+
+        const match = await this.matchService.getLastQueueMatchForTeam(teamId);
+        const queueCount = await this.teamRepository.countBy({
+            inQueue: true,
+            event: {
+                id: team.event.id
+            }
+        })
+        return {
+            match: match,
+            queueCount: queueCount,
+            inQueue: team.inQueue
+        }
+    }
+
+    async removeFromQueue(teamId: string) {
+        return this.teamRepository.update(teamId, {inQueue: false});
+    }
+
+    async getTeamsInQueue(eventId: string): Promise<TeamEntity[]> {
+        return this.teamRepository.find({
+            where: {
+                event: {
+                    id: eventId
+                },
+                inQueue: true
+            },
+            order: {
+                name: "ASC"
+            }
+        });
     }
 }

@@ -1,8 +1,8 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {TeamService} from "../team/team.service";
 import {InjectRepository} from "@nestjs/typeorm";
 import {MatchEntity, MatchPhase, MatchState} from "./entites/match.entity";
-import {Not, Repository} from "typeorm";
+import {DataSource, LessThanOrEqual, Not, Repository} from "typeorm";
 import {Swiss} from "tournament-pairings"
 import {EventService} from "../event/event.service";
 // @ts-ignore
@@ -12,6 +12,7 @@ import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {getRabbitmqConfig} from "../main";
 import {ConfigService} from "@nestjs/config";
 import {TeamEntity} from "../team/entities/team.entity";
+import {Cron, CronExpression} from "@nestjs/schedule";
 
 @Injectable()
 export class MatchService {
@@ -20,13 +21,53 @@ export class MatchService {
     private logger = new Logger("MatchService");
 
     constructor(
-        private readonly teamService: TeamService,
-        private readonly eventService: EventService,
+        @Inject(forwardRef(() => TeamService)) private readonly teamService: TeamService,
+        @Inject(forwardRef(() => EventService)) private readonly eventService: EventService,
         @InjectRepository(MatchEntity)
         private readonly matchRepository: Repository<MatchEntity>,
-        configService: ConfigService
+        configService: ConfigService,
+        private readonly dataSource: DataSource,
     ) {
         this.gameResultsQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_results"));
+    }
+
+    @Cron(CronExpression.EVERY_5_SECONDS)
+    async processQueueMatches() {
+        const lockKey = 12346;
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+            const gotLock = await queryRunner.query(
+                'SELECT pg_try_advisory_lock($1)',
+                [lockKey],
+            );
+
+            if (gotLock[0].pg_try_advisory_lock) {
+                try {
+                    const events = await this.eventService.getAllEvents();
+                    await Promise.all(events.map(async (event) => {
+                        let teamsInQueue = await this.teamService.getTeamsInQueue(event.id);
+
+                        while (teamsInQueue.length >= 2) {
+                            const team1 = teamsInQueue[Math.floor(Math.random() * teamsInQueue.length)];
+                            teamsInQueue = teamsInQueue.filter(team => team.id !== team1.id);
+                            const team2 = teamsInQueue[Math.floor(Math.random() * teamsInQueue.length)];
+                            teamsInQueue = teamsInQueue.filter(team => team.id !== team2.id);
+                            this.logger.log(`Creating queue match for teams ${team1.name} and ${team2.name} in event ${event.name}.`);
+                            const match = await this.createMatch([team1.id, team2.id], 0, MatchPhase.QUEUE);
+                            await this.startMatch(match.id);
+                            await this.teamService.removeFromQueue(team1.id);
+                            await this.teamService.removeFromQueue(team2.id);
+                        }
+                    }))
+                } finally {
+                    await queryRunner.query('SELECT pg_advisory_unlock($1)', [lockKey]);
+                }
+            }
+        } finally {
+            await queryRunner.release();
+        }
     }
 
     async processMatchResult(matchId: string, winnerId: string) {
@@ -82,7 +123,6 @@ export class MatchService {
             return this.processSwissFinishRound(event.id);
         else if (match.phase == MatchPhase.ELIMINATION)
             return this.processTournamentFinishRound(event);
-        throw new Error(`Unknown match phase: ${match.phase}`);
     }
 
     async processSwissFinishRound(evenId: string) {
@@ -162,7 +202,6 @@ export class MatchService {
     }
 
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {
-        console.log("create match with teamIds: ", teamIds, " round: ", round, " phase: ", phase);
         const match = this.matchRepository.create({
             teams: teamIds.map(id => ({id})),
             round,
@@ -173,7 +212,7 @@ export class MatchService {
         return this.matchRepository.save(match);
     }
 
-    async getFormerOpponents(teamId: string): Promise<TeamEntity[]>{
+    async getFormerOpponents(teamId: string): Promise<TeamEntity[]> {
         const matches = await this.matchRepository.find({
             where: {
                 teams: {
@@ -410,6 +449,20 @@ export class MatchService {
             },
             order: {
                 createdAt: "ASC"
+            }
+        });
+    }
+
+    getLastQueueMatchForTeam(teamId: string) {
+        return this.matchRepository.findOne({
+            where: {
+                teams: {
+                    id: teamId
+                },
+                phase: MatchPhase.QUEUE
+            },
+            order: {
+                createdAt: "DESC"
             }
         });
     }

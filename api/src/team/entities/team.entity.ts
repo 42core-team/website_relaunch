@@ -32,6 +32,9 @@ export class TeamEntity {
     @Column({default: 0})
     buchholzPoints: number;
 
+    @Column({default: false})
+    inQueue: boolean;
+
     @ManyToOne(() => EventEntity, (event) => event.teams)
     event: EventEntity;
 

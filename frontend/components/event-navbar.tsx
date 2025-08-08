@@ -25,7 +25,10 @@ export default function EventNavbar({
     const baseItems = [
       { name: "Info", path: `/events/${eventId}` },
       ...(isUserRegistered
-        ? [{ name: "My Team", path: `/events/${eventId}/my-team` }]
+        ? [
+            { name: "My Team", path: `/events/${eventId}/my-team` },
+            { name: "Queue", path: `/events/${eventId}/queue` },
+          ]
         : []),
       { name: "Teams", path: `/events/${eventId}/teams` },
       { name: "Group Phase", path: `/events/${eventId}/groups` },

@@ -17,11 +17,15 @@ export interface Match {
   createdAt: string;
   updatedAt: string;
   teams: {
+    id: string;
     name: string;
     score: number;
+    queueScore: number;
   }[];
   winner?: {
+    id: string;
     name: string;
     score: number;
+    queueScore: number;
   };
 }

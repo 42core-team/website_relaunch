@@ -11,6 +11,8 @@ export interface Team {
   name: string;
   repo: string;
   inQueue: boolean;
+  score: number;
+  queueScore: number;
   locked?: boolean;
   created?: string;
   updated?: string;
@@ -42,6 +44,10 @@ export interface TeamInviteWithDetails {
   createdAt: Date;
 }
 
+export async function getQueueMatches(eventId: string) {
+  return (await axiosInstance.get(`/match/queue/${eventId}/`)).data as Match[];
+}
+
 export async function getQueueState(eventId: string): Promise<QueueState> {
   return (
     await axiosInstance.get<QueueState>(`team/event/${eventId}/queue/state`)
@@ -66,6 +72,8 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
         name: team.name,
         repo: team.repo || "",
         locked: team.locked,
+        score: team.score,
+        queueScore: team.queueScore,
         createdAt: team.createdAt,
         inQueue: team.inQueue,
         updatedAt: team.updatedAt,
@@ -84,6 +92,8 @@ export async function getMyEventTeam(eventId: string): Promise<Team | null> {
     name: team.name,
     repo: team.repo || "",
     locked: team.locked,
+    score: team.score,
+    queueScore: team.queueScore,
     inQueue: team.inQueue,
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,

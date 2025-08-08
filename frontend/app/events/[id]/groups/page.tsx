@@ -16,8 +16,8 @@ export default async function page({
       </div>
       <h1>Group phase</h1>
       <p>
-        Group phase is the first phase of the tournament where teams are divided
-        into groups and play against each other.
+        In the group phase, teams compete using the Swiss tournament system,
+        with rankings determined by the Buchholz scoring system.
       </p>
       <GraphView matches={matches} />
     </div>

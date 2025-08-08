@@ -20,11 +20,8 @@ export default async function page({
       <div className="flex gap-2">
         <Actions />
       </div>
-      <h1>Group phase</h1>
-      <p>
-        Group phase is the first phase of the tournament where teams are divided
-        into groups and play against each other.
-      </p>
+      <h1>Tournament Tree</h1>
+      <p></p>
       <GraphView matches={serializedMatches} teamCount={teamCount} />
     </div>
   );

@@ -40,7 +40,7 @@ export class TeamController {
     @Query("sortDir") sortDir?: string,
     @Query("sortBy") sortBy?: string,
   ) {
-    return this.teamService.getTeamsForEvent(
+    return this.teamService.getSearchedTeamsForEvent(
       eventId,
       searchName,
       sortDir,

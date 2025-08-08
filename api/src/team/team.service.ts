@@ -204,7 +204,7 @@ export class TeamService {
             .remove(userId);
     }
 
-    async getTeamsForEvent(eventId: string, searchName?: string, searchDir?: string, sortBy?: string): Promise<Array<TeamEntity & {
+    async getSearchedTeamsForEvent(eventId: string, searchName?: string, searchDir?: string, sortBy?: string): Promise<Array<TeamEntity & {
         userCount: number
     }>> {
         const query = this.teamRepository.createQueryBuilder('team')
@@ -238,6 +238,20 @@ export class TeamService {
         }));
     }
 
+    async getTeamsForEvent(eventId: string, relations: FindOptionsRelations<TeamEntity> = {}): Promise<TeamEntity[]> {
+        return this.teamRepository.find({
+            where: {
+                event: {
+                    id: eventId
+                }
+            },
+            relations,
+            order: {
+                name: "ASC"
+            }
+        });
+    }
+
     getSortedTeamsForTournament(eventId: string): Promise<TeamEntity[]> {
         return this.teamRepository.find({
             where: {
@@ -246,16 +260,20 @@ export class TeamService {
                 }
             },
             order: {
-                score: "DESC",
+                buchholzPoints: "DESC",
             }
         })
+    }
+
+    updateBuchholzPoints(teamId: string, points: number) {
+        return this.teamRepository.update(teamId, {buchholzPoints: points});
     }
 
     increaseTeamScore(teamId: string, score: number) {
         return this.teamRepository.increment({id: teamId}, "score", score);
     }
 
-    setHadBye(teamId: string, hadBye: boolean){
-        return this.teamRepository.update(teamId, { hadBye })
+    setHadBye(teamId: string, hadBye: boolean) {
+        return this.teamRepository.update(teamId, {hadBye})
     }
 }

@@ -48,8 +48,7 @@ export class EventService {
                 } finally {
                     await queryRunner.query('SELECT pg_advisory_unlock($1)', [lockKey]);
                 }
-            } else
-                this.logger.log('Another instance is running the job. Skipping.');
+            }
         } finally {
             await queryRunner.release();
         }

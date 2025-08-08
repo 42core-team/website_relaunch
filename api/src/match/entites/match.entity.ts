@@ -20,6 +20,7 @@ export enum MatchState {
 export enum MatchPhase {
   SWISS = "SWISS",
   ELIMINATION = "ELIMINATION",
+  QUEUE = "QUEUE",
 }
 
 @Entity("matches")

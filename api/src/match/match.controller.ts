@@ -14,13 +14,14 @@ import {Ctx, EventPattern, Payload, RmqContext} from "@nestjs/microservices";
 import {EventService} from "../event/event.service";
 import {EventState} from "../event/entities/event.entity";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
+import {TeamService} from "../team/team.service";
 
 @UseGuards(FrontendGuard)
 @Controller('match')
 export class MatchController {
     constructor(
         private readonly matchService: MatchService,
-        private readonly eventService: EventService
+        private readonly eventService: EventService,
     ) {
     }
 
@@ -84,5 +85,10 @@ export class MatchController {
     @Get("tournament/:eventId")
     getTournamentMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
         return this.matchService.getTournamentMatches(eventId);
+    }
+
+    @Get("queue/:eventId")
+    async getQueueMatches(@Param("eventId", ParseUUIDPipe) eventId: string, @UserId() userId: string) {
+        return await this.matchService.getQueueMatches(eventId, userId);
     }
 }

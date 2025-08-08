@@ -2,7 +2,7 @@ import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {TeamService} from "../team/team.service";
 import {InjectRepository} from "@nestjs/typeorm";
 import {MatchEntity, MatchPhase, MatchState} from "./entites/match.entity";
-import {DataSource, LessThanOrEqual, Not, Repository} from "typeorm";
+import {DataSource, In, Not, Repository} from "typeorm";
 import {Swiss} from "tournament-pairings"
 import {EventService} from "../event/event.service";
 // @ts-ignore
@@ -94,7 +94,22 @@ export class MatchService {
         match.winner = winner;
         match.state = MatchState.FINISHED;
 
-        await this.teamService.increaseTeamScore(winner.id, 1);
+        if (match.phase === MatchPhase.SWISS)
+            await this.teamService.increaseTeamScore(winner.id, 1);
+        if (match.phase === MatchPhase.QUEUE) {
+            const loser = match.teams.find(team => team.id !== winnerId);
+            if (loser) {
+                const winnerElo = winner.queueScore;
+                const loserElo = loser.queueScore;
+                const k = 32;
+                const expectedWin = 1 / (1 + Math.pow(10, (loserElo - winnerElo) / 400));
+                const expectedLose = 1 / (1 + Math.pow(10, (winnerElo - loserElo) / 400));
+                const newWinnerElo = Math.round(winnerElo + k * (1 - expectedWin));
+                const newLoserElo = Math.max(0, Math.round(loserElo + k * (0 - expectedLose)));
+                await this.teamService.setQueueScore(winner.id, newWinnerElo);
+                await this.teamService.setQueueScore(loser.id, newLoserElo);
+            }
+        }
         await this.matchRepository.save(match);
         this.logger.log(`Match with id ${matchId} finished. Winner: ${winner.name}`);
 
@@ -465,5 +480,38 @@ export class MatchService {
                 createdAt: "DESC"
             }
         });
+    }
+
+    async getQueueMatches(eventId: string, userId: string) {
+        const matchesToQuery = (await this.matchRepository.find({
+            select: {
+                id: true,
+            },
+            where: {
+                teams: {
+                    event: {
+                        id: eventId
+                    },
+                    users: {
+                        id: userId
+                    }
+                },
+                phase: MatchPhase.QUEUE,
+                state: MatchState.FINISHED
+            }
+        })).map(match => match.id)
+
+        return this.matchRepository.find({
+            where: {
+                id: In(matchesToQuery),
+            },
+            relations: {
+                teams: true,
+                winner: true
+            },
+            order: {
+                createdAt: "DESC"
+            }
+        })
     }
 }

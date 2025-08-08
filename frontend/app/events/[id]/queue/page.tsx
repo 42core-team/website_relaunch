@@ -1,5 +1,10 @@
 import QueueState from "@/app/events/[id]/queue/queueState";
-import { getMyEventTeam, getQueueState } from "@/app/actions/team";
+import {
+  getMyEventTeam,
+  getQueueMatches,
+  getQueueState,
+  Team,
+} from "@/app/actions/team";
 
 export default async function EventQueuePage({
   params,
@@ -18,6 +23,14 @@ export default async function EventQueuePage({
   }
 
   const queueState = await getQueueState(id);
+  let queueMatches = await getQueueMatches(id);
+
+  queueMatches = queueMatches.map((match) => {
+    return {
+      ...match,
+      teams: match.teams.sort((a, b) => (a.id === myTeam.id ? -1 : 1)),
+    };
+  });
 
   return (
     <div className="container mx-auto py-8">
@@ -31,7 +44,12 @@ export default async function EventQueuePage({
 
       {!myTeam.locked ? (
         <div className="mt-8">
-          <QueueState queueState={queueState} eventId={id} team={myTeam} />
+          <QueueState
+            queueState={queueState}
+            eventId={id}
+            team={myTeam}
+            queueMatches={queueMatches}
+          />
         </div>
       ) : (
         <div className="flex items-center justify-center min-h-[200px]">

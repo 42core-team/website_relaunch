@@ -3,11 +3,14 @@
 import axiosInstance, { handleError } from "@/app/actions/axios";
 import { ServerActionResponse } from "@/app/actions/errors";
 import { AxiosError } from "axios";
+import { Match } from "@/app/actions/tournament-model";
+import { QueueState } from "@/app/actions/team.model";
 
 export interface Team {
   id: string;
   name: string;
   repo: string;
+  inQueue: boolean;
   locked?: boolean;
   created?: string;
   updated?: string;
@@ -39,9 +42,24 @@ export interface TeamInviteWithDetails {
   createdAt: Date;
 }
 
+export async function getQueueState(eventId: string): Promise<QueueState> {
+  return (
+    await axiosInstance.get<QueueState>(`team/event/${eventId}/queue/state`)
+  ).data;
+}
+
+export async function joinQueue(
+  eventId: string,
+): Promise<ServerActionResponse<void>> {
+  return await handleError(
+    axiosInstance.put(`team/event/${eventId}/queue/join`),
+  );
+}
+
 export async function getTeamById(teamId: string): Promise<Team | null> {
   const team = (await axiosInstance.get(`team/${teamId}`)).data;
 
+  // TODO: directly return team object if API response is already in the correct format
   return team
     ? {
         id: team.id,
@@ -49,6 +67,7 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
         repo: team.repo || "",
         locked: team.locked,
         createdAt: team.createdAt,
+        inQueue: team.inQueue,
         updatedAt: team.updatedAt,
       }
     : null;
@@ -59,11 +78,13 @@ export async function getMyEventTeam(eventId: string): Promise<Team | null> {
 
   if (!team) return null;
 
+  // TODO: directly return team object if API response is already in the correct format
   return {
     id: team.id,
     name: team.name,
     repo: team.repo || "",
     locked: team.locked,
+    inQueue: team.inQueue,
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,
   };

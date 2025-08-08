@@ -52,10 +52,7 @@ export class MatchService {
         match.winner = winner;
         match.state = MatchState.FINISHED;
 
-        let opponentScore = match.teams.find(team => team.id !== winnerId)?.score || 0;
-        if (opponentScore == 0)
-            opponentScore = 1;
-        await this.teamService.increaseTeamScore(winner.id, opponentScore);
+        await this.teamService.increaseTeamScore(winner.id, 1);
         await this.matchRepository.save(match);
         this.logger.log(`Match with id ${matchId} finished. Winner: ${winner.name}`);
 
@@ -97,6 +94,7 @@ export class MatchService {
         if (event.currentRound + 1 >= this.getMaxSwissRounds(event.teams.length)) {
             this.logger.log(`Event ${event.name} has reached the maximum Swiss rounds.`);
             await this.eventService.setCurrentRound(event.id, 0);
+            await this.calculateBuchholzPoints(event.id);
             await this.eventService.setEventState(event.id, EventState.ELIMINATION_ROUND);
             return;
         }
@@ -330,6 +328,38 @@ export class MatchService {
     async getTournamentTeamCount(eventId: string) {
         const teamsCount = await this.teamService.getTeamCountForEvent(eventId);
         return Math.pow(2, Math.floor(Math.log2(teamsCount)));
+    }
+
+    async calculateBuchholzPoints(eventId: string): Promise<void> {
+        const teams = await this.teamService.getTeamsForEvent(eventId);
+
+        await Promise.all(teams.map(async (team) => {
+            const buchholzPoints = await this.calculateBuchholzPointsForTeam(team.id, eventId);
+            this.logger.log(`Calculated Buchholz points for team ${team.name} (${team.id}): ${buchholzPoints}`);
+            await this.teamService.updateBuchholzPoints(team.id, buchholzPoints);
+        }))
+    }
+
+    async calculateBuchholzPointsForTeam(teamId: string, eventId: string): Promise<number> {
+        const wonMatches = await this.matchRepository.find({
+            where: {
+                winner: {
+                    id: teamId
+                }
+            },
+            relations: {
+                teams: true
+            }
+        })
+
+        let sum = 0;
+        console.log("wonMatches: ", wonMatches.length);
+        for (const match of wonMatches) {
+            const opponent = match.teams.find(team => team.id !== teamId);
+            if (opponent)
+                sum += opponent.score;
+        }
+        return sum;
     }
 
     getTournamentMatches(eventId: string) {

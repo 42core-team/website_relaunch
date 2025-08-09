@@ -13,11 +13,13 @@ import {getRabbitmqConfig} from "../main";
 import {ConfigService} from "@nestjs/config";
 import {TeamEntity} from "../team/entities/team.entity";
 import {Cron, CronExpression} from "@nestjs/schedule";
+import {GithubApiService} from "../github-api/github-api.service";
 
 @Injectable()
 export class MatchService {
 
     private gameResultsQueue: ClientProxy;
+    private gameQueue: ClientProxy;
     private logger = new Logger("MatchService");
 
     constructor(
@@ -27,8 +29,11 @@ export class MatchService {
         private readonly matchRepository: Repository<MatchEntity>,
         configService: ConfigService,
         private readonly dataSource: DataSource,
+        private githubApiService: GithubApiService
     ) {
         this.gameResultsQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_results"));
+        this.gameQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_queue"));
+
     }
 
     @Cron(CronExpression.EVERY_5_SECONDS)
@@ -189,8 +194,10 @@ export class MatchService {
         const match = await this.matchRepository.findOne({
             where: {id: matchId},
             relations: {
-                teams: true,
-                winner: true
+                teams: {
+                    event: true
+                },
+                winner: true,
             }
         });
 
@@ -203,7 +210,31 @@ export class MatchService {
         match.state = MatchState.IN_PROGRESS;
         await this.matchRepository.save(match);
 
+        const event = match.teams[0].event;
+        const orgName = match.teams[0].event.githubOrg;
+        const orgSecret = this.githubApiService.decryptSecret(match.teams[0].event.githubOrgSecret);
+        const repoPrefix = `https://${orgName}:${orgSecret}@github.com/${orgName}/`;
 
+        this.logger.log("prefix: " + repoPrefix);
+
+        this.gameQueue.emit("new_match", {
+            id: matchId,
+            image: "ghcr.io/42core-team/game-server:dev-1f8eb71963e6cc55aa1e6e4d4816e4ed8a220192",
+            bots: [
+                {
+                    id: match.teams[0].id,
+                    image: "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
+                    repoURL: repoPrefix + match.teams[0].repo
+                },
+                {
+                    id: match.teams[1].id,
+                    image: "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
+                    repoURL: repoPrefix + match.teams[1].repo
+                }
+            ]
+        })
+
+        /*
         this.gameResultsQueue.emit("success", {
             team_results: match.teams.map(team => ({
                 id: team.id,
@@ -214,6 +245,8 @@ export class MatchService {
             "version": "1.0.0",
             "game_id": matchId
         })
+
+         */
     }
 
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {

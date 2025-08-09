@@ -324,9 +324,12 @@ export class MatchService {
 
         this.logger.log(`start tournament with ${highestPowerOfTwo} teams for event ${event.name}`);
 
-        for (let i = 0; i < highestPowerOfTwo / 2; i++) {
-            const team1 = sortedTeams[i];
-            const team2 = sortedTeams[highestPowerOfTwo - 1 - i];
+
+        const seedOrder = this.generateSeedOrder(highestPowerOfTwo);
+
+        for (let i = 0; i < highestPowerOfTwo; i += 2) {
+            const team1 = sortedTeams[seedOrder[i]];
+            const team2 = sortedTeams[seedOrder[i + 1]];
 
             if (!team1 || !team2) {
                 throw new Error("Not enough teams to create matches for the first round of the tournament.");
@@ -411,6 +414,18 @@ export class MatchService {
 
     getMaxSwissRounds(teams: number): number {
         return Math.ceil(Math.log2(teams));
+    }
+
+    generateSeedOrder(teams: number): number[] {
+        const seedOrder = new Array(teams);
+        for (let i = 0; i < teams; i += 2) {
+            seedOrder[i] = i;
+        }
+
+        for (let i = 1; i < teams; i += 2) {
+            seedOrder[i] = teams - i;
+        }
+        return seedOrder;
     }
 
     async getTournamentTeamCount(eventId: string) {

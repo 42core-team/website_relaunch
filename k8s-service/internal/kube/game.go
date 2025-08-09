@@ -78,6 +78,10 @@ func (c *Client) CreateGameJob(game *Game) error {
 				Name:  "SEND_RESULTS",
 				Value: "true",
 			},
+			{
+				Name:  "RABBITMQ_URL",
+				Value: c.cfg.RabbitMQHTTP + "/api/exchanges/%2f/amq.direct/publish",
+			},
 		},
 	}
 

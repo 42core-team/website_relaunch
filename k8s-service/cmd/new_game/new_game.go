@@ -60,16 +60,16 @@ func main() {
 func getDummyGame() kube.Game {
 	return kube.Game{
 		ID:    uuid.New(),
-		Image: "ghcr.io/42core-team/game-server:dev-415f977711c7cfadba128e53bc3a93ab6cf04a39",
+		Image: "ghcr.io/42core-team/game-server:dev-1f8eb71963e6cc55aa1e6e4d4816e4ed8a220192",
 		Bots: []kube.Bot{
 			{
 				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev-46ee116290a9a3762272973a6b654849bab8951f",
+				Image:   "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 			{
 				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev-46ee116290a9a3762272973a6b654849bab8951f",
+				Image:   "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
 				RepoURL: "https://github.com/42core-team/my-core-bot.git",
 			},
 		},

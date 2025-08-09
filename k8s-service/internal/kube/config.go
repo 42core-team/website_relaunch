@@ -1,19 +1,21 @@
 package kube
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"os"
-	"path/filepath"
 )
 
 type Client struct {
 	clientset *kubernetes.Clientset
 	namespace string
 	logger    *zap.SugaredLogger
+	cfg       *config.Config
 }
 
 func getKubeConfig(kubePath *string) (*rest.Config, error) {
@@ -39,6 +41,7 @@ func GetKubeClient(config *config.Config, logger *zap.SugaredLogger) (*Client, e
 	kubeClient := &Client{
 		namespace: config.Namespace,
 		logger:    logger,
+		cfg:       config,
 	}
 	kubeClient.clientset, err = kubernetes.NewForConfig(kubeConfig)
 	if err != nil {

@@ -9,12 +9,11 @@ import (
 )
 
 type Config struct {
-	Addr        string  `env:"ADDR, default=:9000"`
-	KubePath    *string `env:"KUBE_PATH"`
-	Namespace   string  `env:"NAMESPACE, default=coregame"`
-	RabbitMQ    string  `env:"RABBITMQ, default=amqp://guest:guest@localhost:5672/"`
-	ServerImage string  `env:"SERVER_IMAGE, default=ghcr.io/42core-team/game-server:dev"`
-	BotImage    string  `env:"BOT_IMAGE, default=ghcr.io/42core-team/my-core-bot:dev"`
+	Addr         string  `env:"ADDR, default=:9000"`
+	KubePath     *string `env:"KUBE_PATH"`
+	Namespace    string  `env:"NAMESPACE, default=coregame"`
+	RabbitMQ     string  `env:"RABBITMQ, default=amqp://guest:guest@localhost:5672/"`
+	RabbitMQHTTP string  `env:"RABBITMQ_HTTP, default=http://localhost:15672"`
 }
 
 func ReadConfig() *Config {

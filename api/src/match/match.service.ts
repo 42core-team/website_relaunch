@@ -324,9 +324,9 @@ export class MatchService {
 
         this.logger.log(`start tournament with ${highestPowerOfTwo} teams for event ${event.name}`);
 
-        for (let i = 0; i < highestPowerOfTwo; i += 2) {
+        for (let i = 0; i < highestPowerOfTwo / 2; i++) {
             const team1 = sortedTeams[i];
-            const team2 = sortedTeams[i + 1];
+            const team2 = sortedTeams[highestPowerOfTwo - 1 - i];
 
             if (!team1 || !team2) {
                 throw new Error("Not enough teams to create matches for the first round of the tournament.");

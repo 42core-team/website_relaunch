@@ -1,18 +1,22 @@
 "use client";
 import { Link } from "@heroui/react";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Event } from "@/app/actions/event";
+import { EventState } from "@/app/actions/event-model";
 
 interface EventNavbarProps {
   eventId: string;
   isUserRegistered?: boolean;
   isEventAdmin?: boolean;
+  event: Event;
 }
 
 export default function EventNavbar({
   eventId,
   isUserRegistered = false,
   isEventAdmin = false,
+  event,
 }: EventNavbarProps) {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -31,8 +35,14 @@ export default function EventNavbar({
           ]
         : []),
       { name: "Teams", path: `/events/${eventId}/teams` },
-      { name: "Group Phase", path: `/events/${eventId}/groups` },
-      { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
+      ...(event.state === EventState.ELIMINATION_ROUND ||
+      event.state === EventState.SWISS_ROUND ||
+      event.state === EventState.FINISHED
+        ? [
+            { name: "Group Phase", path: `/events/${eventId}/groups` },
+            { name: "Tournament Tree", path: `/events/${eventId}/bracket` },
+          ]
+        : []),
     ];
 
     return isEventAdmin

@@ -65,6 +65,7 @@ export default async function EventLayout({
         <EventJoinNotice eventId={eventId} userId={userId} />
       )}
       <EventNavbar
+        event={event}
         eventId={eventId}
         isUserRegistered={isUserRegistered}
         isEventAdmin={isEventAdminState}

@@ -1,6 +1,4 @@
+frontend/.env
 .idea
-.vscode
 .DS_Store
-api.gen.go
-.env
-.claude
+*/**/.env

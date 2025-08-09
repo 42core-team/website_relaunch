@@ -14,7 +14,6 @@ import {
   TeamInfoSection,
   TeamInvitesSection,
 } from "@/components/team";
-import { isActionError } from "@/app/actions/errors";
 
 export default function Page({ initialTeam }: { initialTeam: Team | null }) {
   const [myTeam, setMyTeam] = useState(initialTeam);
@@ -59,11 +58,11 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
       setErrorMessage(null);
       const result = await createTeam(newTeamName, eventId);
 
-      if (isActionError(result)) {
+      if ("error" in result) {
         setErrorMessage(result.error);
-        return;
+      } else {
+        setMyTeam(result);
       }
-      setMyTeam(result);
     } catch (err) {
       console.error("Error creating team:", err);
       setErrorMessage("An unexpected error occurred while creating the team.");
@@ -78,17 +77,25 @@ export default function Page({ initialTeam }: { initialTeam: Team | null }) {
       return false;
     }
 
-    setIsLeaving(true);
-    const result = await leaveTeam(eventId);
-    if (isActionError(result)) {
-      setErrorMessage(result.error);
-      setIsLeaving(false);
-      return false;
-    }
+    try {
+      setIsLeaving(true);
+      const success = await leaveTeam(myTeam.id);
 
-    setMyTeam(null);
-    setTeamMembers([]);
-    return true;
+      if (success) {
+        setMyTeam(null);
+        setTeamMembers([]);
+        router.refresh();
+        return true;
+      } else {
+        console.error("Failed to leave team");
+        return false;
+      }
+    } catch (err) {
+      console.error("Error leaving team:", err);
+      return false;
+    } finally {
+      setIsLeaving(false);
+    }
   }
 
   return (

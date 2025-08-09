@@ -1,0 +1,363 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - beta
+          - prod
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        default: 'latest'
+        type: string
+      branch:
+        description: 'Branch name (for release naming)'
+        required: false
+        default: 'manual'
+        type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      branch:
+        description: 'Branch name (for release naming)'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environment }}
+      url: ${{ steps.config.outputs.environment_url }}
+    
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: '${{ inputs.environment }}',
+              description: 'Deploying ${{ inputs.branch }} to ${{ inputs.environment }}',
+              auto_merge: false,
+              required_contexts: []
+            });
+            
+            core.setOutput('deployment_id', deployment.data.id);
+            return deployment.data.id;
+
+      - name: Set deployment status to in progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'in_progress',
+              description: 'Deployment started'
+            });
+
+      - name: Determine deployment configuration
+        id: config
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          BRANCH="${{ inputs.branch }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          
+          # Sanitize branch name for Kubernetes resources
+          SANITIZED_BRANCH=$(echo "${BRANCH}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          
+          # Set configuration based on environment
+          case "${ENVIRONMENT}" in
+            "prod")
+              VALUES_FILE="values-prod.yaml"
+              NAMESPACE="production"
+              ENVIRONMENT_URL="https://coregame.de"
+              ;;
+            "beta")
+              VALUES_FILE="values-beta.yaml"
+              NAMESPACE="staging"
+              ENVIRONMENT_URL="https://beta.coregame.de"
+              ;;
+            "dev")
+              VALUES_FILE="values-dev.yaml"
+              NAMESPACE="development"
+              ENVIRONMENT_URL="https://dev.coregame.de"
+              ;;
+            *)
+              echo "Unknown environment: ${ENVIRONMENT}"
+              exit 1
+              ;;
+          esac
+          
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "sanitized_branch=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "release_name=website-relaunch-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+          echo "environment_url=${ENVIRONMENT_URL}" >> $GITHUB_OUTPUT
+          
+          echo "Deployment Configuration:"
+          echo "- Environment: ${ENVIRONMENT}"
+          echo "- Branch: ${BRANCH} (sanitized: ${SANITIZED_BRANCH})"
+          echo "- Values file: ${VALUES_FILE}"
+          echo "- Namespace: ${NAMESPACE}"
+          echo "- Image tag: ${IMAGE_TAG}"
+          echo "- Release name: website-relaunch-${SANITIZED_BRANCH}"
+          echo "- Environment URL: ${ENVIRONMENT_URL}"
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.3'
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.28.4'
+
+      - name: Configure Kubernetes context
+        run: |
+          # Configure kubectl context using kubeconfig
+          echo "Configuring kubectl context for ${{ steps.config.outputs.environment }} environment"
+          
+          # Debug information
+          echo ""
+          echo "🔍 Debug information:"
+          echo "- Environment: ${{ steps.config.outputs.environment }}"
+          echo "- GitHub Environment: ${{ inputs.environment }}"
+          echo "- Repository: ${{ github.repository }}"
+          echo "- Actor: ${{ github.actor }}"
+          echo "- Workflow: ${{ github.workflow }}"
+          
+          # Try to get KUBECONFIG_DATA from environment secrets first, then repository secrets
+          KUBECONFIG_DATA="${{ secrets.KUBECONFIG_DATA }}"
+          
+          echo ""
+          echo "🔐 Secret access test:"
+          if [ -n "${KUBECONFIG_DATA}" ]; then
+            echo "✅ KUBECONFIG_DATA secret found (length: ${#KUBECONFIG_DATA} characters)"
+          else
+            echo "❌ KUBECONFIG_DATA secret is empty or not found"
+          fi
+          
+          # Check if KUBECONFIG_DATA secret is set
+          if [ -z "${KUBECONFIG_DATA}" ]; then
+            echo ""
+            echo "❌ ERROR: KUBECONFIG_DATA secret is not configured!"
+            echo ""
+            echo "The secret was not found in environment secrets or repository secrets."
+            echo ""
+            echo "Current environment context: ${{ inputs.environment }}"
+            echo ""
+            echo "To fix this issue, add KUBECONFIG_DATA secret to:"
+            echo "📍 EITHER: Settings → Environments → ${{ steps.config.outputs.environment }} → Environment secrets"
+            echo "📍 OR: Settings → Secrets and variables → Actions → Repository secrets"
+            echo ""
+            echo "Steps to create the secret:"
+            echo "1. Base64 encode your kubeconfig file:"
+            echo "   cat ~/.kube/config | base64 -w 0"
+            echo "2. Copy the output"
+            echo "3. Add a new secret named 'KUBECONFIG_DATA'"
+            echo "4. Paste the base64 encoded kubeconfig as the value"
+            echo ""
+            echo "See k8s/KUBERNETES_SETUP.md for detailed instructions"
+            echo ""
+            echo "💡 Try running the 'Debug Secrets Access' workflow to diagnose the issue"
+            exit 1
+          fi
+          
+          echo "✅ Secret found, proceeding with kubeconfig setup..."
+          
+          # Create .kube directory
+          mkdir -p ~/.kube
+          
+          # Decode and write kubeconfig
+          echo "${KUBECONFIG_DATA}" | base64 -d > ~/.kube/config
+          
+          # Verify kubeconfig was decoded properly
+          if [ ! -s ~/.kube/config ]; then
+            echo "❌ ERROR: Kubeconfig file is empty after decoding!"
+            echo "Please verify that KUBECONFIG_DATA secret contains valid base64 encoded kubeconfig"
+            exit 1
+          fi
+          
+          # Set proper permissions
+          chmod 600 ~/.kube/config
+          
+          # Verify connection
+          echo "Testing connection to Kubernetes cluster..."
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.config.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create image pull secret
+        run: |
+          # Create or update the image pull secret for GitHub Container Registry
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-email=${{ github.actor }}@users.noreply.github.com \
+            --namespace=${{ steps.config.outputs.namespace }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          echo "✅ Image pull secret created/updated in namespace: ${{ steps.config.outputs.namespace }}"
+
+      - name: Validate Helm chart
+        run: |
+          cd k8s/helm
+          helm lint . --values ${{ steps.config.outputs.values_file }}
+          helm template ${{ steps.config.outputs.release_name }} . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --validate
+
+      - name: Deploy with Helm
+        run: |
+          cd k8s/helm
+          
+          echo "Deploying to ${{ steps.config.outputs.environment }} environment..."
+          echo "Using values file: ${{ steps.config.outputs.values_file }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}"
+          
+          helm upgrade --install \
+            ${{ steps.config.outputs.release_name }} \
+            . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --wait \
+            --timeout=10m \
+            --atomic \
+            --history-max=5
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment in namespace: ${{ steps.config.outputs.namespace }}"
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }} --timeout=300s
+          
+          # Show deployment status
+          kubectl get pods -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          kubectl get services -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          kubectl get ingress -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=helm
+          
+          # Show Helm release status
+          helm status ${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }}
+
+      - name: Run health checks
+        run: |
+          echo "Running health checks..."
+          
+          # Get the service endpoint
+          SERVICE_NAME="${{ steps.config.outputs.release_name }}"
+          NAMESPACE="${{ steps.config.outputs.namespace }}"
+          
+          # Port forward to test the application (optional)
+          # kubectl port-forward svc/${SERVICE_NAME} 8080:3000 -n ${NAMESPACE} &
+          # sleep 5
+          # curl -f http://localhost:8080 || echo "Health check failed"
+          # pkill -f "kubectl port-forward"
+          
+          echo "Health checks completed"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Successfully deployed to ${{ steps.config.outputs.environment }} environment**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ steps.config.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Namespace:** ${{ steps.config.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release name:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Values file:** ${{ steps.config.outputs.values_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment URL:** ${{ steps.config.outputs.environment_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Resources deployed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- Service" >> $GITHUB_STEP_SUMMARY
+          echo "- Ingress (if enabled)" >> $GITHUB_STEP_SUMMARY
+          echo "- HPA (if enabled)" >> $GITHUB_STEP_SUMMARY
+          echo "- Image Pull Secret (ghcr-secret)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Set deployment status to success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'success',
+              description: 'Deployment completed successfully',
+              environment_url: '${{ steps.config.outputs.environment_url }}'
+            });
+
+      - name: Set deployment status to failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'failure',
+              description: 'Deployment failed'
+            });
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed deployment details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ steps.config.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image tag:** ${{ steps.config.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for error details."

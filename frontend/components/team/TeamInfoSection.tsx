@@ -14,7 +14,6 @@ import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
 import { useState, useEffect } from "react";
 import { getEventById } from "@/app/actions/event";
-import { isActionError } from "@/app/actions/errors";
 
 interface TeamInfoSectionProps {
   myTeam: Team;
@@ -37,20 +36,22 @@ export const TeamInfoSection = ({
     onClose: onConfirmClose,
   } = useDisclosure();
   const [leaveError, setLeaveError] = useState<string | null>(null);
-  const [githubOrg, setGithubOrg] = useState<string | null>(null);
+  const [eventType, setEventType] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const loadGithubOrg = async () => {
+    const loadEventType = async () => {
       const event = await getEventById(eventId);
-      if (isActionError(event)) return;
-
-      setGithubOrg(event.githubOrg);
+      setEventType(event?.event_type);
     };
-    loadGithubOrg();
+    loadEventType();
   }, [eventId]);
 
   const getRepoUrl = () => {
-    return `https://github.com/${githubOrg}/${myTeam.repo}`;
+    const orgName =
+      eventType === "RUSH"
+        ? process.env.NEXT_PUBLIC_RUSH_ORG
+        : process.env.NEXT_PUBLIC_GITHUB_ORG;
+    return `https://github.com/${orgName}/${myTeam.repo}`;
   };
 
   const handleConfirmLeave = async () => {

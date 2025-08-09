@@ -54,7 +54,7 @@ export default function GraphView({
       const newNodes = createTreeCoordinate(teamCount / 2).map(
         (coord, index): Node => {
           const placeholderMatch: Match = {
-            id: `placeholder-${index}`,
+            id: ``,
             round: index + 1,
             state: "PLANNED" as any,
             phase: "ELIMINATION" as any,

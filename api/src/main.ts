@@ -31,7 +31,6 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     app.connectMicroservice<MicroserviceOptions>(getRabbitmqConfig(configService, "game_results"));
-    app.connectMicroservice<MicroserviceOptions>(getRabbitmqConfig(configService, "game_queue"));
 
     if (process.env.NODE_ENV === 'development') {
         const config = new DocumentBuilder()

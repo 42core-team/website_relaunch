@@ -2,6 +2,11 @@ package kube
 
 import "github.com/google/uuid"
 
+type GameMessage struct {
+	Pattern string `json:"pattern"`
+	Data    Game   `json:"data"`
+}
+
 type Game struct {
 	ID    uuid.UUID `json:"id"`
 	Bots  []Bot     `json:"bots"`

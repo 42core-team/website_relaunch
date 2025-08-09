@@ -101,7 +101,11 @@ export async function createEvent(
 }
 
 export async function canUserCreateEvent(): Promise<boolean> {
-  return (await axiosInstance.get<boolean>("user/canCreateEvent")).data;
+  try {
+    return (await axiosInstance.get<boolean>("user/canCreateEvent")).data;
+  } catch {
+    return false;
+  }
 }
 
 export async function setEventTeamsLockDate(

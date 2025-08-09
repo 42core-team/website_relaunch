@@ -15,6 +15,7 @@ import {EventService} from "../event/event.service";
 import {EventState} from "../event/entities/event.entity";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "../team/team.service";
+import {UserGuard} from "../guards/UserGuard";
 
 @UseGuards(FrontendGuard)
 @Controller('match')
@@ -50,6 +51,7 @@ export class MatchController {
         return this.matchService.getSwissMatches(eventId);
     }
 
+    @UseGuards(UserGuard)
     @Put("swiss/:eventId")
     async startSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string, @UserId() userId: string) {
         if (!await this.eventService.isEventAdmin(eventId, userId))
@@ -65,6 +67,7 @@ export class MatchController {
     }
 
 
+    @UseGuards(UserGuard)
     @Put("tournament/:eventId")
     async startTournamentMatches(
         @Param("eventId", ParseUUIDPipe) eventId: string,
@@ -87,6 +90,7 @@ export class MatchController {
         return this.matchService.getTournamentMatches(eventId);
     }
 
+    @UseGuards(UserGuard)
     @Get("queue/:eventId")
     async getQueueMatches(@Param("eventId", ParseUUIDPipe) eventId: string, @UserId() userId: string) {
         return await this.matchService.getQueueMatches(eventId, userId);

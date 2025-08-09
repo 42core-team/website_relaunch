@@ -24,8 +24,13 @@ export default async function EventLayout({
 
   if (!userId) {
     return (
-      <div className="container mx-auto max-w-7xl px-6">
-        You must be logged in to view this event.
+      <div className="container mx-auto max-w-7xl px-6 py-12">
+        <div className="text-center p-8 shadow-sm">
+          <h2 className="text-2xl font-semibold  mb-2">
+            Authentication Required
+          </h2>
+          <p className="text-gray-300">Please sign in to view this event</p>
+        </div>
       </div>
     );
   }

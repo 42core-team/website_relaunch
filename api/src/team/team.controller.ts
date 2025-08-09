@@ -18,6 +18,7 @@ import {CreateTeamDto} from "./dtos/ createTeamDto";
 import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
 import {EventService} from "../event/event.service";
+import {UserGuard} from "../guards/UserGuard";
 
 // TODO: create pipe or guard for user team validation, so we don't have to check for team existence in every endpoint
 @UseGuards(FrontendGuard)
@@ -50,6 +51,7 @@ export class TeamController {
         );
     }
 
+    @UseGuards(UserGuard)
     @Get("event/:eventId/my")
     getMyTeamForEvent(
         @Param("eventId", new ParseUUIDPipe()) eventId: string,
@@ -58,6 +60,7 @@ export class TeamController {
         return this.teamService.getTeamOfUserForEvent(eventId, userId);
     }
 
+    @UseGuards(UserGuard)
     @Post("event/:eventId/create")
     async createTeam(
         @UserId() userId: string,
@@ -78,6 +81,7 @@ export class TeamController {
         return this.teamService.createTeam(createTeamDto.name, userId, eventId);
     }
 
+    @UseGuards(UserGuard)
     @Put("event/:eventId/leave")
     async leaveTeam(
         @UserId() userId: string,
@@ -101,6 +105,7 @@ export class TeamController {
         return team.users;
     }
 
+    @UseGuards(UserGuard)
     @Post("event/:eventId/sendInvite")
     async sendInviteToTeam(
         @UserId() userId: string,
@@ -139,6 +144,7 @@ export class TeamController {
         );
     }
 
+    @UseGuards(UserGuard)
     @Get("event/:eventId/searchInviteUsers/:searchQuery")
     async searchUsersForInvite(
         @Param("eventId", new ParseUUIDPipe()) eventId: string,
@@ -156,6 +162,7 @@ export class TeamController {
         return this.userService.searchUsersForInvite(eventId, searchQuery, team.id);
     }
 
+    @UseGuards(UserGuard)
     @Get("event/:eventId/pending")
     async getUserPendingInvites(
         @UserId() userId: string,
@@ -164,6 +171,7 @@ export class TeamController {
         return this.teamService.getTeamsUserIsInvitedTo(userId, eventId);
     }
 
+    @UseGuards(UserGuard)
     @Put("event/:eventId/acceptInvite/:teamId")
     async acceptTeamInvite(
         @UserId() userId: string,
@@ -185,6 +193,7 @@ export class TeamController {
         return this.teamService.acceptTeamInvite(userId, teamId);
     }
 
+    @UseGuards(UserGuard)
     @Delete("event/:eventId/declineInvite/:teamId")
     async declineTeamInvite(
         @UserId() userId: string,
@@ -197,6 +206,7 @@ export class TeamController {
         return this.teamService.declineTeamInvite(userId, teamId);
     }
 
+    @UseGuards(UserGuard)
     @Put("event/:eventId/queue/join")
     async joinQueue(
         @UserId() userId: string,
@@ -210,6 +220,7 @@ export class TeamController {
         return this.teamService.joinQueue(team.id);
     }
 
+    @UseGuards(UserGuard)
     @Get("event/:eventId/queue/state")
     async getQueueState(
         @Param("eventId", new ParseUUIDPipe()) eventId: string,

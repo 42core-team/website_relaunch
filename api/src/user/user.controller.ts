@@ -11,6 +11,7 @@ import {
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./dtos/user.dto";
 import { FrontendGuard, UserId } from "../guards/FrontendGuard";
+import {UserGuard} from "../guards/UserGuard";
 
 @UseGuards(FrontendGuard)
 @Controller("user")
@@ -47,6 +48,7 @@ export class UserController {
     );
   }
 
+  @UseGuards(UserGuard)
   @Get("canCreateEvent")
   async canCreateEvent(@UserId() id: string) {
     return this.userService.canCreateEvent(id);

@@ -16,6 +16,7 @@ import {TeamService} from "../team/team.service";
 import {UserService} from "../user/user.service";
 import {CreateEventDto} from "./dtos/createEventDto";
 import {SetLockTeamsDateDto} from "./dtos/setLockTeamsDateDto";
+import {UserGuard} from "../guards/UserGuard";
 
 @UseGuards(FrontendGuard)
 @Controller("event")
@@ -37,6 +38,7 @@ export class EventController {
         return await this.eventService.getEventById(id);
     }
 
+    @UseGuards(UserGuard)
     @Post()
     createEvent(
         @UserId() userId: string,
@@ -76,6 +78,7 @@ export class EventController {
         return this.userService.getUserCountOfEvent(eventId);
     }
 
+    @UseGuards(UserGuard)
     @Get(":id/isUserRegistered")
     getEventByUserId(
         @Param("id", new ParseUUIDPipe()) eventId: string,
@@ -84,6 +87,7 @@ export class EventController {
         return this.eventService.isUserRegisteredForEvent(eventId, userId);
     }
 
+    @UseGuards(UserGuard)
     @Get(":id/isEventAdmin")
     isEventAdmin(
         @Param("id", new ParseUUIDPipe()) eventId: string,
@@ -92,6 +96,7 @@ export class EventController {
         return this.eventService.isEventAdmin(eventId, userId);
     }
 
+    @UseGuards(UserGuard)
     @Put(":id/join")
     async joinEvent(
         @Param("id", new ParseUUIDPipe()) eventId: string,
@@ -110,6 +115,7 @@ export class EventController {
         return this.userService.joinEvent(userId, eventId);
     }
 
+    @UseGuards(UserGuard)
     @Put(":id/lock")
     async lockEvent(
         @Param("id", new ParseUUIDPipe()) eventId: string,
@@ -123,6 +129,7 @@ export class EventController {
         return this.eventService.lockEvent(eventId);
     }
 
+    @UseGuards(UserGuard)
     @Put(":id/lockTeamsDate")
     async lockTeamsDate(
         @Param("id", new ParseUUIDPipe()) eventId: string,

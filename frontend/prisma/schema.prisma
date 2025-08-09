@@ -1,0 +1,169 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["relationJoins", "fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  githubId          String   @unique
+  githubAccessToken String
+  email             String   @unique
+  username          String   @unique
+  name              String
+  profilePicture    String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  canCreateEvent    Boolean
+
+  eventUsers      EventUser[]
+  userPermissions UserEventPermission[]
+  invitedToTeams  TeamInviteUser[]
+  memberOfTeams   TeamUser[]
+}
+
+model Event {
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  location          String
+  minTeamSize       Int
+  maxTeamSize       Int
+  startDate         DateTime
+  endDate           DateTime
+  state             events_state_enum
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  type              events_type_enum
+  repoTemplateOwner String
+  repoTemplateName  String
+  treeFormat        Int
+  currentRound      Int
+
+  teams           Team[]
+  eventUsers      EventUser[]
+  userPermissions UserEventPermission[]
+}
+
+model EventUser {
+  eventsId String
+  usersId  String
+
+  event Event @relation(fields: [eventsId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [usersId], references: [id], onDelete: Cascade)
+
+  @@id([eventsId, usersId])
+}
+
+model Match {
+  id        String             @id @default(uuid())
+  state     matches_state_enum
+  round     Int
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  phase     matches_phase_enum
+  winnerId  String?
+
+  winner     Team?          @relation("MatchWinner", fields: [winnerId], references: [id])
+  matchTeams MatchesTeams[]
+
+  @@index([round])
+}
+
+model MatchesTeams {
+  matchesId String
+  teamsId   String
+
+  match Match @relation(fields: [matchesId], references: [id], onDelete: Cascade)
+  team  Team  @relation(fields: [teamsId], references: [id], onDelete: Cascade)
+
+  @@id([matchesId, teamsId])
+}
+
+model Team {
+  id             String   @id @default(uuid())
+  name           String
+  locked         Boolean
+  repo           String
+  score          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  eventId        String
+  buchholzPoints Int
+  hadBye         Boolean
+
+  event      Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invites    TeamInviteUser[]
+  members    TeamUser[]
+  matchWins  Match[]          @relation("MatchWinner")
+  matchTeams MatchesTeams[]
+}
+
+model TeamInviteUser {
+  teamsId String
+  usersId String
+
+  team Team @relation(fields: [teamsId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [usersId], references: [id], onDelete: Cascade)
+
+  @@id([teamsId, usersId])
+}
+
+model TeamUser {
+  teamsId String
+  usersId String
+
+  team Team @relation(fields: [teamsId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [usersId], references: [id], onDelete: Cascade)
+
+  @@id([teamsId, usersId])
+}
+
+model UserEventPermission {
+  id        String                           @id @default(uuid())
+  role      user_event_permissions_role_enum
+  createdAt DateTime                         @default(now())
+  updatedAt DateTime                         @updatedAt
+  userId    String
+  eventId   String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
+
+enum events_state_enum {
+  TEAM_FINDING
+  CODING_PHASE
+  SWISS_ROUND
+  ELIMINATION_ROUND
+  FINISHED
+}
+
+enum events_type_enum {
+  REGULAR
+  RUSH
+}
+
+enum matches_state_enum {
+  PLANNED
+  READY
+  ONGOING
+  FINISHED
+}
+
+enum matches_phase_enum {
+  SWISS
+  ELIMINATION
+}
+
+enum user_event_permissions_role_enum {
+  USER
+  ADMIN
+}

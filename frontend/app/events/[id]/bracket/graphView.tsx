@@ -7,16 +7,46 @@ import ReactFlow, {
   Background,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { MatchNode } from "@/components/match";
-import { Match } from "@/app/actions/tournament-model";
 
 const MATCH_WIDTH = 200;
 const MATCH_HEIGHT = 80;
 const ROUND_SPACING = 280;
 const VERTICAL_SPACING = 100;
 
-const nodeTypes = {
-  matchNode: MatchNode,
+type SerializedMatch = {
+  id: string;
+  state: string;
+  round: number;
+  winner: { id: string; name: string } | null;
+  teams: { id: string; name: string }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+const getMatchStatusColor = (state: string) => {
+  switch (state) {
+    case "FINISHED":
+      return "#e6f7ff";
+    case "READY":
+      return "#f0f9eb";
+    case "IN_PROGRESS":
+      return "#fff7e6";
+    default:
+      return "#f5f5f5";
+  }
+};
+
+const getMatchStatusBorder = (state: string) => {
+  switch (state) {
+    case "FINISHED":
+      return "#1890ff";
+    case "READY":
+      return "#52c41a";
+    case "IN_PROGRESS":
+      return "#fa8c16";
+    default:
+      return "#d9d9d9";
+  }
 };
 
 function createTreeCoordinate(matchCount: number): { x: number; y: number }[] {
@@ -38,72 +68,27 @@ function createTreeCoordinate(matchCount: number): { x: number; y: number }[] {
   return coordinates;
 }
 
-export default function GraphView({
-  matches,
-  teamCount,
-}: {
-  matches: Match[];
-  teamCount: number;
-}) {
+export default function GraphView({ matches }: { matches: SerializedMatch[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    if (!matches || matches.length === 0) {
-      // Create placeholder nodes for visualization
-      const newNodes = createTreeCoordinate(teamCount / 2).map(
-        (coord, index): Node => {
-          const placeholderMatch: Match = {
-            id: ``,
-            round: index + 1,
-            state: "PLANNED" as any,
-            phase: "ELIMINATION" as any,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            teams: [],
-          };
-
-          return {
-            id: index.toString(),
-            type: "matchNode",
-            position: { x: coord.x, y: coord.y },
-            data: {
-              match: placeholderMatch,
-              width: MATCH_WIDTH,
-              height: MATCH_HEIGHT,
-            },
-          };
-        },
-      );
-      setNodes(newNodes);
-      return;
-    }
-
-    // Create nodes from actual match data
-    const newNodes: Node[] = matches.map((match, index) => {
-      const coordinates = createTreeCoordinate(matches.length);
-      const coord = coordinates[index] || {
-        x: 0,
-        y: index * (MATCH_HEIGHT + 20),
-      };
-
+    console.log(createTreeCoordinate(16));
+    const newNodes = createTreeCoordinate(8).map((coord, index): Node => {
       return {
-        id: match.id,
-        type: "matchNode",
+        id: index.toString(),
         position: { x: coord.x, y: coord.y },
-        data: {
-          match,
+        style: {
           width: MATCH_WIDTH,
           height: MATCH_HEIGHT,
-          onClick: (clickedMatch: Match) => {
-            console.log("Match clicked:", clickedMatch);
-          },
         },
+        data: {},
       };
     });
 
+    console.log(newNodes);
     setNodes(newNodes);
-  }, [matches, setNodes]);
+  }, [matches]);
 
   return (
     <div className="w-full">
@@ -113,8 +98,7 @@ export default function GraphView({
             display: none;
           }
           .react-flow__node {
-            font-family:
-              -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
               "Helvetica Neue", Arial, sans-serif;
           }
         `}</style>
@@ -124,7 +108,6 @@ export default function GraphView({
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.3 }}
           nodesConnectable={false}

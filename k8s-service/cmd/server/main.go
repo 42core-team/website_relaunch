@@ -1,53 +1,76 @@
 package main
 
 import (
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api/server"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/queue"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"go.uber.org/zap"
+	"context"
+	"log"
+	"net"
+
+	"github.com/42core-team/website_relaunch/k8s-service/internal/game/service"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/pocketbase"
+	pb "github.com/42core-team/website_relaunch/k8s-service/pkg/proto"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	logger := setupLogger()
-	cfg := config.ReadConfig()
-	kubeClient, err := kube.GetKubeClient(cfg, logger)
+	k8sService, err := service.NewK8sService("/root/.kube/config")
 	if err != nil {
-		logger.Fatalln(err)
-	}
-	err = kubeClient.CreateDefaultNamespace()
-	if err != nil {
-		logger.Infoln(err)
+		log.Fatalf("failed to create k8s service: %v", err)
 	}
 
-	q, err := queue.Init(cfg.RabbitMQ)
+	lis, err := net.Listen("tcp", ":9000")
 	if err != nil {
-		logger.Fatalln(err)
-	}
-	err = q.DeclareQueues()
-	if err != nil {
-		logger.Fatalln(err)
-	}
-	err = q.ConsumeGameQueue(logger, kubeClient)
-	if err != nil {
-		logger.Fatalln(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 
-	apiServer := server.NewServer(kubeClient, logger)
+	s := grpc.NewServer()
+	pb.RegisterGameServiceServer(s, service.NewGameService(k8sService))
 
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// Admin token (PocketBase JWT). If it's empty, fail fast.
+	adminKey := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTc0MDA1NDczOCwiaWQiOiJ1MngyNTUyMTQwOXk4MzEiLCJyZWZyZXNoYWJsZSI6ZmFsc2UsInR5cGUiOiJhdXRoIn0.41Ks4FQM17IF7lifmf_VAAZJOjpXgVe8eCcowPC4M5c"
+	if adminKey == "" {
+		log.Fatal("POCKETBASE_ADMIN_KEY environment variable is not set")
+	}
 
-	api.RegisterHandlers(e, api.NewStrictHandler(apiServer, nil))
+	// Create and start match watcher in a goroutine
+	watcher := pocketbase.NewAPIWrapper("http://pocketbase:8090", adminKey)
+	go func() {
+		log.Printf("Starting PocketBase watcher...")
 
-	logger.Fatal(e.Start(cfg.Addr))
-}
+		// First get current matches
+		matches, err := watcher.GetMatches()
+		if err != nil {
+			log.Printf("Error getting current matches: %v", err)
+		} else {
+			log.Printf("Current matches:")
+			for _, match := range matches {
+				if match.State == "ready" {
+					k8sService.DeployMatchContainers(context.Background(), match)
+					log.Printf("New ready match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				}
+			}
+		}
 
-func setupLogger() *zap.SugaredLogger {
-	logger, _ := zap.NewProduction()
-	return logger.Sugar()
+		// Then subscribe to updates
+		matchChan, errChan := watcher.SubscribeToMatches()
+
+		for {
+			select {
+			case match := <-matchChan:
+				if match.State == "ready" {
+					k8sService.DeployMatchContainers(context.Background(), match)
+					log.Printf("New ready match: - ID: %s, State: %s, Winner: %s, Created: %s, Updated: %s",
+						match.ID, match.State, match.WinnerTeam, match.Created, match.Updated)
+				}
+			case err := <-errChan:
+				log.Printf("Subscription error: %v", err)
+				return
+			}
+		}
+	}()
+
+	log.Printf("Server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

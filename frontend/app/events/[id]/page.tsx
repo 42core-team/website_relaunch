@@ -4,8 +4,6 @@ import {
   getTeamsCountForEvent,
   getParticipantsCountForEvent,
 } from "@/app/actions/event";
-import { isActionError } from "@/app/actions/errors";
-import RepoLockCountdown from "@/app/events/[id]/repoLockCountdown";
 
 export default async function EventPage({
   params,
@@ -15,7 +13,7 @@ export default async function EventPage({
   const { id } = await params;
 
   const event = await getEventById(id);
-  if (isActionError(event)) {
+  if (!event) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <p>No event data found</p>
@@ -58,26 +56,21 @@ export default async function EventPage({
             <div>
               <h3 className="text-sm font-medium text-gray-500">Start Date</h3>
               <p className="mt-1">
-                {new Date(event.startDate).toLocaleDateString()}
+                {new Date(event.start_date).toLocaleDateString()}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">End Date</h3>
               <p className="mt-1">
-                {new Date(event.endDate).toLocaleDateString()}
+                {new Date(event.end_date).toLocaleDateString()}
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Team Size</h3>
-              <p className="mt-1">
-                {event.minTeamSize} - {event.maxTeamSize} members
-              </p>
-            </div>
-            {event.repoLockDate && (
-              <RepoLockCountdown repoLockDate={event.repoLockDate} />
-            )}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500">Team Size</h3>
+            <p className="mt-1">
+              {event.min_team_size} - {event.max_team_size} members
+            </p>
           </div>
         </div>
       </Card>

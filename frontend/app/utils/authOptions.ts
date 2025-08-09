@@ -1,12 +1,12 @@
-import { NextAuthOptions } from "next-auth";
+import { prisma } from "@/initializer/database";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
-import axiosInstance from "@/app/actions/axios";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
-      clientId: process.env.CLIENT_ID_GITHUB!,
-      clientSecret: process.env.CLIENT_SECRET_GITHUB!,
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
       authorization: {
         params: {
           scope: "read:user user:email repo:invite",
@@ -19,16 +19,17 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "github") {
         const githubProfile = profile as any;
 
-        try {
-          const existingUser = (
-            await axiosInstance.get(`user/github/${account.providerAccountId}`)
-          ).data;
-          if (!existingUser) {
-            if (!account?.access_token) {
-              throw new Error("No access token found");
-            }
+        const existingUser = await prisma.user.findUnique({
+          where: { githubId: account.providerAccountId },
+        });
 
-            await axiosInstance.post(`user/`, {
+        if (!existingUser) {
+          if (!account?.access_token) {
+            throw new Error("No access token found");
+          }
+
+          await prisma.user.create({
+            data: {
               email: user.email!,
               username: githubProfile?.login || user.name!,
               name: user.name! || githubProfile?.name!,
@@ -36,38 +37,35 @@ export const authOptions: NextAuthOptions = {
               githubId: account.providerAccountId,
               githubAccessToken: account.access_token,
               canCreateEvent: false,
-            });
-          } else {
-            await axiosInstance.put(`user/${existingUser.id}`, {
-              email: user.email!,
+            },
+          });
+        } else {
+          await prisma.user.update({
+            where: { githubId: account.providerAccountId },
+            data: {
+              githubId: account.providerAccountId,
+              githubAccessToken: account.access_token,
               username: githubProfile?.login || existingUser.username,
               name: githubProfile?.name || existingUser.name,
               profilePicture:
                 githubProfile?.avatar_url || existingUser.profilePicture,
-              githubId: account.providerAccountId,
-              githubAccessToken: account.access_token,
-              canCreateEvent: existingUser.canCreateEvent,
-            });
-          }
-        } catch (e: any) {
-          console.error("Error during sign in:", e);
-          console.debug("response:", e?.response);
-          return false;
+            },
+          });
         }
       }
-
       return true;
     },
     async session({ session }) {
-      if (!session.user?.email) {
-        throw new Error("User email is not available in session");
+      const dbUser = await prisma.user.findUnique({
+        where: { email: session.user?.email! },
+        select: {
+          id: true,
+        },
+      });
+
+      if (dbUser) {
+        session.user.id = dbUser.id;
       }
-      const dbUser = (
-        await axiosInstance.get(`user/email/${session.user?.email}`)
-      ).data;
-
-      if (dbUser) session.user.id = dbUser.id;
-
       return session;
     },
   },

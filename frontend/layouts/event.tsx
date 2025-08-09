@@ -9,7 +9,7 @@ import {
 } from "@/app/actions/event";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
-import { isActionError } from "@/app/actions/errors";
+import { events_type_enum } from "@/generated/prisma";
 
 export default async function EventLayout({
   children,
@@ -20,55 +20,38 @@ export default async function EventLayout({
 }) {
   const eventId = params.id;
   const session = await getServerSession(authOptions);
+  let isEventAdminState = false;
   const userId = session?.user?.id;
 
-  if (!userId) {
-    return (
-      <div className="container mx-auto max-w-7xl px-6 py-12">
-        <div className="text-center p-8 shadow-sm">
-          <h2 className="text-2xl font-semibold  mb-2">
-            Authentication Required
-          </h2>
-          <p className="text-gray-300">Please sign in to view this event</p>
-        </div>
-      </div>
-    );
-  }
+  let showJoinNotice = false;
+  let isUserRegistered = false;
+  let event = null;
 
-  const event = await getEventById(eventId);
-  if (isActionError(event))
-    return (
-      <div className="container mx-auto max-w-7xl px-6">
-        Error: {event.error}
-      </div>
-    );
+  event = await getEventById(eventId);
 
-  const isEventAdminState = await isEventAdmin(eventId);
-  const isUserRegistered = await isUserRegisteredForEvent(eventId);
-  const showJoinNotice = await shouldShowJoinNotice(eventId);
+  if (userId) {
+    isEventAdminState = await isEventAdmin(session.user.id, eventId);
+    isUserRegistered = await isUserRegisteredForEvent(userId, eventId);
 
-  if (isActionError(isEventAdminState) || isActionError(isUserRegistered)) {
-    return (
-      <div className="container mx-auto max-w-7xl px-6">
-        Error: Unable to fetch event details.
-      </div>
-    );
+    showJoinNotice = await shouldShowJoinNotice(userId, eventId);
   }
 
   if (!event) {
     return <div>Event not found</div>;
   }
 
+  const isRushEvent = event.event_type === events_type_enum.RUSH;
+
   return (
-    <div className="relative flex flex-col min-h-lvh">
+    <div className="relative flex flex-col h-screen">
       {showJoinNotice && userId && (
         <EventJoinNotice eventId={eventId} userId={userId} />
       )}
       <EventNavbar
-        event={event}
         eventId={eventId}
         isUserRegistered={isUserRegistered}
         isEventAdmin={isEventAdminState}
+        isRushEvent={isRushEvent}
       />
       <main className="container mx-auto max-w-7xl px-6 flex-grow">
         {children}

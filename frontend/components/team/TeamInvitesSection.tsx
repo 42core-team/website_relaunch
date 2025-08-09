@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import {
@@ -8,7 +8,6 @@ import {
   acceptTeamInvite,
   declineTeamInvite,
 } from "@/app/actions/team";
-import { isActionError } from "@/app/actions/errors";
 
 export const TeamInvitesSection = () => {
   const [invites, setInvites] = useState<TeamInviteWithDetails[]>([]);
@@ -23,7 +22,6 @@ export const TeamInvitesSection = () => {
       }
     >
   >({});
-  const eventId = useParams().id as string;
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -31,7 +29,7 @@ export const TeamInvitesSection = () => {
     async function fetchInvites() {
       try {
         // @ts-ignore
-        const userInvites = await getUserPendingInvites(eventId);
+        const userInvites = await getUserPendingInvites(session.user.id);
         setInvites(userInvites);
       } catch (error) {
         console.error("Error fetching invites:", error);
@@ -57,22 +55,36 @@ export const TeamInvitesSection = () => {
       [teamId]: { ...prev[teamId], isAccepting: true, message: undefined },
     }));
 
-    const result = await acceptTeamInvite(eventId, teamId);
+    try {
+      const result = await acceptTeamInvite(teamId);
 
-    if (isActionError(result)) {
+      if (result.success) {
+        // Remove from invites list if accepted
+        setInvites((prev) => prev.filter((invite) => invite.teamId !== teamId));
+
+        window.location.reload();
+      } else {
+        // Show error message
+        setActionStates((prev) => ({
+          ...prev,
+          [teamId]: {
+            ...prev[teamId],
+            isAccepting: false,
+            message: result.message,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error accepting invite:", error);
       setActionStates((prev) => ({
         ...prev,
         [teamId]: {
           ...prev[teamId],
           isAccepting: false,
-          message: result.error,
+          message: "An error occurred",
         },
       }));
-      return;
     }
-
-    setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
-    window.location.reload();
   };
 
   const handleDeclineInvite = async (teamId: string) => {
@@ -86,19 +98,34 @@ export const TeamInvitesSection = () => {
       [teamId]: { ...prev[teamId], isDeclining: true, message: undefined },
     }));
 
-    const result = await declineTeamInvite(eventId, teamId);
-    if (isActionError(result)) {
+    try {
+      const result = await declineTeamInvite(teamId);
+
+      if (result.success) {
+        // Remove from invites list
+        setInvites((prev) => prev.filter((invite) => invite.teamId !== teamId));
+      } else {
+        // Show error message
+        setActionStates((prev) => ({
+          ...prev,
+          [teamId]: {
+            ...prev[teamId],
+            isDeclining: false,
+            message: result.message,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error declining invite:", error);
       setActionStates((prev) => ({
         ...prev,
         [teamId]: {
           ...prev[teamId],
           isDeclining: false,
-          message: result.error,
+          message: "An error occurred",
         },
       }));
-      return;
     }
-    setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
   };
 
   if (isLoading) {
@@ -125,17 +152,17 @@ export const TeamInvitesSection = () => {
               </p>
             </div>
             <div className="flex gap-2 items-center">
-              {actionStates[invite.id]?.message && (
+              {actionStates[invite.teamId]?.message && (
                 <span className="text-danger text-sm mr-2">
-                  {actionStates[invite.id]?.message}
+                  {actionStates[invite.teamId]?.message}
                 </span>
               )}
               <Button
                 color="primary"
                 size="sm"
-                isLoading={actionStates[invite.id]?.isAccepting}
-                isDisabled={actionStates[invite.id]?.isDeclining}
-                onPress={() => handleAcceptInvite(invite.id)}
+                isLoading={actionStates[invite.teamId]?.isAccepting}
+                isDisabled={actionStates[invite.teamId]?.isDeclining}
+                onPress={() => handleAcceptInvite(invite.teamId)}
               >
                 Accept
               </Button>
@@ -143,9 +170,9 @@ export const TeamInvitesSection = () => {
                 color="default"
                 size="sm"
                 variant="light"
-                isLoading={actionStates[invite.id]?.isDeclining}
-                isDisabled={actionStates[invite.id]?.isAccepting}
-                onPress={() => handleDeclineInvite(invite.id)}
+                isLoading={actionStates[invite.teamId]?.isDeclining}
+                isDisabled={actionStates[invite.teamId]?.isAccepting}
+                onPress={() => handleDeclineInvite(invite.teamId)}
               >
                 Decline
               </Button>

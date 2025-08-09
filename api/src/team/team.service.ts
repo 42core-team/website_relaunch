@@ -266,6 +266,7 @@ export class TeamService {
                 }
             },
             order: {
+                score: "DESC",
                 buchholzPoints: "DESC",
             }
         })

@@ -28,7 +28,7 @@ export class MatchController {
 
     private logger = new Logger("MatchController");
 
-    @EventPattern("success")
+    @EventPattern("game_server")
     async getNotifications(@Payload() data: {
         team_results: {
             id: string,

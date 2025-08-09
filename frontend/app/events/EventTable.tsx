@@ -33,12 +33,12 @@ export default function EventsTable({ events }: { events: Event[] }) {
               </TableCell>
               <TableCell>
                 <Link href={`/events/${event.id}`} className="block w-full">
-                  {new Date(event.start_date).toLocaleDateString()}
+                  {new Date(event.startDate).toLocaleDateString()}
                 </Link>
               </TableCell>
               <TableCell>
                 <Link href={`/events/${event.id}`} className="block w-full">
-                  {event.min_team_size} - {event.max_team_size} members
+                  {event.minTeamSize} - {event.maxTeamSize} members
                 </Link>
               </TableCell>
             </TableRow>

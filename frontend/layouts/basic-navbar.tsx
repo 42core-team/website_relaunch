@@ -25,12 +25,39 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import GithubLoginButton from "@/components/github";
 import router from "next/router";
 import { signOut, useSession } from "next-auth/react";
+import { useNavbar } from "@/contexts/NavbarContext";
 
 const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
   ({ classNames = {}, ...props }, ref) => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [clickedItem, setClickedItem] = React.useState<string | null>(null);
     const pathname = usePathname();
     const session = useSession();
+    const { setIsBasicNavbarMenuOpen } = useNavbar();
+
+    React.useEffect(() => {
+      setClickedItem(null);
+    }, [pathname]);
+
+    const handleNavClick = React.useCallback((path: string) => {
+      setClickedItem(path);
+    }, []);
+
+    const isActive = React.useCallback(
+      (path: string) => {
+        if (clickedItem) {
+          return clickedItem === path;
+        }
+        if (path === "/events") {
+          return pathname === "/events" || pathname.startsWith("/events/");
+        }
+        if (path === "/wiki") {
+          return pathname.startsWith("/wiki");
+        }
+        return pathname === path;
+      },
+      [clickedItem, pathname],
+    );
 
     return (
       <Navbar
@@ -46,7 +73,10 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
         }}
         height="60px"
         isMenuOpen={isMenuOpen}
-        onMenuOpenChange={setIsMenuOpen}
+        onMenuOpenChange={(open) => {
+          setIsMenuOpen(open);
+          setIsBasicNavbarMenuOpen(open);
+        }}
       >
         {/* Left Content */}
         <NavbarBrand>
@@ -63,10 +93,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/",
+                "font-bold text-default-foreground": isActive("/"),
               })}
               href="/"
               size="sm"
+              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -74,21 +105,23 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/events",
+                "font-bold text-default-foreground": isActive("/events"),
               })}
               href="/events"
               size="sm"
+              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
           </NavbarItem>
           <NavbarItem>
             <Link
-              className={"text-default-500"}
-              href="https://wiki.coregame.de"
+              className={cn("text-default-500", {
+                "font-bold text-default-foreground": isActive("/wiki"),
+              })}
+              href="/wiki"
               size="sm"
-              isExternal
-              showAnchorIcon
+              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -96,10 +129,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarItem>
             <Link
               className={cn("text-default-500", {
-                "font-bold text-default-foreground": pathname === "/about",
+                "font-bold text-default-foreground": isActive("/about"),
               })}
               href="/about"
               size="sm"
+              onPress={() => handleNavClick("/about")}
             >
               About Us
             </Link>
@@ -124,10 +158,10 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                   ></Avatar>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Profile Actions" variant="flat">
-                  {/* <DropdownItem key="profile" href="/profile">
-                                        Profile
-                                    </DropdownItem>
-                                    <DropdownItem key="settings" href="/settings">
+                  <DropdownItem key="profile" href="/profile">
+                    Profile
+                  </DropdownItem>
+                  {/* <DropdownItem key="settings" href="/settings">
                                         Settings
                                     </DropdownItem> */}
                   <DropdownItem
@@ -176,10 +210,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/",
+                "font-bold text-default-foreground": isActive("/"),
               })}
               href="/"
               size="md"
+              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -187,10 +222,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/events",
+                "font-bold text-default-foreground": isActive("/events"),
               })}
               href="/events"
               size="md"
+              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
@@ -198,11 +234,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground":
-                  pathname === "/wiki/season1",
+                "font-bold text-default-foreground": isActive("/wiki"),
               })}
-              href="https://wiki.coregame.de"
+              href="/wiki"
               size="md"
+              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -210,10 +246,11 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
           <NavbarMenuItem>
             <Link
               className={cn("mb-2 w-full text-default-500", {
-                "font-bold text-default-foreground": pathname === "/about",
+                "font-bold text-default-foreground": isActive("/about"),
               })}
               href="/about"
               size="md"
+              onPress={() => handleNavClick("/about")}
             >
               About us
             </Link>

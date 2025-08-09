@@ -1,0 +1,97 @@
+# Default values for api
+replicaCount: 1
+
+image:
+  repository: ghcr.io/42core-team/website_relaunch-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 3001
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  NODE_ENV: production
+  PORT: "3001"
+  # Database configuration
+  DB_TYPE: postgres
+  DB_PORT: "5432"
+  DB_HOST: ""
+  DB_USER: ""
+  DB_NAME: ""
+  DB_SCHEMA: ""
+  DB_SSL_REQUIRED: "true"
+  # Add other environment variables as needed
+
+# Secrets - these should be provided via GitHub secrets during deployment
+secrets:
+  DB_PASSWORD: ""
+  DB_URL: ""
+  API_SECRET_ENCRYPTION_KEY: ""
+  FRONTEND_SECRET: ""
+  RABBITMQ_URL: ""
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: api.chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5

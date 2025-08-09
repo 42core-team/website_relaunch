@@ -229,6 +229,23 @@ export default function AboutPage() {
               className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              <Image
+                src="/team/eebert.png"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Emil Ebert</h3>
+              <p className="text-default-600">Website</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
               <Image
@@ -263,23 +280,6 @@ export default function AboutPage() {
               className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-            >
-              <Image
-                src="https://cdn.intra.42.fr/users/349488861974386279579ba2bc9fc1db/medium_eebert.jpg"
-                alt="Team member"
-                width={200}
-                height={200}
-                className="w-40 h-40 rounded-full object-cover mb-4"
-              />
-              <h3 className="text-xl font-semibold">Emil Ebert</h3>
-              <p className="text-default-600">Website</p>
-            </motion.div>
-
-            <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.9 }}
             >
               <Image
@@ -291,6 +291,23 @@ export default function AboutPage() {
               />
               <h3 className="text-xl font-semibold">Konrad Mühlbauer</h3>
               <p className="text-default-600">Website</p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1 }}
+            >
+              <Image
+                src="https://cdn.intra.42.fr/users/b70f90a3f5b8abafd72246cad22bda34/medium_jmoritz.jpg"
+                alt="Team member"
+                width={200}
+                height={200}
+                className="w-40 h-40 rounded-full object-cover mb-4"
+              />
+              <h3 className="text-xl font-semibold">Johannes Moritz</h3>
+              <p className="text-default-600">Head of money spending</p>
             </motion.div>
           </div>
         </motion.div>

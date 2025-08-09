@@ -1,3 +1,9 @@
+# Getting Started
+
+## Running the Website
+
+For instructions on how to run the website, please head over to the [`frontend/README.md`](frontend/README.md).
+
 # Docker Images
 
 This project automatically builds multi-architecture Docker images for both AMD64 and ARM64 platforms.
@@ -8,7 +14,7 @@ The following tagging strategy is used:
 
 ### Branch-based Tags
 - **`main`** - Latest stable version from main branch
-- **`dev`** - Latest development version from dev branch  
+- **`dev`** - Latest development version from dev branch
 - **`<branch-name>`** - Latest version from any other branch (e.g., `60-helm-chart`)
 - **`latest`** - Alias for `main` branch
 
@@ -50,7 +56,7 @@ This project includes an automated deployment pipeline that deploys to Kubernete
 ### Environments
 
 - **🟢 Production** (`main` branch) → `production` namespace
-- **🟡 Beta/Staging** (`dev` branch) → `staging` namespace  
+- **🟡 Beta/Staging** (`dev` branch) → `staging` namespace
 - **🔵 Development** (feature branches) → `development` namespace
 
 ### Automatic Deployment
@@ -109,7 +115,7 @@ You can see active environments in the repository sidebar:
 ### Features
 
 - 📍 **Active deployment tracking** in GitHub UI
-- 🔗 **Direct links** to deployed applications  
+- 🔗 **Direct links** to deployed applications
 - 🛡️ **Protection rules** for production deployments
 - 📊 **Deployment history** and status monitoring
 - 🔐 **Environment-specific secrets** management

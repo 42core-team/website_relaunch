@@ -58,6 +58,7 @@ env:
   DB_USER: ""
   DB_NAME: ""
   DB_SCHEMA: ""
+  K8S_SERVICE_URL: ""
   DB_SSL_REQUIRED: "true"
   # Add other environment variables as needed
 

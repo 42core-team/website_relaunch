@@ -26,6 +26,7 @@ env:
   DB_USER: ""
   DB_NAME: ""
   DB_SCHEMA: ""
+  K8S_SERVICE_URL: ""
   # CORS configuration for prod
   CORS_ORIGIN: "https://coregame.de"
 

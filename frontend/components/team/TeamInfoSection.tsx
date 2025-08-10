@@ -99,6 +99,10 @@ export const TeamInfoSection = ({
           </p>
         </div>
         <div>
+          <p className="text-sm text-default-500">Queue score</p>
+          <p className="font-medium">{myTeam.queueScore}</p>
+        </div>
+        <div>
           <p className="text-sm text-default-500">Updated</p>
           <p className="font-medium">
             {new Date(myTeam.updatedAt || "").toLocaleDateString()}

@@ -46,7 +46,10 @@ export default function MatchLogsDisplay({ logs }: MatchLogsDisplayProps) {
             title={log.team || log.container}
             onClick={() => setSelectedTab(log.container)}
           >
-            <div className="max-h-full overflow-y-auto">
+            <div
+              className="overflow-y-auto"
+              style={{ maxHeight: "calc(100vh - 300px)" }}
+            >
               {selectedTab === log.container && (
                 <pre className="whitespace-pre-wrap p-4 rounded-md">
                   {getFilteredLogs(log.logs).map((line, index) => (

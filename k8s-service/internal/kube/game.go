@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -11,7 +12,13 @@ import (
 )
 
 func (c *Client) CreateGameJob(game *Game) error {
+	presignedURL, err := c.s3Client.GeneratePresignedUploadURL(game.ID)
+	if err != nil {
+		return fmt.Errorf("failed to generate presigned URL: %w", err)
+	}
+
 	var botIDs []string
+	botIDMapping := make(map[string]string)
 	for ind := range game.Bots {
 		id, err := generateRandomID(2)
 		if err != nil {
@@ -19,6 +26,12 @@ func (c *Client) CreateGameJob(game *Game) error {
 		}
 		game.Bots[ind].RndID = &id
 		botIDs = append(botIDs, id)
+		botIDMapping[id] = game.Bots[ind].ID.String()
+	}
+
+	botMappingJSON, err := json.Marshal(botIDMapping)
+	if err != nil {
+		return fmt.Errorf("failed to marshal bot ID mapping: %w", err)
 	}
 
 	var volumes []corev1.Volume
@@ -82,6 +95,18 @@ func (c *Client) CreateGameJob(game *Game) error {
 				Name:  "RABBITMQ_URL",
 				Value: c.cfg.RabbitMQHTTP + "/api/exchanges/%2f/amq.direct/publish",
 			},
+			{
+				Name:  "S3_PRESIGNED_URL",
+				Value: presignedURL,
+			},
+			{
+				Name:  "UPLOAD_REPLAY",
+				Value: "true",
+			},
+			{
+				Name:  "BOT_ID_MAPPING",
+				Value: string(botMappingJSON),
+			},
 		},
 	}
 
@@ -105,7 +130,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 		},
 	}
 
-	_, err := c.clientset.BatchV1().Jobs(c.namespace).Create(context.TODO(), job, metav1.CreateOptions{})
+	_, err = c.clientset.BatchV1().Jobs(c.namespace).Create(context.TODO(), job, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create job: %v", err)
 	}

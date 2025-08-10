@@ -7,10 +7,11 @@ import (
 )
 
 func parseGameMessage(msg []byte) (kube.Game, error) {
-	var game kube.Game
-	err := json.Unmarshal(msg, &game)
+	var gameMessage kube.GameMessage
+
+	err := json.Unmarshal(msg, &gameMessage)
 	if err != nil {
 		return kube.Game{}, err
 	}
-	return game, nil
+	return gameMessage.Data, nil
 }

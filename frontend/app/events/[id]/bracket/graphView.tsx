@@ -1,14 +1,15 @@
 "use client";
 import { useEffect } from "react";
 import ReactFlow, {
-  useNodesState,
-  useEdgesState,
-  Node,
   Background,
+  Node,
+  useEdgesState,
+  useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { MatchNode } from "@/components/match";
-import { Match } from "@/app/actions/tournament-model";
+import { Match, MatchState } from "@/app/actions/tournament-model";
+import { useParams, useRouter } from "next/navigation";
 
 const MATCH_WIDTH = 200;
 const MATCH_HEIGHT = 80;
@@ -47,6 +48,9 @@ export default function GraphView({
 }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const router = useRouter();
+  const eventId = useParams().id as string;
 
   useEffect(() => {
     if (!matches || matches.length === 0) {
@@ -96,7 +100,8 @@ export default function GraphView({
           width: MATCH_WIDTH,
           height: MATCH_HEIGHT,
           onClick: (clickedMatch: Match) => {
-            console.log("Match clicked:", clickedMatch);
+            if (match.state === MatchState.FINISHED)
+              router.push(`/events/${eventId}/match/${clickedMatch.id}`);
           },
         },
       };
@@ -112,6 +117,7 @@ export default function GraphView({
           .react-flow__handle {
             display: none;
           }
+
           .react-flow__node {
             font-family:
               -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,

@@ -1,5 +1,5 @@
 "use client";
-import { Link } from "@heroui/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Event } from "@/app/actions/event";
@@ -60,7 +60,6 @@ export default function EventNavbar({
           <Link
             key={item.path}
             href={item.path}
-            onPress={() => setActiveTab(item.path)}
             aria-current={
               (activeTab || pathname) === item.path ? "page" : undefined
             }

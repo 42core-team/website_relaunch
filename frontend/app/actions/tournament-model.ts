@@ -29,3 +29,9 @@ export interface Match {
     queueScore: number;
   };
 }
+
+export type MatchLogs = {
+  container: string;
+  team: string;
+  logs: string[];
+}[];

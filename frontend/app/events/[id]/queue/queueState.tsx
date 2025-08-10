@@ -6,6 +6,7 @@ import { QueueState } from "@/app/actions/team.model";
 import { getQueueState, joinQueue, Team } from "@/app/actions/team";
 import { Match, MatchState } from "@/app/actions/tournament-model";
 import { Spinner } from "@heroui/spinner";
+import Link from "next/link";
 
 export default function QueueState(props: {
   queueState: QueueState;
@@ -157,8 +158,15 @@ export default function QueueState(props: {
                   )}
                 </div>
 
-                <div className="mt-3 text-xs text-default-400 flex justify-between">
+                <div className="mt-3 text-xs text-default-400 flex justify-between items-center">
                   <span>{new Date(match.createdAt).toLocaleString()}</span>
+                  <Link
+                    href={"/events/" + props.eventId + "/match/" + match.id}
+                  >
+                    <Button size="sm" color="secondary">
+                      Replay
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}

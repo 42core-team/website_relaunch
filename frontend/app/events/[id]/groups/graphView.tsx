@@ -8,7 +8,8 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { MatchNode } from "@/components/match";
-import { Match } from "@/app/actions/tournament-model";
+import { Match, MatchState } from "@/app/actions/tournament-model";
+import { useParams, useRouter } from "next/navigation";
 
 // Custom node types for ReactFlow
 const nodeTypes = {
@@ -17,6 +18,9 @@ const nodeTypes = {
 
 export default function GraphView({ matches }: { matches: Match[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+
+  const router = useRouter();
+  const eventId = useParams().id as string;
 
   useEffect(() => {
     if (!matches || matches.length === 0) return;
@@ -91,8 +95,8 @@ export default function GraphView({ matches }: { matches: Match[] }) {
             width: MATCH_WIDTH,
             height: MATCH_HEIGHT,
             onClick: (clickedMatch: Match) => {
-              console.log("Match clicked:", clickedMatch);
-              // Add any match interaction logic here
+              if (match.state === MatchState.FINISHED)
+                router.push(`/events/${eventId}/match/${clickedMatch.id}`);
             },
           },
         });

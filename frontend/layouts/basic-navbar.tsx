@@ -11,7 +11,6 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
-  Link,
   Button,
   cn,
   Avatar,
@@ -20,6 +19,8 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@heroui/react";
+
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeSwitch } from "@/components/theme-switch";
 import GithubLoginButton from "@/components/github";
@@ -80,9 +81,9 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
       >
         {/* Left Content */}
         <NavbarBrand>
-          <Link href="/">
+          <Link className="flex items-center" href="/">
             <img src="/logo-white.svg" alt="CORE" className="w-10 h-10" />
-            <span className="ml-2 text-small font-medium text-default-foreground">
+            <span className="ml-1 text-small font-medium text-default-foreground">
               CORE
             </span>
           </Link>
@@ -96,8 +97,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/"),
               })}
               href="/"
-              size="sm"
-              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -108,8 +107,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/events"),
               })}
               href="/events"
-              size="sm"
-              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
@@ -120,8 +117,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/wiki"),
               })}
               href="/wiki"
-              size="sm"
-              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -132,8 +127,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/about"),
               })}
               href="/about"
-              size="sm"
-              onPress={() => handleNavClick("/about")}
             >
               About Us
             </Link>
@@ -213,8 +206,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/"),
               })}
               href="/"
-              size="md"
-              onPress={() => handleNavClick("/")}
             >
               Home
             </Link>
@@ -225,8 +216,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/events"),
               })}
               href="/events"
-              size="md"
-              onPress={() => handleNavClick("/events")}
             >
               Events
             </Link>
@@ -237,8 +226,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/wiki"),
               })}
               href="/wiki"
-              size="md"
-              onPress={() => handleNavClick("/wiki")}
             >
               Wiki
             </Link>
@@ -249,8 +236,6 @@ const BasicNavbar = React.forwardRef<HTMLElement, NavbarProps>(
                 "font-bold text-default-foreground": isActive("/about"),
               })}
               href="/about"
-              size="md"
-              onPress={() => handleNavClick("/about")}
             >
               About us
             </Link>

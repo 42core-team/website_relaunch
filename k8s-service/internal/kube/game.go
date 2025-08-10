@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -17,6 +18,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 	}
 
 	var botIDs []string
+	botIDMapping := make(map[string]string)
 	for ind := range game.Bots {
 		id, err := generateRandomID(2)
 		if err != nil {
@@ -24,6 +26,12 @@ func (c *Client) CreateGameJob(game *Game) error {
 		}
 		game.Bots[ind].RndID = &id
 		botIDs = append(botIDs, id)
+		botIDMapping[id] = game.Bots[ind].ID.String()
+	}
+
+	botMappingJSON, err := json.Marshal(botIDMapping)
+	if err != nil {
+		return fmt.Errorf("failed to marshal bot ID mapping: %w", err)
 	}
 
 	var volumes []corev1.Volume
@@ -94,6 +102,10 @@ func (c *Client) CreateGameJob(game *Game) error {
 			{
 				Name:  "UPLOAD_REPLAY",
 				Value: "true",
+			},
+			{
+				Name:  "BOT_ID_MAPPING",
+				Value: string(botMappingJSON),
 			},
 		},
 	}

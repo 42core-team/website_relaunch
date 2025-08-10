@@ -35,11 +35,15 @@ export class MatchController {
             name: string,
             place: number
         }[]
-        game_id: string
+        game_id: string,
+        BOT_ID_MAPPING: {
+            [key: string]: string
+        }
     }, @Ctx() context: RmqContext) {
         try {
             this.logger.log(`Processing match result for game_id: ${data.game_id} with results: ${JSON.stringify(data.team_results, null, 2)}`);
-            const winnerId = data.team_results.sort((a, b) => a.place - b.place)[0].id;
+            this.logger.log("data: " + JSON.stringify(data, null, 2));
+            const winnerId = data.BOT_ID_MAPPING[data.team_results.sort((a, b) => a.place - b.place)[0].id];
             await this.matchService.processMatchResult(data.game_id, winnerId);
         } catch (e) {
             this.logger.error("Error processing match result", e);

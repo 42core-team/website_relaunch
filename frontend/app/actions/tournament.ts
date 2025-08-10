@@ -1,7 +1,7 @@
 "use server";
 
 import axiosInstance from "@/app/actions/axios";
-import { Match } from "@/app/actions/tournament-model";
+import { Match, MatchLogs } from "@/app/actions/tournament-model";
 
 export async function getSwissMatches(eventId: string) {
   return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
@@ -23,6 +23,10 @@ export async function getTournamentTeamCount(eventId: string) {
 export async function getTournamentMatches(eventId: string) {
   return (await axiosInstance.get(`/match/tournament/${eventId}`))
     .data as Match[];
+}
+
+export async function getLogsOfMatch(matchId: string): Promise<MatchLogs> {
+  return (await axiosInstance.get<MatchLogs>(`/match/logs/${matchId}`)).data;
 }
 
 // Functions:

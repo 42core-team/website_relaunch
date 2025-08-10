@@ -1,8 +1,16 @@
+import { getLogsOfMatch } from "@/app/actions/tournament";
+import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
+
 export default async function MatchPage({
   params,
 }: {
   params: Promise<{ matchId: string }>;
 }) {
   const matchId = (await params).matchId;
-  return <div>Match {matchId}</div>;
+  const matchLogs = await getLogsOfMatch(matchId);
+  return (
+    <>
+      <MatchLogsDisplay logs={matchLogs} />
+    </>
+  );
 }

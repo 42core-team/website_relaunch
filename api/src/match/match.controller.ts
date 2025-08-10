@@ -99,4 +99,12 @@ export class MatchController {
     async getQueueMatches(@Param("eventId", ParseUUIDPipe) eventId: string, @UserId() userId: string) {
         return await this.matchService.getQueueMatches(eventId, userId);
     }
+
+    @Get("logs/:matchId")
+    async getMatchLogs(@Param("matchId", ParseUUIDPipe) matchId: string, @UserId() userId: string) {
+        const logs = await this.matchService.getMatchLogs(matchId, userId);
+        if (!logs)
+            throw new BadRequestException("No logs found for match with id " + matchId);
+        return logs;
+    }
 }

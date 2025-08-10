@@ -21,6 +21,7 @@ export class MatchService {
     private gameResultsQueue: ClientProxy;
     private gameQueue: ClientProxy;
     private logger = new Logger("MatchService");
+    private k8sServiceUrl: string
 
     constructor(
         @Inject(forwardRef(() => TeamService)) private readonly teamService: TeamService,
@@ -31,9 +32,9 @@ export class MatchService {
         private readonly dataSource: DataSource,
         private githubApiService: GithubApiService
     ) {
+        this.k8sServiceUrl = configService.getOrThrow<string>("K8S_SERVICE_URL");
         this.gameResultsQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_results"));
         this.gameQueue = ClientProxyFactory.create(getRabbitmqConfig(configService, "game_queue"));
-
     }
 
     @Cron(CronExpression.EVERY_5_SECONDS)
@@ -561,5 +562,64 @@ export class MatchService {
                 createdAt: "DESC"
             }
         })
+    }
+
+    async getMatchLogs(matchId: string, userId: string): Promise<{
+        container: string,
+        team?: string,
+        logs: string[]
+    }[]> {
+        const match = await this.matchRepository.findOneOrFail({
+                where: {
+                    id: matchId,
+                },
+                relations: {
+                    teams: {
+                        event: true
+                    }
+                }
+            }
+        )
+        const event = match.teams[0].event;
+        if (!event) {
+            this.logger.error(`Event for match with id ${matchId} not found.`);
+            return []
+        }
+
+        let isEventAdmin = false;
+        if (userId)
+            isEventAdmin = await this.eventService.isEventAdmin(event.id, userId);
+
+
+        const containers: {
+            id: string,
+            containers: string[]
+        } = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs/containers`).then(res => res.json());
+
+        if (!containers || !containers.containers || containers.containers.length === 0) {
+            this.logger.warn(`No containers found for match ${matchId}.`);
+            return [];
+        }
+
+
+        let mappedLogs = await Promise.all(containers.containers.map(async (container) => {
+            if (!isEventAdmin && container === "game") {
+                return {
+                    container: container,
+                    logs: []
+                }
+            }
+            const logs = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs?container=${container}`).then(res => res.text());
+            const team = match.teams.find(team => team.id === container.replace("bot-", ""));
+
+            return {
+                container,
+                team: team?.name,
+                logs: logs.split("\n").filter(line => line.trim() !== "")
+            };
+        }));
+        if (!isEventAdmin)
+            mappedLogs = mappedLogs.filter(log => log.container !== "game");
+        return mappedLogs
     }
 }

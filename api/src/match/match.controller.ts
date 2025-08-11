@@ -51,8 +51,11 @@ export class MatchController {
     }
 
     @Get("swiss/:eventId")
-    getSwissMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
-        return this.matchService.getSwissMatches(eventId);
+    getSwissMatches(
+        @Param("eventId", ParseUUIDPipe) eventId:
+        string, @UserId() userId: string
+    ) {
+        return this.matchService.getSwissMatches(eventId, userId);
     }
 
     @UseGuards(UserGuard)
@@ -90,8 +93,11 @@ export class MatchController {
     }
 
     @Get("tournament/:eventId")
-    getTournamentMatches(@Param("eventId", ParseUUIDPipe) eventId: string) {
-        return this.matchService.getTournamentMatches(eventId);
+    getTournamentMatches(
+        @Param("eventId", ParseUUIDPipe) eventId: string,
+        @UserId() userId: string
+    ) {
+        return this.matchService.getTournamentMatches(eventId, userId);
     }
 
     @UseGuards(UserGuard)
@@ -106,5 +112,25 @@ export class MatchController {
         if (!logs)
             throw new BadRequestException("No logs found for match with id " + matchId);
         return logs;
+    }
+
+    @UseGuards(UserGuard)
+    @Put("reveal/:matchId")
+    async revealMatch(
+        @Param("matchId", ParseUUIDPipe) matchId: string,
+        @UserId() userId: string
+    ) {
+        const match = await this.matchService.getMatchById(matchId, {
+            teams: {
+                event: true
+            },
+        });
+        if (!match)
+            throw new BadRequestException("Match not found");
+
+        if (!await this.eventService.isEventAdmin(match.teams[0].event.id, userId))
+            throw new UnauthorizedException("You are not authorized to reveal this match.");
+
+        return this.matchService.revealMatch(matchId);
     }
 }

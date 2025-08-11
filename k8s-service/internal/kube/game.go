@@ -53,7 +53,18 @@ func (c *Client) CreateGameJob(game *Game) error {
 			Name:  initContainerName,
 			Image: "alpine/git",
 			Command: []string{
-				"sh", "-c", fmt.Sprintf("git clone --single-branch --depth 1 %s /shared-data/repo", bot.RepoURL),
+				"sh", "-c", fmt.Sprintf(`
+					set -eu;
+					echo '--- Cloning repository (verbose, progress) ---';
+					GIT_TERMINAL_PROMPT=0 git clone --single-branch --depth 1 --verbose --progress %s /shared-data/repo;
+					cd /shared-data/repo;
+					echo '--- Remote details ---';
+					git remote -v;
+					echo '--- Last commit ---';
+					git --no-pager log -1 --decorate=short --pretty=fuller;
+					echo '--- Diffstat ---';
+					git --no-pager show --stat -1
+				`, bot.RepoURL),
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{

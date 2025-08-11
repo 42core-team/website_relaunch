@@ -14,6 +14,7 @@ import {ConfigService} from "@nestjs/config";
 import {TeamEntity} from "../team/entities/team.entity";
 import {Cron, CronExpression} from "@nestjs/schedule";
 import {GithubApiService} from "../github-api/github-api.service";
+import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
 
 @Injectable()
 export class MatchService {
@@ -429,8 +430,8 @@ export class MatchService {
         this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound}.`);
     }
 
-    async getSwissMatches(eventId: string) {
-        return await this.matchRepository.find({
+    async getSwissMatches(eventId: string, userId: string) {
+        const swissMatches = await this.matchRepository.find({
             where: {
                 teams: {
                     event: {
@@ -442,6 +443,19 @@ export class MatchService {
             relations: {
                 teams: true,
                 winner: true
+            }
+        })
+
+        if (userId && await this.eventService.isEventAdmin(eventId, userId))
+            return swissMatches;
+
+        return swissMatches.map(match => {
+            if (match.isRevealed)
+                return match;
+            return {
+                ...match,
+                state: MatchState.IN_PROGRESS,
+                winner: null,
             }
         })
     }
@@ -497,8 +511,8 @@ export class MatchService {
         return sum;
     }
 
-    getTournamentMatches(eventId: string) {
-        return this.matchRepository.find({
+    async getTournamentMatches(eventId: string, userId: string) {
+        const tournamentMatches = await this.matchRepository.find({
             where: {
                 teams: {
                     event: {
@@ -515,6 +529,19 @@ export class MatchService {
                 createdAt: "ASC"
             }
         });
+
+        if (userId && await this.eventService.isEventAdmin(eventId, userId))
+            return tournamentMatches;
+
+        return tournamentMatches.map(match => {
+            if (match.isRevealed)
+                return match;
+            return {
+                ...match,
+                state: MatchState.IN_PROGRESS,
+                winner: null,
+            }
+        })
     }
 
     getLastQueueMatchForTeam(teamId: string) {
@@ -621,5 +648,18 @@ export class MatchService {
         if (!isEventAdmin)
             mappedLogs = mappedLogs.filter(log => log.container !== "game");
         return mappedLogs
+    }
+
+    async getMatchById(matchId: string, relations: FindOptionsRelations<MatchEntity> = {}): Promise<MatchEntity | null> {
+        return this.matchRepository.findOneOrFail({
+            where: {id: matchId},
+            relations
+        });
+    }
+
+    revealMatch(matchId: string) {
+        return this.matchRepository.update(matchId, {
+            isRevealed: true
+        })
     }
 }

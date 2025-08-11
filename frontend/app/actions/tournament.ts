@@ -1,7 +1,8 @@
 "use server";
 
-import axiosInstance from "@/app/actions/axios";
+import axiosInstance, { handleError } from "@/app/actions/axios";
 import { Match, MatchLogs } from "@/app/actions/tournament-model";
+import { ServerActionResponse } from "@/app/actions/errors";
 
 export async function getSwissMatches(eventId: string) {
   return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
@@ -25,8 +26,16 @@ export async function getTournamentMatches(eventId: string) {
     .data as Match[];
 }
 
-export async function getLogsOfMatch(matchId: string): Promise<MatchLogs> {
-  return (await axiosInstance.get<MatchLogs>(`/match/logs/${matchId}`)).data;
+export async function getLogsOfMatch(
+  matchId: string,
+): Promise<ServerActionResponse<MatchLogs>> {
+  return handleError(axiosInstance.get<MatchLogs>(`/match/logs/${matchId}`));
+}
+
+export async function revealMatch(
+  matchId: string,
+): Promise<ServerActionResponse<Match>> {
+  return handleError(axiosInstance.put<Match>(`/match/reveal/${matchId}`));
 }
 
 // Functions:

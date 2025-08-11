@@ -1,5 +1,8 @@
 import { getLogsOfMatch } from "@/app/actions/tournament";
 import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
+import { isActionError } from "@/app/actions/errors";
+import { isEventAdmin } from "@/app/actions/event";
+import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
 
 export default async function MatchPage({
   params,
@@ -7,7 +10,13 @@ export default async function MatchPage({
   params: Promise<{ matchId: string }>;
 }) {
   const matchId = (await params).matchId;
-  const matchLogs = await getLogsOfMatch(matchId);
+  let matchLogs = await getLogsOfMatch(matchId);
+
+  if (isActionError(matchLogs)) matchLogs = [];
+
+  const isAdmin = await isEventAdmin(matchId);
+  if (isActionError(isAdmin))
+    return <div className="text-red-500">Error checking admin status</div>;
 
   const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json`;
 
@@ -21,6 +30,8 @@ export default async function MatchPage({
           allow="fullscreen"
         />
       </div>
+
+      <MatchActions matchId={matchId} />
 
       <MatchLogsDisplay logs={matchLogs} />
     </div>

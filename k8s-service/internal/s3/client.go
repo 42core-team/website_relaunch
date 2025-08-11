@@ -28,7 +28,7 @@ func NewS3Client(cfg *config.Config, logger *zap.SugaredLogger) (*Client, error)
 			cfg.AWSSecretKey,
 			"",
 		),
-		S3ForcePathStyle: aws.Bool(true),
+		S3ForcePathStyle: aws.Bool(false)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AWS session: %w", err)
@@ -42,7 +42,7 @@ func NewS3Client(cfg *config.Config, logger *zap.SugaredLogger) (*Client, error)
 }
 
 func (c *Client) GeneratePresignedUploadURL(gameID uuid.UUID) (string, error) {
-	key := fmt.Sprintf("matches/%s/results.json", gameID.String())
+	key := fmt.Sprintf("%s/replay.json", gameID.String())
 
 	req, _ := c.s3Client.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(c.bucket),

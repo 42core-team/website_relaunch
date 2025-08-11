@@ -13,6 +13,7 @@ import (
 
 func main() {
 	logger := setupLogger()
+	logger.Infoln("Starting k8s-service v2")
 	cfg := config.ReadConfig()
 	kubeClient, err := kube.GetKubeClient(cfg, logger)
 	if err != nil {

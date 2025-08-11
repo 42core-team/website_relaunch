@@ -9,7 +9,7 @@ export default async function MatchPage({
   const matchId = (await params).matchId;
   const matchLogs = await getLogsOfMatch(matchId);
 
-  const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/core-replays/${matchId}/replay.json`;
+  const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json`;
 
   return (
     <div className="space-y-8">

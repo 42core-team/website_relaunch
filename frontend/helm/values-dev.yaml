@@ -50,3 +50,5 @@ secrets:
   BACKEND_SECRET: ""
   # 42 OAuth Client Secret - sensitive data
   FORTY_TWO_CLIENT_SECRET: ""
+  # Provide a dev encryption key (AES-GCM) via CI/CD secret injection
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ""

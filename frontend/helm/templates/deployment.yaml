@@ -43,6 +43,11 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             # Secrets from Kubernetes secrets
+            - name: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "frontend.fullname" . }}-secrets
+                  key: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:

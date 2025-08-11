@@ -61,6 +61,8 @@ secrets:
   BACKEND_SECRET: ""
   # 42 OAuth Client Secret - sensitive data
   FORTY_TWO_CLIENT_SECRET: ""
+  # Next.js Server Actions encryption key (AES-GCM, 32 bytes base64 or hex)
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ""
 
 ingress:
   enabled: false

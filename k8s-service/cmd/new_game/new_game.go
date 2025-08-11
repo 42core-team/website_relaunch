@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )

@@ -44,11 +44,14 @@ RUN npm install -g pnpm
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${TARGETARCH}/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl && \
-    # Install kind
+    # Install kind \
     curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/latest/kind-linux-${TARGETARCH} && \
     chmod +x /usr/local/bin/kind
 
 ENV PATH="$PATH:$(go env GOPATH)/bin"
+RUN mkdir -p /gobin
+ENV GOBIN=/gobin
+ENV PATH=$PATH:/gobin
 
 # Create .kube directory
 RUN mkdir -p /home/node/.kube

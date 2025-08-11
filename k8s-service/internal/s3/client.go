@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/42core-team/website_relaunch/k8s-service/internal/config"
 	"github.com/minio/minio-go/v7"
@@ -28,6 +29,12 @@ func NewS3Client(cfg *config.Config, logger *zap.SugaredLogger) (*Client, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create S3 client: %w", err)
 	}
+
+	_, err = cli.HealthCheck(time.Second * 10)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check S3 health: %w", err)
+	}
+	logger.Infoln("Successfully created S3 client with health check")
 
 	return &Client{
 		s3Client: cli,

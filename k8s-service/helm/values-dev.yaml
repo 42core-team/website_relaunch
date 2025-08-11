@@ -1,0 +1,8 @@
+# Dev environment overrides
+image:
+  tag: "latest"
+
+env:
+  NAMESPACE: "development"
+
+# Secrets and vars are supplied via GitHub env during deploy

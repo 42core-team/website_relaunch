@@ -1,0 +1,57 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/OWNER/REPO-k8s-service
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 9000
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: null
+
+# Non-sensitive environment variables
+env:
+  ADDR: ":9000"
+  NAMESPACE: "coregame"
+  S3_ENDPOINT: "https://s3.example"
+  S3_REGION: "eu"
+  S3_BUCKET: "core-replays"
+
+# Sensitive values are passed as Kubernetes Secret
+secrets:
+  RABBITMQ: ""
+  RABBITMQ_HTTP: ""
+  S3_ACCESS_KEY_ID: ""
+  S3_SECRET_ACCESS_KEY: ""

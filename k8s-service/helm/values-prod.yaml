@@ -1,0 +1,9 @@
+# Prod environment overrides
+replicaCount: 2
+image:
+  tag: "latest"
+
+env:
+  NAMESPACE: "production"
+
+# Secrets and vars are supplied via GitHub env during deploy

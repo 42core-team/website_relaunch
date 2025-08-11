@@ -225,12 +225,12 @@ export class MatchService {
             bots: [
                 {
                     id: match.teams[0].id,
-                    image: "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
+                    image: "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
                     repoURL: repoPrefix + match.teams[0].repo
                 },
                 {
                     id: match.teams[1].id,
-                    image: "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
+                    image: "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
                     repoURL: repoPrefix + match.teams[1].repo
                 }
             ]

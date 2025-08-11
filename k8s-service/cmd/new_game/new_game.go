@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/42core-team/website_relaunch/k8s-service/internal/config"
 	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -18,7 +19,9 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	cfg := config.ReadConfig()
+
+	conn, err := amqp.Dial(cfg.RabbitMQ)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 

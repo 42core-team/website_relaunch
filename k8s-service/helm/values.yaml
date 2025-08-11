@@ -49,6 +49,27 @@ env:
   S3_REGION: "eu"
   S3_BUCKET: "core-replays"
 
+# Probes
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
 # Sensitive values are passed as Kubernetes Secret
 secrets:
   RABBITMQ: ""

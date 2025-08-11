@@ -31,45 +31,50 @@ const ansiColorMap: Record<string, string> = {
 
 // Parse ANSI color codes in log text
 const parseAnsiColorCodes = (text: string) => {
+  // If no text or no color codes, return the text as is
+  if (!text || !text.includes("[")) {
+    return [{ text, color: undefined }];
+  }
+
   const parts: { text: string; color?: string }[] = [];
-  let currentText = "";
+
+  // Regular expression to match ANSI color codes - updated to handle the exact format
+  // This matches codes like [32m exactly as they appear in your logs
+  const colorCodeRegex = /\[([\d]+)m/g;
+
+  let lastIndex = 0;
+  let match;
   let currentColor: string | undefined = undefined;
 
-  // Regular expression to match ANSI color codes
-  const colorCodeRegex = /\[([0-9]+)m/g;
-  let match;
-  let lastIndex = 0;
-
+  // Find all color codes and their positions
   while ((match = colorCodeRegex.exec(text)) !== null) {
-    // Add the text before the color code
-    const beforeColorCode = text.substring(lastIndex, match.index);
-    if (beforeColorCode) {
-      if (currentText) {
-        parts.push({ text: currentText, color: currentColor });
-        currentText = "";
-      }
-      currentText = beforeColorCode;
+    // Add text before this color code with previous color
+    if (match.index > lastIndex) {
+      parts.push({
+        text: text.substring(lastIndex, match.index),
+        color: currentColor,
+      });
     }
 
-    // Update the current color
+    // Get the color code and update current color
     const colorCode = match[1];
     currentColor = ansiColorMap[colorCode];
 
-    // Add the current text with the previous color
-    if (currentText) {
-      parts.push({ text: currentText, color: currentColor });
-      currentText = "";
-    }
-
+    // Move past this color code
     lastIndex = match.index + match[0].length;
   }
 
-  // Add the remaining text
+  // Add remaining text with the last color
   if (lastIndex < text.length) {
-    currentText = text.substring(lastIndex);
-    if (currentText) {
-      parts.push({ text: currentText, color: currentColor });
-    }
+    parts.push({
+      text: text.substring(lastIndex),
+      color: currentColor,
+    });
+  }
+
+  // If no parts were created (no valid color codes), return original text
+  if (parts.length === 0) {
+    return [{ text, color: undefined }];
   }
 
   return parts;

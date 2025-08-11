@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
+
+	"github.com/42core-team/website_relaunch/k8s-service/internal/api"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
 	"go.uber.org/zap"
 )
 

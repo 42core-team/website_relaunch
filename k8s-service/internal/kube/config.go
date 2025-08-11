@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/s3"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/config"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/s3"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

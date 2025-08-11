@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"go.uber.org/zap"
@@ -21,9 +21,9 @@ func NewS3Client(cfg *config.Config, logger *zap.SugaredLogger) (*Client, error)
 	endpoint, secure := parseEndpoint(cfg.S3Endpoint, cfg.S3Bucket)
 
 	cli, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AWSAccessKeyID, cfg.AWSSecretKey, ""),
+		Creds:  credentials.NewStaticV4(cfg.S3AccessKeyID, cfg.S3SecretKey, ""),
 		Secure: secure,
-		Region: cfg.AWSRegion,
+		Region: cfg.S3Region,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create S3 client: %w", err)

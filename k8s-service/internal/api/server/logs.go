@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/api"
 )
 
 func (s *Server) GetLogsOfContainer(ctx context.Context, request api.GetLogsOfContainerRequestObject) (api.GetLogsOfContainerResponseObject, error) {

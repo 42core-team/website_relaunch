@@ -1,0 +1,166 @@
+name: Deploy k8s-service
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        default: "dev"
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-k8s-service
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: k8s-service-${{ inputs.environment }}
+
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.13.3"
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.28.4"
+
+      - name: Configure Kubernetes context
+        run: |
+          if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
+            echo "ERROR: KUBECONFIG_DATA secret is empty or not set!"
+            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: k8s-service-${{ inputs.environment }}"
+            exit 1
+          fi
+          mkdir -p ~/.kube
+          if ! echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config 2>/tmp/base64_error; then
+            echo "ERROR: Failed to decode base64 secret"
+            cat /tmp/base64_error
+            exit 1
+          fi
+          chmod 600 ~/.kube/config
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Determine deployment configuration
+        id: config
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          IMAGE_REPO="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+          BRANCH_PART="${IMAGE_TAG%-*}"
+
+          case "${ENVIRONMENT}" in
+            "prod")
+              VALUES_FILE="values-prod.yaml"
+              NAMESPACE="production"
+              ;;
+            "dev")
+              VALUES_FILE="values-dev.yaml"
+              NAMESPACE="development"
+              ;;
+            *)
+              echo "Unknown environment: ${ENVIRONMENT}"
+              exit 1
+              ;;
+          esac
+
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_repo=${IMAGE_REPO}" >> $GITHUB_OUTPUT
+          echo "release_name=k8s-service-${BRANCH_PART}" >> $GITHUB_OUTPUT
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.config.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-email=${{ github.actor }}@users.noreply.github.com \
+            --namespace=${{ steps.config.outputs.namespace }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Validate Helm chart
+        run: |
+          cd k8s-service/helm
+          helm lint . --values ${{ steps.config.outputs.values_file }}
+          helm template ${{ steps.config.outputs.release_name }} . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
+            --set env.NAMESPACE=${{ steps.config.outputs.namespace }} \
+            --set env.S3_ENDPOINT="${{ vars.S3_ENDPOINT }}" \
+            --set env.S3_REGION="${{ vars.S3_REGION }}" \
+            --set env.S3_BUCKET="${{ vars.S3_BUCKET }}" \
+            --set secrets.RABBITMQ="${{ secrets.RABBITMQ }}" \
+            --set secrets.RABBITMQ_HTTP="${{ secrets.RABBITMQ_HTTP }}" \
+            --set secrets.S3_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY_ID }}" \
+            --set secrets.S3_SECRET_ACCESS_KEY="${{ secrets.S3_SECRET_ACCESS_KEY }}" \
+            --validate
+
+      - name: Deploy with Helm
+        run: |
+          cd k8s-service/helm
+          helm upgrade --install \
+            ${{ steps.config.outputs.release_name }} \
+            . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
+            --set env.NAMESPACE=${{ steps.config.outputs.namespace }} \
+            --set env.S3_ENDPOINT="${{ vars.S3_ENDPOINT }}" \
+            --set env.S3_REGION="${{ vars.S3_REGION }}" \
+            --set env.S3_BUCKET="${{ vars.S3_BUCKET }}" \
+            --set secrets.RABBITMQ="${{ secrets.RABBITMQ }}" \
+            --set secrets.RABBITMQ_HTTP="${{ secrets.RABBITMQ_HTTP }}" \
+            --set secrets.S3_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY_ID }}" \
+            --set secrets.S3_SECRET_ACCESS_KEY="${{ secrets.S3_SECRET_ACCESS_KEY }}" \
+            --wait \
+            --timeout=5m \
+            --atomic \
+            --history-max=5
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }} --timeout=300s
+          kubectl get pods -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=k8s-service
+          kubectl get svc -n ${{ steps.config.outputs.namespace }} ${{ steps.config.outputs.release_name }}

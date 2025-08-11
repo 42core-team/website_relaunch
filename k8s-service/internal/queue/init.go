@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 )

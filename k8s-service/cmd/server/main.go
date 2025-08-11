@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/api/server"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/config"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/kube"
-	"github.com/42core-team/website_relaunch/k8s-service-gen/internal/queue"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/api"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/api/server"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/config"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
+	"github.com/42core-team/website_relaunch/k8s-service/internal/queue"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"

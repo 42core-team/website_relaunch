@@ -11,6 +11,9 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
+# Generate API code from internal/api/doc.go
+RUN go generate ./internal/api
+
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o k8s-service ./cmd/server/main.go
 
@@ -28,7 +31,7 @@ COPY --from=builder /app/k8s-service /app/k8s-service
 USER appuser
 
 # Expose the application port
-EXPOSE 8080
+EXPOSE 9000
 
 # Set the binary as the entrypoint
 ENTRYPOINT ["/app/k8s-service"]

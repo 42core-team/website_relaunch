@@ -1,0 +1,10 @@
+<CORSConfiguration>
+  <CORSRule>
+    <AllowedOrigin>https://visualizer.coregame.de</AllowedOrigin>
+    <AllowedOrigin>https://dev.visualizer.coregame.de</AllowedOrigin>
+    <AllowedMethod>GET</AllowedMethod>
+    <AllowedMethod>HEAD</AllowedMethod>
+    <AllowedHeader>*</AllowedHeader>
+    <ExposeHeader>ETag</ExposeHeader>
+  </CORSRule>
+</CORSConfiguration>

@@ -7,6 +7,7 @@ import { getQueueState, joinQueue, Team } from "@/app/actions/team";
 import { Match, MatchState } from "@/app/actions/tournament-model";
 import { Spinner } from "@heroui/spinner";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 
 export default function QueueState(props: {
   queueState: QueueState;
@@ -17,6 +18,10 @@ export default function QueueState(props: {
   const [queueState, setQueueState] = useState<QueueState>(props.queueState);
   const [joiningQueue, setJoiningQueue] = useState(false);
 
+  const router = useRouter();
+  const { id } = useParams();
+  const eventId = id as string;
+
   useEffect(() => {
     async function fetchQueueState() {
       const newQueueState = await getQueueState(props.eventId);
@@ -24,10 +29,13 @@ export default function QueueState(props: {
         queueState.match?.state === MatchState.IN_PROGRESS &&
         newQueueState.match?.state !== MatchState.IN_PROGRESS
       ) {
-        console.log(
-          "Match has ended, resetting queue state.",
-          newQueueState.match,
-        );
+        if (newQueueState.match) {
+          console.log(
+            "Match has ended, resetting queue state.",
+            newQueueState.match,
+          );
+          router.push(`/events/${eventId}/match/${newQueueState?.match?.id}`);
+        }
       }
       setQueueState(newQueueState);
     }

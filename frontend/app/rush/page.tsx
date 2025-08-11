@@ -7,7 +7,8 @@ import { DownloadIcon } from "@/components/icons";
 
 export default function RushPage() {
   const [mounted, setMounted] = useState(false);
-  const pdfUrl = "https://assets.coregame.de/subjects/rush/rush-02.pdf";
+  const pdfUrl =
+    "https://core-files.object.storage.eu01.onstackit.cloud/subjects/rush/rush-02.pdf";
 
   // Wait for component to mount to avoid hydration issues with iframe
   useEffect(() => {

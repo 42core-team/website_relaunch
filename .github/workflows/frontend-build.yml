@@ -81,6 +81,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
 
       - name: Extract short SHA for deployment
         id: short-sha

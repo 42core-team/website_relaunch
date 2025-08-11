@@ -180,9 +180,7 @@ export async function sendTeamInvite(
  * @returns Array of team invites with details
  * @param eventId
  */
-export async function getUserPendingInvites(
-  eventId: string,
-): Promise<TeamInviteWithDetails[]> {
+export async function getUserPendingInvites(eventId: string): Promise<Team[]> {
   return (await axiosInstance.get(`team/event/${eventId}/pending`)).data;
 }
 

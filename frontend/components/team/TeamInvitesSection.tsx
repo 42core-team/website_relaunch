@@ -7,11 +7,12 @@ import {
   getUserPendingInvites,
   acceptTeamInvite,
   declineTeamInvite,
+  Team,
 } from "@/app/actions/team";
 import { isActionError } from "@/app/actions/errors";
 
 export const TeamInvitesSection = () => {
-  const [invites, setInvites] = useState<TeamInviteWithDetails[]>([]);
+  const [invites, setInvites] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionStates, setActionStates] = useState<
     Record<
@@ -119,10 +120,8 @@ export const TeamInvitesSection = () => {
             className="py-3 flex items-center justify-between"
           >
             <div>
-              <p className="font-medium">{invite.teamName}</p>
-              <p className="text-sm text-default-500">
-                Invited {new Date(invite.createdAt).toLocaleDateString()}
-              </p>
+              <p className="font-medium">{invite.name}</p>
+              <p className="text-sm text-default-500">Invited</p>
             </div>
             <div className="flex gap-2 items-center">
               {actionStates[invite.id]?.message && (

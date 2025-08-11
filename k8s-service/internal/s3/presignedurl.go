@@ -17,6 +17,6 @@ func (c *Client) GeneratePresignedUploadURL(gameID uuid.UUID) (string, error) {
 		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
 	}
 
-	c.logger.Infof("Generated presigned URL for game %s: %s %s", gameID.String(), key, presignedURL.String())
+	c.logger.Infof("Generated presigned URL for game %s with key %s", gameID.String(), key)
 	return presignedURL.String(), nil
 }

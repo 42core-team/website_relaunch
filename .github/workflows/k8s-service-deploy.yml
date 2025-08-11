@@ -128,8 +128,6 @@ jobs:
             --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set env.NAMESPACE=${{ steps.config.outputs.namespace }} \
             --set env.S3_ENDPOINT="${{ vars.S3_ENDPOINT }}" \
-            --set env.S3_REGION="${{ vars.S3_REGION }}" \
-            --set env.S3_BUCKET="${{ vars.S3_BUCKET }}" \
             --set secrets.RABBITMQ="${{ secrets.RABBITMQ }}" \
             --set secrets.RABBITMQ_HTTP="${{ secrets.RABBITMQ_HTTP }}" \
             --set secrets.S3_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY_ID }}" \
@@ -148,8 +146,6 @@ jobs:
             --set image.repository=${{ steps.config.outputs.image_repo }} \
             --set env.NAMESPACE=${{ steps.config.outputs.namespace }} \
             --set env.S3_ENDPOINT="${{ vars.S3_ENDPOINT }}" \
-            --set env.S3_REGION="${{ vars.S3_REGION }}" \
-            --set env.S3_BUCKET="${{ vars.S3_BUCKET }}" \
             --set secrets.RABBITMQ="${{ secrets.RABBITMQ }}" \
             --set secrets.RABBITMQ_HTTP="${{ secrets.RABBITMQ_HTTP }}" \
             --set secrets.S3_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY_ID }}" \

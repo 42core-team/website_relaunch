@@ -102,12 +102,13 @@ export class MatchService {
 
         match.winner = winner;
         match.state = MatchState.FINISHED;
+        match.results = []
 
         if (match.phase === MatchPhase.SWISS) {
             await this.teamService.increaseTeamScore(winner.id, 1);
             match.results = match.teams.map(team => {
                 return {
-                    team: {id: team} as any,
+                    team: {id: team.id} as any,
                     score: team.id === winnerId ? team.score + 1 : team.score,
                     match: {id: match.id} as any
                 } as MatchTeamResultEntity;

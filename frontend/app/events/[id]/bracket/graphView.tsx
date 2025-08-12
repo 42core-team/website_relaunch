@@ -65,6 +65,7 @@ export default function GraphView({
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             teams: [],
+            results: [],
           };
 
           return {

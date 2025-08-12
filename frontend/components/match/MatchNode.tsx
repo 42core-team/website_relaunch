@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { memo } from "react";
 import { Match, MatchState } from "@/app/actions/tournament-model";
+import { Handle, Position } from "reactflow";
 
 interface MatchNodeData {
   match: Match;
@@ -116,7 +117,9 @@ function MatchNode({ data }: MatchNodeProps) {
 
           {/* Teams */}
           <div className="space-y-1">
-            {match.teams && match.teams.length > 0 ? (
+            {match.teams &&
+            match.state == MatchState.FINISHED &&
+            match.teams.length > 0 ? (
               match.teams.map((team, index) => (
                 <div
                   key={index}
@@ -126,10 +129,17 @@ function MatchNode({ data }: MatchNodeProps) {
                 >
                   <span className="truncate flex-1">
                     {formatTeamName(team.name)}
+                    {team.id === match.winner?.id && (
+                      <span className="ml-1 text-green-600">👑</span>
+                    )}
                   </span>
                   {match.state === MatchState.FINISHED &&
                     team.score !== undefined && (
-                      <span className="ml-2 text-xs">{team.score}</span>
+                      <span className="ml-2 text-xs">
+                        {(match.results || []).find(
+                          (result) => result?.team?.id === team.id,
+                        )?.score || team.score}
+                      </span>
                     )}
                 </div>
               ))
@@ -140,13 +150,6 @@ function MatchNode({ data }: MatchNodeProps) {
             )}
           </div>
         </div>
-
-        {/* Winner info */}
-        {match.winner && match.state === MatchState.FINISHED && (
-          <div className="text-xs font-bold mt-2 text-center">
-            🏆 {formatTeamName(match.winner.name)}
-          </div>
-        )}
       </div>
     </motion.div>
   );

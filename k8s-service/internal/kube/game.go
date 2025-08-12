@@ -198,7 +198,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 	// Requires NET_ADMIN but runs before app containers start.
 	initContainers = append(initContainers, corev1.Container{
 		Name:  "net-guard",
-		Image: "bitnami/iptables:latest",
+		Image: "ghcr.io/paulicstudios/alpine-iptables:latest",
 		Command: []string{
 			"sh", "-c", fmt.Sprintf(`
                 set -eux;

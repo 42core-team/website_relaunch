@@ -134,7 +134,7 @@ export class MatchController {
         return this.matchService.revealMatch(matchId);
     }
 
-    @Get("match/:matchId")
+    @Get(":matchId")
     async getMatchById(
         @Param("matchId", ParseUUIDPipe) matchId: string
     ): Promise<MatchEntity> {

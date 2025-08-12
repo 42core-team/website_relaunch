@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+"use client";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
-import { useSession } from "next-auth/react";
-import {
-  getUserPendingInvites,
-  acceptTeamInvite,
-  declineTeamInvite,
-  Team,
-} from "@/app/actions/team";
+import { Team, acceptTeamInvite, declineTeamInvite } from "@/app/actions/team";
 import { isActionError } from "@/app/actions/errors";
 
-export const TeamInvitesSection = () => {
-  const [invites, setInvites] = useState<Team[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface TeamInvitesDisplayProps {
+  pendingInvites: Team[];
+}
+
+export default function TeamInvitesDisplay({
+  pendingInvites,
+}: TeamInvitesDisplayProps) {
+  const [invites, setInvites] = useState(pendingInvites);
   const [actionStates, setActionStates] = useState<
     Record<
       string,
@@ -24,34 +24,9 @@ export const TeamInvitesSection = () => {
     >
   >({});
   const eventId = useParams().id as string;
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    async function fetchInvites() {
-      try {
-        const userInvites = await getUserPendingInvites(eventId);
-        setInvites(userInvites);
-      } catch (error) {
-        console.error("Error fetching invites:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (session?.user?.id) {
-      setIsLoading(true);
-      fetchInvites();
-    } else {
-      setIsLoading(false);
-    }
-  }, [session, eventId]);
+  const router = useRouter();
 
   const handleAcceptInvite = async (teamId: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-
     setActionStates((prev) => ({
       ...prev,
       [teamId]: { ...prev[teamId], isAccepting: true, message: undefined },
@@ -71,16 +46,11 @@ export const TeamInvitesSection = () => {
       return;
     }
 
-    setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
-    window.location.reload();
+    // Use Next.js router to refresh the page
+    router.refresh();
   };
 
   const handleDeclineInvite = async (teamId: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-
     setActionStates((prev) => ({
       ...prev,
       [teamId]: { ...prev[teamId], isDeclining: true, message: undefined },
@@ -100,19 +70,6 @@ export const TeamInvitesSection = () => {
     }
     setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
   };
-
-  if (!session?.user?.id) {
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-default-50 p-6 rounded-lg border border-default-200 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Team Invitations</h2>
-        <p className="text-default-500">Loading invitations...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-default-50 p-6 rounded-lg border border-default-200 mb-6">
@@ -162,6 +119,4 @@ export const TeamInvitesSection = () => {
       )}
     </div>
   );
-};
-
-export default TeamInvitesSection;
+}

@@ -40,11 +40,11 @@ func (c *Client) CreateGameJob(game *Game) error {
 	var botContainers []corev1.Container
 
 	// Security context helpers
-	botRunAsUser := int64(2000)    // untrusted bots
-	serverRunAsUser := int64(1000) // trusted game server
+	botRunAsUser := int64(2000) // untrusted bots
+	//serverRunAsUser := int64(1000) // trusted game server
 	runAsNonRootTrue := true
-	allowPrivilegeEscalationFalse := false
 	readOnlyRootTrue := true
+	allowPrivilegeEscalationFalse := false
 	automountSATokenFalse := false
 	enableServiceLinksFalse := false
 
@@ -78,7 +78,9 @@ func (c *Client) CreateGameJob(game *Game) error {
 					echo '--- Last commit ---';
 					git --no-pager log -1 --decorate=short --pretty=fuller;
 					echo '--- Diffstat ---';
-					git --no-pager show --stat -1
+					git --no-pager show --stat -1;
+					echo '--- changing permissions ---'
+					chown -R 2000:2000 /shared-data/repo && chmod -R 770 /shared-data/repo;
 				`, bot.RepoURL),
 			},
 			VolumeMounts: []corev1.VolumeMount{
@@ -87,14 +89,13 @@ func (c *Client) CreateGameJob(game *Game) error {
 					MountPath: "/shared-data",
 				},
 			},
-			SecurityContext: &corev1.SecurityContext{
-				AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
-				ReadOnlyRootFilesystem:   &readOnlyRootTrue,
-				SeccompProfile: &corev1.SeccompProfile{
-					Type: corev1.SeccompProfileTypeRuntimeDefault,
-				},
-				Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
-			},
+			//SecurityContext: &corev1.SecurityContext{
+			//	AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
+			//	SeccompProfile: &corev1.SeccompProfile{
+			//		Type: corev1.SeccompProfileTypeRuntimeDefault,
+			//	},
+			//	Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+			//},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("100m"),
@@ -173,10 +174,9 @@ func (c *Client) CreateGameJob(game *Game) error {
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			RunAsUser:                &serverRunAsUser,
-			RunAsNonRoot:             &runAsNonRootTrue,
+			//RunAsUser: &serverRunAsUser,
+			//RunAsNonRoot:             &runAsNonRootTrue,
 			AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
-			ReadOnlyRootFilesystem:   &readOnlyRootTrue,
 			SeccompProfile: &corev1.SeccompProfile{
 				Type: corev1.SeccompProfileTypeRuntimeDefault,
 			},

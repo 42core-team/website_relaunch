@@ -60,20 +60,23 @@ func main() {
 	log.Printf(" [x] Sent %s", body)
 }
 
-func getDummyGame() kube.Game {
-	return kube.Game{
-		ID:    uuid.New(),
-		Image: "ghcr.io/42core-team/game-server:dev-1f8eb71963e6cc55aa1e6e4d4816e4ed8a220192",
-		Bots: []kube.Bot{
-			{
-				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
-				RepoURL: "https://github.com/42core-team/my-core-bot.git",
-			},
-			{
-				ID:      uuid.New(),
-				Image:   "ghcr.io/42core-team/my-core-bot:dev-34f4cb0d1854dabb3a0df34e0a02df535f5a3803",
-				RepoURL: "https://github.com/42core-team/my-core-bot.git",
+func getDummyGame() kube.GameMessage {
+	return kube.GameMessage{
+		Pattern: "new_game",
+		Data: kube.Game{
+			ID:    uuid.New(),
+			Image: "ghcr.io/42core-team/game-server:dev-046db55be141a0833096fb9d1d973d4f3dc6b375",
+			Bots: []kube.Bot{
+				{
+					ID:      uuid.New(),
+					Image:   "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
+					RepoURL: "https://github.com/42core-team/my-core-bot.git",
+				},
+				{
+					ID:      uuid.New(),
+					Image:   "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
+					RepoURL: "https://github.com/42core-team/my-core-bot.git",
+				},
 			},
 		},
 	}

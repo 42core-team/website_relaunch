@@ -11,9 +11,9 @@ import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
 export default async function MatchPage({
   params,
 }: {
-  params: Promise<{ matchId: string }>;
+  params: Promise<{ matchId: string; id: string }>;
 }) {
-  const matchId = (await params).matchId;
+  const { matchId, id } = await params;
   let matchLogs = await getLogsOfMatch(matchId);
   const match = await getMatchById(matchId);
   if (isActionError(match)) {
@@ -26,7 +26,7 @@ export default async function MatchPage({
   if (isActionError(isAdmin))
     return <div className="text-red-500">Error checking admin status</div>;
 
-  const tournamentTeamCount = await getTournamentTeamCount(matchId);
+  const tournamentTeamCount = await getTournamentTeamCount(id);
   const maxRounds = Math.ceil(tournamentTeamCount / 2);
 
   const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;

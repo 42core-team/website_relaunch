@@ -137,7 +137,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 				},
 				Limits: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("1"),
-					corev1.ResourceMemory: resource.MustParse("1Gi"),
+					corev1.ResourceMemory: resource.MustParse("512Mi"),
 				},
 			},
 		})
@@ -188,7 +188,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 				corev1.ResourceMemory: resource.MustParse("256Mi"),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("1"),
+				corev1.ResourceCPU:    resource.MustParse("2"),
 				corev1.ResourceMemory: resource.MustParse("512Mi"),
 			},
 		},
@@ -248,6 +248,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 		},
 		Spec: batchv1.JobSpec{
 			Completions:             int32Ptr(1),
+			ActiveDeadlineSeconds:   int64Ptr(60 * 15),
 			TTLSecondsAfterFinished: int32Ptr(60 * 60 * 48),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
@@ -265,6 +266,10 @@ func (c *Client) CreateGameJob(game *Game) error {
 }
 
 func int32Ptr(i int32) *int32 {
+	return &i
+}
+
+func int64Ptr(i int64) *int64 {
 	return &i
 }
 

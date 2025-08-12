@@ -121,7 +121,7 @@ export default function QueueState(props: {
                 </div>
 
                 <div className="mt-3 space-y-3">
-                  {match.teams.length == 2 && (
+                  {match.results.length == 2 && (
                     <div className="flex items-center justify-center gap-2">
                       <div
                         className={cn(
@@ -133,12 +133,14 @@ export default function QueueState(props: {
                       >
                         <div className="font-medium">
                           {match.teams[0].name}
-                          {match.winner?.name === match.teams[0].name && (
+                          {match.winner?.id === match.teams[0].id && (
                             <span className="ml-2">👑</span>
                           )}
                         </div>
                         <div className="text-xl font-bold mt-1">
-                          {match.teams[0].queueScore}
+                          {match.results.find(
+                            (result) => result.team.id === match.teams[0].id,
+                          )?.score || 0}
                         </div>
                       </div>
 
@@ -154,12 +156,14 @@ export default function QueueState(props: {
                       >
                         <div className="font-medium">
                           {match.teams[1].name}
-                          {match.winner?.name === match.teams[1].name && (
+                          {match.winner?.id === match.teams[1].id && (
                             <span className="ml-2">👑</span>
                           )}
                         </div>
                         <div className="text-xl font-bold mt-1">
-                          {match.teams[1].queueScore}
+                          {match.results.find(
+                            (result) => result.team.id === match.teams[1].id,
+                          )?.score || 0}
                         </div>
                       </div>
                     </div>

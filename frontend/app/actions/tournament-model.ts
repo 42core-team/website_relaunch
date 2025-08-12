@@ -29,6 +29,13 @@ export interface Match {
     score: number;
     queueScore: number;
   };
+  results: {
+    team: {
+      id: string;
+      name: string;
+    };
+    score: number;
+  }[];
 }
 
 export type MatchLogs = {

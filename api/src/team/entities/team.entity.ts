@@ -29,10 +29,10 @@ export class TeamEntity {
     @Column({default: 0})
     score: number;
 
-    @Column({default: 10})
+    @Column({default: 0})
     buchholzPoints: number;
 
-    @Column({default: 0})
+    @Column({default: 1000})
     queueScore: number;
 
     @Column({default: false})

@@ -463,6 +463,9 @@ export class MatchService {
                 phase: MatchPhase.SWISS
             },
             relations: {
+                results: {
+                    team: true
+                },
                 teams: true,
                 winner: true
             }
@@ -478,6 +481,7 @@ export class MatchService {
                 ...match,
                 state: MatchState.PLANNED,
                 winner: null,
+                results: []
             }
         })
     }
@@ -562,6 +566,7 @@ export class MatchService {
                 ...match,
                 state: MatchState.PLANNED,
                 winner: null,
+                results: [],
             }
         })
     }
@@ -604,12 +609,16 @@ export class MatchService {
                 id: In(matchesToQuery),
             },
             relations: {
+                results: {
+                    team: true
+                },
                 teams: true,
-                winner: true
+                winner: true,
             },
+            take: 20,
             order: {
                 createdAt: "DESC"
-            }
+            },
         })
     }
 

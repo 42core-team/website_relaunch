@@ -4,12 +4,13 @@ import {
     Entity,
     JoinColumn,
     JoinTable,
-    ManyToMany, ManyToOne,
+    ManyToMany, ManyToOne, OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
 import {TeamEntity} from "../../team/entities/team.entity";
+import {MatchTeamResultEntity} from "./match.team.result.entity";
 
 export enum MatchState {
     PLANNED = "PLANNED",
@@ -43,6 +44,9 @@ export class MatchEntity {
     @ManyToMany(() => TeamEntity, (team) => team.matches)
     @JoinTable({name: "matches_teams"})
     teams: TeamEntity[];
+
+    @OneToMany(() => MatchTeamResultEntity, (result) => result.match, {cascade: true, onUpdate: "CASCADE"})
+    results: MatchTeamResultEntity[];
 
     @Column({default: false})
     isRevealed: boolean;

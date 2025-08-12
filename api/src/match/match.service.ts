@@ -15,6 +15,8 @@ import {TeamEntity} from "../team/entities/team.entity";
 import {Cron, CronExpression} from "@nestjs/schedule";
 import {GithubApiService} from "../github-api/github-api.service";
 import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
+import {MatchTeamResultEntity} from "./entites/match.team.result.entity";
+import * as process from "node:process";
 
 @Injectable()
 export class MatchService {
@@ -29,7 +31,7 @@ export class MatchService {
         @Inject(forwardRef(() => EventService)) private readonly eventService: EventService,
         @InjectRepository(MatchEntity)
         private readonly matchRepository: Repository<MatchEntity>,
-        configService: ConfigService,
+        private readonly configService: ConfigService,
         private readonly dataSource: DataSource,
         private githubApiService: GithubApiService
     ) {
@@ -101,9 +103,16 @@ export class MatchService {
         match.winner = winner;
         match.state = MatchState.FINISHED;
 
-        if (match.phase === MatchPhase.SWISS)
+        if (match.phase === MatchPhase.SWISS) {
             await this.teamService.increaseTeamScore(winner.id, 1);
-        if (match.phase === MatchPhase.QUEUE) {
+            match.results = match.teams.map(team => {
+                return {
+                    team: {id: team} as any,
+                    score: team.id === winnerId ? team.score + 1 : team.score,
+                    match: {id: match.id} as any
+                } as MatchTeamResultEntity;
+            })
+        } else if (match.phase === MatchPhase.QUEUE) {
             const loser = match.teams.find(team => team.id !== winnerId);
             if (loser) {
                 const winnerElo = winner.queueScore;
@@ -115,6 +124,13 @@ export class MatchService {
                 const newLoserElo = Math.max(0, Math.round(loserElo + k * (0 - expectedLose)));
                 await this.teamService.setQueueScore(winner.id, newWinnerElo);
                 await this.teamService.setQueueScore(loser.id, newLoserElo);
+                match.results = match.teams.map(team => {
+                    return {
+                        team: {id: team.id} as any,
+                        score: team.id === winner.id ? newWinnerElo : newLoserElo,
+                        match: {id: match.id} as any
+                    } as MatchTeamResultEntity;
+                })
             }
         }
         await this.matchRepository.save(match);
@@ -212,9 +228,29 @@ export class MatchService {
         match.state = MatchState.IN_PROGRESS;
         await this.matchRepository.save(match);
 
+        if (this.configService.get<string>("NODE_ENV") === "development") {
+            const botIdMapping: Record<string, string> = {}
+            match.teams.forEach(team => {
+                botIdMapping[team.id] = team.id;
+            });
+
+            this.gameResultsQueue.emit("game_server", {
+                game_id: matchId,
+                team_results: match.teams.map(team => ({
+                    id: team.id,
+                    name: team.name,
+                    place: Math.random() * 10
+                })),
+                game_end_reason: 0,
+                version: "1.0.0",
+                BOT_ID_MAPPING: botIdMapping
+            })
+            return;
+        }
+
         const event = match.teams[0].event;
-        const orgName = match.teams[0].event.githubOrg;
-        const orgSecret = this.githubApiService.decryptSecret(match.teams[0].event.githubOrgSecret);
+        const orgName = event.githubOrg;
+        const orgSecret = this.githubApiService.decryptSecret(event.githubOrgSecret);
         const repoPrefix = `https://${orgName}:${orgSecret}@github.com/${orgName}/`;
 
         this.logger.log("prefix: " + repoPrefix);
@@ -235,20 +271,6 @@ export class MatchService {
                 }
             ]
         })
-
-        /*
-        this.gameResultsQueue.emit("success", {
-            team_results: match.teams.map(team => ({
-                id: team.id,
-                name: team.name,
-                place: Math.random() * 10
-            })),
-            "game_end_reason": 0,
-            "version": "1.0.0",
-            "game_id": matchId
-        })
-
-         */
     }
 
     async createMatch(teamIds: string[], round: number, phase: MatchPhase) {
@@ -454,7 +476,7 @@ export class MatchService {
                 return match;
             return {
                 ...match,
-                state: MatchState.IN_PROGRESS,
+                state: MatchState.PLANNED,
                 winner: null,
             }
         })
@@ -538,7 +560,7 @@ export class MatchService {
                 return match;
             return {
                 ...match,
-                state: MatchState.IN_PROGRESS,
+                state: MatchState.PLANNED,
                 winner: null,
             }
         })

@@ -38,6 +38,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 	var volumes []corev1.Volume
 	var initContainers []corev1.Container
 	var botContainers []corev1.Container
+	var podFailurePolicyRules []batchv1.PodFailurePolicyRule
 
 	// Security context helpers
 	botRunAsUser := int64(2000) // untrusted bots
@@ -141,6 +142,19 @@ func (c *Client) CreateGameJob(game *Game) error {
 				},
 			},
 		})
+
+		// Add PodFailurePolicy rule to ignore non-zero exit codes from this bot container
+		// so bot failures don't count against the Job (and won't fail the Job when using
+		// PodFailurePolicy semantics). We still prevent Pod failure via `|| true` above.
+		botNameCopy := containerName
+		podFailurePolicyRules = append(podFailurePolicyRules, batchv1.PodFailurePolicyRule{
+			Action: batchv1.PodFailurePolicyActionIgnore,
+			OnExitCodes: &batchv1.PodFailurePolicyOnExitCodesRequirement{
+				ContainerName: &botNameCopy,
+				Operator:      batchv1.PodFailurePolicyOnExitCodesOpNotIn,
+				Values:        []int32{0},
+			},
+		})
 	}
 
 	mainContainer := corev1.Container{
@@ -193,6 +207,19 @@ func (c *Client) CreateGameJob(game *Game) error {
 			},
 		},
 	}
+
+	// PodFailurePolicy rule to fail the Job if the main container exits non-zero
+	mainName := "game"
+	podFailurePolicyRules = append([]batchv1.PodFailurePolicyRule{
+		{
+			Action: batchv1.PodFailurePolicyActionFailJob,
+			OnExitCodes: &batchv1.PodFailurePolicyOnExitCodesRequirement{
+				ContainerName: &mainName,
+				Operator:      batchv1.PodFailurePolicyOnExitCodesOpNotIn,
+				Values:        []int32{0},
+			},
+		},
+	}, podFailurePolicyRules...)
 
 	// Final init container that installs iptables rules to restrict bot egress to loopback only.
 	// Requires NET_ADMIN but runs before app containers start.
@@ -248,8 +275,16 @@ func (c *Client) CreateGameJob(game *Game) error {
 		},
 		Spec: batchv1.JobSpec{
 			Completions:             int32Ptr(1),
+			BackoffLimit:            int32Ptr(0),
 			ActiveDeadlineSeconds:   int64Ptr(60 * 15),
 			TTLSecondsAfterFinished: int32Ptr(60 * 60 * 48),
+			PodFailurePolicy: &batchv1.PodFailurePolicy{
+				Rules: podFailurePolicyRules,
+			},
+			PodReplacementPolicy: func() *batchv1.PodReplacementPolicy {
+				v := batchv1.Failed
+				return &v
+			}(),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
 			},

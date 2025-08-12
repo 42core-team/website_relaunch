@@ -258,16 +258,16 @@ export class MatchService {
 
         this.gameQueue.emit("new_match", {
             id: matchId,
-            image: "ghcr.io/42core-team/game-server:dev-4cbc044d341b7111d9d086dcd3e16e7a378d05d0",
+            image: "ghcr.io/42core-team/game-server:dev-da12a8d1189eee30a66cd6923535d5505568a9f6",
             bots: [
                 {
                     id: match.teams[0].id,
-                    image: "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
+                    image: "ghcr.io/42core-team/my-core-bot:dev-344d5efd1c514e625e052cfae5f6918e84acb3f6",
                     repoURL: repoPrefix + match.teams[0].repo
                 },
                 {
                     id: match.teams[1].id,
-                    image: "ghcr.io/42core-team/my-core-bot:dev-5c962b75174a38451f5003f9228ce1fa565786f2",
+                    image: "ghcr.io/42core-team/my-core-bot:dev-344d5efd1c514e625e052cfae5f6918e84acb3f6",
                     repoURL: repoPrefix + match.teams[1].repo
                 }
             ]

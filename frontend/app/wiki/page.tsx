@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
+import { getDefaultWikiVersion } from "@/lib/markdown";
 
-export default function WikiRoot() {
-  redirect('/wiki/README');
+export default async function WikiRoot() {
+  const defaultVersion = await getDefaultWikiVersion();
+  redirect(`/wiki/${defaultVersion}`);
 }

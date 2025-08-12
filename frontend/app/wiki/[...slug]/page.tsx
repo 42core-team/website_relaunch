@@ -1,18 +1,21 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getWikiPageWithVersion, getWikiNavigationWithVersion, getAvailableVersions } from '@/lib/markdown';
-import { WikiLayout } from '@/components/wiki/WikiLayout';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  getWikiPageWithVersion,
+  getWikiNavigationWithVersion,
+  getAvailableVersions,
+  getDefaultWikiVersion,
+} from "@/lib/markdown";
+import { WikiLayout } from "@/components/wiki/WikiLayout";
 
 interface WikiPageProps {
-  params: Promise<{
-    slug?: string[];
-  }>;
+  params: Promise<{ slug?: string[] }>;
 }
 
 async function parseSlugForVersion(slug: string[]) {
   // Get available versions first to get the default
   const versions = await getAvailableVersions();
-  const defaultVersion = versions.find(v => v.isDefault)?.slug || 'season2-reloaded';
+  const defaultVersion = await getDefaultWikiVersion();
 
   // Check if first segment is a version
   if (slug.length === 0) {
@@ -22,33 +25,35 @@ async function parseSlugForVersion(slug: string[]) {
   const possibleVersion = slug[0];
 
   // Check if the first segment matches any available version
-  const isVersion = versions.some(v => v.slug === possibleVersion);
+  const isVersion = versions.some((v) => v.slug === possibleVersion);
 
   if (isVersion) {
     return {
       version: possibleVersion,
-      pagePath: slug.slice(1)
+      pagePath: slug.slice(1),
     };
   }
 
   return {
     version: defaultVersion,
-    pagePath: slug
+    pagePath: slug,
   };
 }
 
-export async function generateMetadata({ params }: WikiPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: WikiPageProps): Promise<Metadata> {
   const { slug = [] } = await params;
   const { version, pagePath } = await parseSlugForVersion(slug);
   const page = await getWikiPageWithVersion(pagePath, version);
 
   if (!page) {
     return {
-      title: 'Page Not Found - CORE Wiki',
+      title: "Page Not Found - CORE Wiki",
     };
   }
 
-  const versionSuffix = version !== 'latest' ? ` (${version})` : '';
+  const versionSuffix = version !== "latest" ? ` (${version})` : "";
   return {
     title: `${page.title}${versionSuffix} - CORE Wiki`,
     description: `Documentation for ${page.title}`,
@@ -66,7 +71,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
     page = await getWikiPageWithVersion(pagePath, version);
   } catch (error: any) {
     // Check if this is an image file error
-    if (error.message && error.message.includes('Cannot load image file')) {
+    if (error.message && error.message.includes("Cannot load image file")) {
       isImageError = true;
     } else {
       throw error; // Re-throw other errors
@@ -79,7 +84,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
   ]);
 
   // Get the default version for comparison
-  const defaultVersion = versions.find(v => v.isDefault)?.slug || 'season2-reloaded';
+  const defaultVersion = await getDefaultWikiVersion();
 
   // If this is an image file error, redirect to parent directory
   if (isImageError && pagePath.length > 0) {
@@ -97,9 +102,12 @@ export default async function WikiPage({ params }: WikiPageProps) {
           >
             <article className="prose prose-lg dark:prose-invert max-w-none">
               <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
-                <h3 className="text-warning-800 font-semibold mb-2">Image File Accessed</h3>
+                <h3 className="text-warning-800 font-semibold mb-2">
+                  Image File Accessed
+                </h3>
                 <p className="text-warning-700">
-                  You tried to access an image file <code>{pagePath[pagePath.length - 1]}</code> as a page.
+                  You tried to access an image file{" "}
+                  <code>{pagePath[pagePath.length - 1]}</code> as a page.
                   Showing the parent page instead.
                 </p>
               </div>
@@ -109,7 +117,9 @@ export default async function WikiPage({ params }: WikiPageProps) {
                   {parentPage.title}
                 </h1>
                 <div className="text-sm text-default-500 flex items-center gap-4">
-                  <span>Last updated: {parentPage.lastModified.toLocaleDateString()}</span>
+                  <span>
+                    Last updated: {parentPage.lastModified.toLocaleDateString()}
+                  </span>
                   {version !== defaultVersion && (
                     <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                       {version}
@@ -146,9 +156,12 @@ export default async function WikiPage({ params }: WikiPageProps) {
         >
           <article className="prose prose-lg dark:prose-invert max-w-none">
             <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
-              <h3 className="text-warning-800 font-semibold mb-2">Content Not Available</h3>
+              <h3 className="text-warning-800 font-semibold mb-2">
+                Content Not Available
+              </h3>
               <p className="text-warning-700">
-                The page <code>{pagePath.join('/')}</code> is not available in {version === defaultVersion ? 'the default version' : version}.
+                The page <code>{pagePath.join("/")}</code> is not available in{" "}
+                {version === defaultVersion ? "the default version" : version}.
                 Showing the home page for this version instead.
               </p>
             </div>
@@ -158,7 +171,9 @@ export default async function WikiPage({ params }: WikiPageProps) {
                 {homePage.title}
               </h1>
               <div className="text-sm text-default-500 flex items-center gap-4">
-                <span>Last updated: {homePage.lastModified.toLocaleDateString()}</span>
+                <span>
+                  Last updated: {homePage.lastModified.toLocaleDateString()}
+                </span>
                 {version !== defaultVersion && (
                   <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                     {version}

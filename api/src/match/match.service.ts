@@ -650,7 +650,7 @@ export class MatchService {
         return mappedLogs
     }
 
-    async getMatchById(matchId: string, relations: FindOptionsRelations<MatchEntity> = {}): Promise<MatchEntity | null> {
+    async getMatchById(matchId: string, relations: FindOptionsRelations<MatchEntity> = {}): Promise<MatchEntity> {
         return this.matchRepository.findOneOrFail({
             where: {id: matchId},
             relations

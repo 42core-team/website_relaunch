@@ -1,6 +1,7 @@
 export enum MatchPhase {
   SWISS = "SWISS",
   ELIMINATION = "ELIMINATION",
+  QUEUE = "QUEUE",
 }
 
 export enum MatchState {

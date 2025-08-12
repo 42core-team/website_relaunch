@@ -14,8 +14,8 @@ import {Ctx, EventPattern, Payload, RmqContext} from "@nestjs/microservices";
 import {EventService} from "../event/event.service";
 import {EventState} from "../event/entities/event.entity";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
-import {TeamService} from "../team/team.service";
 import {UserGuard} from "../guards/UserGuard";
+import {MatchEntity} from "./entites/match.entity";
 
 @UseGuards(FrontendGuard)
 @Controller('match')
@@ -132,5 +132,12 @@ export class MatchController {
             throw new UnauthorizedException("You are not authorized to reveal this match.");
 
         return this.matchService.revealMatch(matchId);
+    }
+
+    @Get("match/:matchId")
+    async getMatchById(
+        @Param("matchId", ParseUUIDPipe) matchId: string
+    ): Promise<MatchEntity> {
+       return await this.matchService.getMatchById(matchId);
     }
 }

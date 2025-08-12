@@ -1,4 +1,8 @@
-import { getLogsOfMatch } from "@/app/actions/tournament";
+import {
+  getLogsOfMatch,
+  getMatchById,
+  getTournamentTeamCount,
+} from "@/app/actions/tournament";
 import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
 import { isActionError } from "@/app/actions/errors";
 import { isEventAdmin } from "@/app/actions/event";
@@ -11,6 +15,10 @@ export default async function MatchPage({
 }) {
   const matchId = (await params).matchId;
   let matchLogs = await getLogsOfMatch(matchId);
+  const match = await getMatchById(matchId);
+  if (isActionError(match)) {
+    return <div className="text-red-500">Error fetching match data</div>;
+  }
 
   if (isActionError(matchLogs)) matchLogs = [];
 
@@ -18,7 +26,10 @@ export default async function MatchPage({
   if (isActionError(isAdmin))
     return <div className="text-red-500">Error checking admin status</div>;
 
-  const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json`;
+  const tournamentTeamCount = await getTournamentTeamCount(matchId);
+  const maxRounds = Math.ceil(tournamentTeamCount / 2);
+
+  const visualizerUrl = `https://dev.visualizer.coregame.de/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;
 
   return (
     <div className="space-y-8">

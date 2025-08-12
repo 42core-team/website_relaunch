@@ -17,8 +17,9 @@ export async function startTournamentMatches(eventId: string) {
 }
 
 export async function getTournamentTeamCount(eventId: string) {
-  return (await axiosInstance.get(`/match/tournament/${eventId}/teamCount`))
-    .data;
+  return (
+    await axiosInstance.get<number>(`/match/tournament/${eventId}/teamCount`)
+  ).data;
 }
 
 export async function getTournamentMatches(eventId: string) {
@@ -36,6 +37,12 @@ export async function revealMatch(
   matchId: string,
 ): Promise<ServerActionResponse<Match>> {
   return handleError(axiosInstance.put<Match>(`/match/reveal/${matchId}`));
+}
+
+export async function getMatchById(
+  matchId: string,
+): Promise<ServerActionResponse<Match>> {
+  return handleError(axiosInstance.get<Match>(`/match/${matchId}`));
 }
 
 // Functions:

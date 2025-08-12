@@ -8,6 +8,7 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,6 +38,18 @@ func (c *Client) CreateGameJob(game *Game) error {
 	var volumes []corev1.Volume
 	var initContainers []corev1.Container
 	var botContainers []corev1.Container
+
+	// Security context helpers
+	botRunAsUser := int64(2000) // untrusted bots
+	//serverRunAsUser := int64(1000) // trusted game server
+	runAsNonRootTrue := true
+	readOnlyRootTrue := true
+	allowPrivilegeEscalationFalse := false
+	automountSATokenFalse := false
+	enableServiceLinksFalse := false
+
+	volumeSizeLimit := resource.MustParse("250Mi")
+
 	for _, bot := range game.Bots {
 		volumeName := "shared-data-" + bot.ID.String()
 		initContainerName := "clone-repo-" + bot.ID.String()
@@ -45,7 +58,9 @@ func (c *Client) CreateGameJob(game *Game) error {
 		volumes = append(volumes, corev1.Volume{
 			Name: volumeName,
 			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{},
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					SizeLimit: &volumeSizeLimit,
+				},
 			},
 		})
 
@@ -63,13 +78,32 @@ func (c *Client) CreateGameJob(game *Game) error {
 					echo '--- Last commit ---';
 					git --no-pager log -1 --decorate=short --pretty=fuller;
 					echo '--- Diffstat ---';
-					git --no-pager show --stat -1
+					git --no-pager show --stat -1;
+					echo '--- changing permissions ---'
+					chown -R 2000:2000 /shared-data/repo && chmod -R 770 /shared-data/repo;
 				`, bot.RepoURL),
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      volumeName,
 					MountPath: "/shared-data",
+				},
+			},
+			//SecurityContext: &corev1.SecurityContext{
+			//	AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
+			//	SeccompProfile: &corev1.SeccompProfile{
+			//		Type: corev1.SeccompProfileTypeRuntimeDefault,
+			//	},
+			//	Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+			//},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("100m"),
+					corev1.ResourceMemory: resource.MustParse("128Mi"),
+				},
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("500m"),
+					corev1.ResourceMemory: resource.MustParse("512Mi"),
 				},
 			},
 		})
@@ -84,6 +118,26 @@ func (c *Client) CreateGameJob(game *Game) error {
 				{
 					Name:      volumeName,
 					MountPath: "/shared-data",
+				},
+			},
+			SecurityContext: &corev1.SecurityContext{
+				RunAsUser:                &botRunAsUser,
+				RunAsNonRoot:             &runAsNonRootTrue,
+				AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
+				ReadOnlyRootFilesystem:   &readOnlyRootTrue,
+				SeccompProfile: &corev1.SeccompProfile{
+					Type: corev1.SeccompProfileTypeRuntimeDefault,
+				},
+				Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+			},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("250m"),
+					corev1.ResourceMemory: resource.MustParse("256Mi"),
+				},
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("1"),
+					corev1.ResourceMemory: resource.MustParse("512Mi"),
 				},
 			},
 		})
@@ -119,13 +173,72 @@ func (c *Client) CreateGameJob(game *Game) error {
 				Value: string(botMappingJSON),
 			},
 		},
+		SecurityContext: &corev1.SecurityContext{
+			//RunAsUser: &serverRunAsUser,
+			//RunAsNonRoot:             &runAsNonRootTrue,
+			AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
+			SeccompProfile: &corev1.SeccompProfile{
+				Type: corev1.SeccompProfileTypeRuntimeDefault,
+			},
+			Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+		},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("200m"),
+				corev1.ResourceMemory: resource.MustParse("256Mi"),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("2"),
+				corev1.ResourceMemory: resource.MustParse("512Mi"),
+			},
+		},
 	}
 
+	// Final init container that installs iptables rules to restrict bot egress to loopback only.
+	// Requires NET_ADMIN but runs before app containers start.
+	initContainers = append(initContainers, corev1.Container{
+		Name:  "net-guard",
+		Image: "ghcr.io/paulicstudios/alpine-iptables:latest",
+		Command: []string{
+			"sh", "-c", fmt.Sprintf(`
+                set -eux;
+                # Block all non-loopback egress for bot UID
+                iptables -I OUTPUT 1 -m owner --uid-owner %d ! -o lo -j DROP;
+                ip6tables -I OUTPUT 1 -m owner --uid-owner %d ! -o lo -j DROP;
+            `, botRunAsUser, botRunAsUser),
+		},
+		SecurityContext: &corev1.SecurityContext{
+			RunAsUser: func(i int64) *int64 { return &i }(0),
+			Capabilities: &corev1.Capabilities{
+				Add: []corev1.Capability{"NET_ADMIN"},
+			},
+			AllowPrivilegeEscalation: &allowPrivilegeEscalationFalse,
+			SeccompProfile: &corev1.SeccompProfile{
+				Type: corev1.SeccompProfileTypeRuntimeDefault,
+			},
+		},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("10m"),
+				corev1.ResourceMemory: resource.MustParse("32Mi"),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("100m"),
+				corev1.ResourceMemory: resource.MustParse("128Mi"),
+			},
+		},
+	})
+
 	podSpec := corev1.PodSpec{
-		Volumes:        volumes,
-		InitContainers: initContainers,
-		Containers:     append([]corev1.Container{mainContainer}, botContainers...),
-		RestartPolicy:  corev1.RestartPolicyNever,
+		Volumes:                      volumes,
+		InitContainers:               initContainers,
+		Containers:                   append([]corev1.Container{mainContainer}, botContainers...),
+		RestartPolicy:                corev1.RestartPolicyNever,
+		AutomountServiceAccountToken: &automountSATokenFalse,
+		EnableServiceLinks:           &enableServiceLinksFalse,
+		HostNetwork:                  false,
+		HostPID:                      false,
+		HostIPC:                      false,
 	}
 
 	job := &batchv1.Job{
@@ -134,7 +247,9 @@ func (c *Client) CreateGameJob(game *Game) error {
 			Namespace: c.namespace,
 		},
 		Spec: batchv1.JobSpec{
-			Completions: int32Ptr(1),
+			Completions:             int32Ptr(1),
+			ActiveDeadlineSeconds:   int64Ptr(60 * 15),
+			TTLSecondsAfterFinished: int32Ptr(60 * 60 * 48),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
 			},
@@ -151,6 +266,10 @@ func (c *Client) CreateGameJob(game *Game) error {
 }
 
 func int32Ptr(i int32) *int32 {
+	return &i
+}
+
+func int64Ptr(i int64) *int64 {
 	return &i
 }
 

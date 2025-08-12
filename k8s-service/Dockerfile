@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o k8s-service ./cmd/server/main.go
 FROM alpine:latest
 
 # Add ca certificates and create non-root user
-RUN apk --no-cache add ca-certificates && \
+RUN apk add ca-certificates && \
     addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy the binary from builder stage

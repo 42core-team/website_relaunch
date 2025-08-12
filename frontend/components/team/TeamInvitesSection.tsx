@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import {
-  TeamInviteWithDetails,
   getUserPendingInvites,
   acceptTeamInvite,
   declineTeamInvite,
@@ -26,12 +25,10 @@ export const TeamInvitesSection = () => {
   >({});
   const eventId = useParams().id as string;
   const { data: session } = useSession();
-  const router = useRouter();
 
   useEffect(() => {
     async function fetchInvites() {
       try {
-        // @ts-ignore
         const userInvites = await getUserPendingInvites(eventId);
         setInvites(userInvites);
       } catch (error) {
@@ -43,9 +40,11 @@ export const TeamInvitesSection = () => {
 
     if (session?.user?.id) {
       setIsLoading(true);
-      fetchInvites().finally(() => setIsLoading(false));
+      fetchInvites();
+    } else {
+      setIsLoading(false);
     }
-  }, [session]);
+  }, [session, eventId]);
 
   const handleAcceptInvite = async (teamId: string) => {
     if (!session?.user?.id) {
@@ -102,56 +101,65 @@ export const TeamInvitesSection = () => {
     setInvites((prev) => prev.filter((invite) => invite.id !== teamId));
   };
 
-  if (isLoading) {
+  if (!session?.user?.id) {
     return null;
   }
 
-  if (invites.length === 0) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="bg-default-50 p-6 rounded-lg border border-default-200 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Team Invitations</h2>
+        <p className="text-default-500">Loading invitations...</p>
+      </div>
+    );
   }
 
   return (
     <div className="bg-default-50 p-6 rounded-lg border border-default-200 mb-6">
       <h2 className="text-xl font-semibold mb-4">Team Invitations</h2>
-      <div className="divide-y divide-default-200">
-        {invites.map((invite) => (
-          <div
-            key={invite.id}
-            className="py-3 flex items-center justify-between"
-          >
-            <div>
-              <p className="font-medium">{invite.name}</p>
-              <p className="text-sm text-default-500">Invited</p>
+      {invites.length === 0 ? (
+        <p className="text-default-500">No pending team invitations</p>
+      ) : (
+        <div className="divide-y divide-default-200">
+          {invites.map((invite) => (
+            <div
+              key={invite.id}
+              className="py-3 flex items-center justify-between"
+            >
+              <div>
+                <p className="font-medium">{invite.name}</p>
+                <p className="text-sm text-default-500">Invited</p>
+              </div>
+              <div className="flex gap-2 items-center">
+                {actionStates[invite.id]?.message && (
+                  <span className="text-danger text-sm mr-2">
+                    {actionStates[invite.id]?.message}
+                  </span>
+                )}
+                <Button
+                  color="primary"
+                  size="sm"
+                  isLoading={actionStates[invite.id]?.isAccepting}
+                  isDisabled={actionStates[invite.id]?.isDeclining}
+                  onPress={() => handleAcceptInvite(invite.id)}
+                >
+                  Accept
+                </Button>
+                <Button
+                  color="default"
+                  size="sm"
+                  variant="light"
+                  isLoading={actionStates[invite.id]?.isDeclining}
+                  isDisabled={actionStates[invite.id]?.isAccepting}
+                  onPress={() => handleDeclineInvite(invite.id)}
+                >
+                  Decline
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2 items-center">
-              {actionStates[invite.id]?.message && (
-                <span className="text-danger text-sm mr-2">
-                  {actionStates[invite.id]?.message}
-                </span>
-              )}
-              <Button
-                color="primary"
-                size="sm"
-                isLoading={actionStates[invite.id]?.isAccepting}
-                isDisabled={actionStates[invite.id]?.isDeclining}
-                onPress={() => handleAcceptInvite(invite.id)}
-              >
-                Accept
-              </Button>
-              <Button
-                color="default"
-                size="sm"
-                variant="light"
-                isLoading={actionStates[invite.id]?.isDeclining}
-                isDisabled={actionStates[invite.id]?.isAccepting}
-                onPress={() => handleDeclineInvite(invite.id)}
-              >
-                Decline
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

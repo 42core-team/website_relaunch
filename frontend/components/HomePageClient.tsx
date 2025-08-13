@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Link } from "@heroui/link";
+import Link from "next/link";
+
 import { button as buttonStyles } from "@heroui/theme";
 
 import { GithubIcon, WikiIcon } from "@/components/icons";
@@ -33,7 +34,6 @@ export default function HomePageClient() {
             Documentation
           </Link>
           <Link
-            isExternal
             className={buttonStyles({ variant: "bordered", radius: "full" })}
             href="https://github.com/42core-team/my-core-bot"
           >

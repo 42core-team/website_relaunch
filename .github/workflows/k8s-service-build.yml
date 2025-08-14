@@ -21,11 +21,6 @@ on:
         options:
           - dev
           - prod
-      image_tag:
-        description: "Docker image tag to deploy"
-        required: true
-        default: "latest"
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -77,14 +72,14 @@ jobs:
           context: ./k8s-service
           file: ./k8s-service/Dockerfile
           platforms: ${{ matrix.platform }}
-          push: ${{ github.event_name == 'push' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.compute-tag.outputs.branch_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Output image details
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "## ✅ k8s-service Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
           else
             echo "## 🔨 k8s-service Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
@@ -102,5 +97,4 @@ jobs:
     uses: ./.github/workflows/k8s-service-deploy.yml
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
-      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || needs.build.outputs.branch_tag }}
     secrets: inherit

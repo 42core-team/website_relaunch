@@ -7,10 +7,6 @@ on:
         description: "Environment to deploy to"
         required: true
         type: string
-      image_tag:
-        description: "Docker image tag to deploy"
-        required: true
-        type: string
   workflow_dispatch:
     inputs:
       environment:
@@ -21,11 +17,6 @@ on:
         options:
           - dev
           - prod
-      image_tag:
-        description: "Docker image tag to deploy"
-        required: true
-        default: "dev"
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -116,7 +107,8 @@ jobs:
         id: config
         run: |
           ENVIRONMENT="${{ inputs.environment }}"
-          IMAGE_TAG="${{ inputs.image_tag }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          IMAGE_TAG="sha-${SHORT_SHA}"
           IMAGE_REPO="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
 
           # Sanitize branch name for Kubernetes resources

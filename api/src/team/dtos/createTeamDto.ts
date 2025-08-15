@@ -5,9 +5,9 @@ export class CreateTeamDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9]([a-zA-Z0-9-_]*[a-zA-Z0-9])?$/, {
+  @Matches(/^[A-Za-z0-9_.-]{4,30}$/, {
     message:
-      "Name can only contain letters, numbers, hyphens and underscores, and cannot start or end with hyphens or underscores",
+      "Name can only contain letters, numbers, underscores, dots, and hyphens. Must be between 5 and 30 characters.",
   })
   name: string;
 }

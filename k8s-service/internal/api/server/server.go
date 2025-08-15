@@ -26,12 +26,10 @@ func NewServer(kube *kube.Client, queue *queue.Queue, logger *zap.SugaredLogger)
 }
 
 func (s *Server) Health(ctx context.Context, request api.HealthRequestObject) (api.HealthResponseObject, error) {
-	// Check if RabbitMQ connection is healthy
 	if s.queue == nil || !s.queue.ConnectionStatus() {
 		s.logger.Warn("Health check failed: RabbitMQ connection is not healthy")
-		// Since there's no 503 response defined in the API, we'll return a 200 with an error message
-		return api.Health200JSONResponse{
-			Message: stringPtr("RabbitMQ connection is not healthy"),
+		return api.Health503JSONResponse{
+			Error: stringPtr("RabbitMQ connection is not healthy"),
 		}, nil
 	}
 

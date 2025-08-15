@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wiki-redirect
+  namespace: production
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/permanent-redirect: "https://coregame.de/wiki"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - wiki.coregame.de
+      secretName: wiki-coregame-tls
+  rules:
+    - host: wiki.coregame.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dummy-service
+                port:
+                  number: 80

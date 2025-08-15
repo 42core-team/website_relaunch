@@ -258,7 +258,7 @@ export class MatchService {
 
         this.gameQueue.emit("new_match", {
             id: matchId,
-            image: "ghcr.io/42core-team/game-server:dev-da12a8d1189eee30a66cd6923535d5505568a9f6",
+            image: "ghcr.io/42core-team/game-server:dev-e4ef663bdb652610f671669b7de4e64ac8216e4e",
             bots: [
                 {
                     id: match.teams[0].id,

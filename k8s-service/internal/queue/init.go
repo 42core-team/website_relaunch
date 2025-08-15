@@ -1,17 +1,36 @@
 package queue
 
 import (
+	"sync"
+
 	"github.com/42core-team/website_relaunch/k8s-service/internal/kube"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 )
 
 type Queue struct {
-	ch    *amqp.Channel
-	gameQ *amqp.Queue
+	conn      *amqp.Connection
+	ch        *amqp.Channel
+	gameQ     *amqp.Queue
+	logger    *zap.SugaredLogger
+	mu        sync.Mutex
+	connected bool
 }
 
-func Init(url string) (*Queue, error) {
+// ConnectionStatus returns true if connected to RabbitMQ
+func (q *Queue) ConnectionStatus() bool {
+	if q.ch == nil {
+		return false
+	}
+	return !q.ch.IsClosed()
+}
+
+func Init(url string, logger *zap.SugaredLogger) (*Queue, error) {
+	queue := &Queue{
+		logger:    logger,
+		connected: false,
+	}
+
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, err
@@ -27,10 +46,14 @@ func Init(url string) (*Queue, error) {
 		0,
 		false,
 	)
-
-	queue := &Queue{
-		ch: ch,
+	if err != nil {
+		return nil, err
 	}
+
+	queue.conn = conn
+	queue.ch = ch
+	queue.connected = true
+
 	return queue, nil
 }
 
@@ -100,5 +123,26 @@ func (q *Queue) ConsumeGameQueue(logger *zap.SugaredLogger, kubeClient *kube.Cli
 			}
 		}
 	}()
+	return nil
+}
+
+// CloseConnection cleanly closes the RabbitMQ connection
+func (q *Queue) CloseConnection() error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if q.ch != nil {
+		if err := q.ch.Close(); err != nil {
+			return err
+		}
+	}
+
+	if q.conn != nil {
+		if err := q.conn.Close(); err != nil {
+			return err
+		}
+	}
+
+	q.connected = false
 	return nil
 }

@@ -75,6 +75,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MessageResponse"
+                "503":
+                    description: Service unavailable - RabbitMQ connection is not healthy
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
             parameters: []
 components:
     securitySchemes:

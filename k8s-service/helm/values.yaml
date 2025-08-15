@@ -6,7 +6,7 @@ image:
   tag: ""
 
 imagePullSecrets:
-  - name: ghcr-secret
+  - name: secret-pull-coregame
 
 nameOverride: ""
 fullnameOverride: ""

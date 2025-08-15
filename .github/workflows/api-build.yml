@@ -21,11 +21,6 @@ on:
         options:
           - dev
           - prod
-      image_tag:
-        description: "Docker image tag to deploy"
-        required: true
-        default: "latest"
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -73,7 +68,7 @@ jobs:
           context: ./api
           file: ./api/Dockerfile
           platforms: ${{ matrix.platform }}
-          push: ${{ github.event_name == 'push' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -93,7 +88,7 @@ jobs:
 
       - name: Output image details
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "## ✅ API Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
           else
             echo "## 🔨 API Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
@@ -104,7 +99,7 @@ jobs:
           echo "**Short SHA:** ${{ steps.short-sha.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ github.event_name }}" != "push" ]; then
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "ℹ️ **Note:** Image was built for testing but not pushed to registry (only pushes on direct commits to main/dev)" >> $GITHUB_STEP_SUMMARY
           fi
@@ -116,5 +111,4 @@ jobs:
     uses: ./.github/workflows/api-deploy.yml
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
-      image_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || format('sha-{0}', needs.build.outputs.short_sha) }}
     secrets: inherit

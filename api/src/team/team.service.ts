@@ -229,8 +229,11 @@ export class TeamService {
         }
 
         if (sortBy) {
-            const direction = searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-            query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
+            const direction= searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+            const validSortColumns = ['name', 'locked', 'repo', 'createdAt', 'updatedAt'];
+            if (validSortColumns.includes(sortBy)) {
+                query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
+            }
         }
 
         const result = await query.getRawAndEntities();

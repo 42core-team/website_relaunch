@@ -42,8 +42,7 @@ export default async function MatchPage({
         />
       </div>
 
-      <MatchActions matchId={matchId} />
-
+      {isAdmin && <MatchActions matchId={matchId} />}
       <MatchLogsDisplay logs={matchLogs} />
     </div>
   );

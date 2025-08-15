@@ -22,7 +22,7 @@ export default async function MatchPage({
 
   if (isActionError(matchLogs)) matchLogs = [];
 
-  const isAdmin = await isEventAdmin(matchId);
+  const isAdmin = await isEventAdmin(id);
   if (isActionError(isAdmin))
     return <div className="text-red-500">Error checking admin status</div>;
 

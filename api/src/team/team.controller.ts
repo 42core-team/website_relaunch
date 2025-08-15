@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
-import {CreateTeamDto} from "./dtos/ createTeamDto";
+import {CreateTeamDto} from "./dtos/createTeamDto";
 import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
 import {EventService} from "../event/event.service";

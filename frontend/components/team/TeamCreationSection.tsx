@@ -7,6 +7,7 @@ interface TeamCreationSectionProps {
   handleCreateTeam: () => Promise<void>;
   isLoading: boolean;
   errorMessage?: string | null;
+  validationError?: string | null;
 }
 
 export const TeamCreationSection = ({
@@ -15,6 +16,7 @@ export const TeamCreationSection = ({
   handleCreateTeam,
   isLoading,
   errorMessage,
+  validationError,
 }: TeamCreationSectionProps) => (
   <div className="bg-default-50 p-6 rounded-lg border border-default-200">
     <h2 className="text-xl font-semibold mb-4">Create Your Team</h2>
@@ -31,11 +33,14 @@ export const TeamCreationSection = ({
           color="primary"
           onPress={handleCreateTeam}
           isLoading={isLoading}
-          isDisabled={!newTeamName}
+          isDisabled={!newTeamName || !!validationError}
         >
           Create Team
         </Button>
       </div>
+      {validationError && (
+        <div className="text-danger text-sm mt-1">{validationError}</div>
+      )}
       {errorMessage && (
         <div className="text-danger text-sm mt-1">{errorMessage}</div>
       )}

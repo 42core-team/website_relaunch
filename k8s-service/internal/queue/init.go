@@ -9,14 +9,12 @@ import (
 )
 
 type Queue struct {
-	conn       *amqp.Connection
-	ch         *amqp.Channel
-	gameQ      *amqp.Queue
-	url        string
-	logger     *zap.SugaredLogger
-	mu         sync.Mutex
-	connected  bool
-	kubeClient *kube.Client
+	conn      *amqp.Connection
+	ch        *amqp.Channel
+	gameQ     *amqp.Queue
+	logger    *zap.SugaredLogger
+	mu        sync.Mutex
+	connected bool
 }
 
 // ConnectionStatus returns true if connected to RabbitMQ
@@ -24,12 +22,11 @@ func (q *Queue) ConnectionStatus() bool {
 	if q.ch == nil {
 		return false
 	}
-	return q.ch.IsClosed() == false
+	return !q.ch.IsClosed()
 }
 
 func Init(url string, logger *zap.SugaredLogger) (*Queue, error) {
 	queue := &Queue{
-		url:       url,
 		logger:    logger,
 		connected: false,
 	}
@@ -49,6 +46,9 @@ func Init(url string, logger *zap.SugaredLogger) (*Queue, error) {
 		0,
 		false,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	queue.conn = conn
 	queue.ch = ch

@@ -24,26 +24,42 @@ func main() {
 		logger.Infoln(err)
 	}
 
-	q, err := queue.Init(cfg.RabbitMQ)
+	// Initialize RabbitMQ connection with auto-reconnect capability
+	q, err := queue.Init(cfg.RabbitMQ, logger)
 	if err != nil {
-		logger.Fatalln(err)
-	}
-	err = q.DeclareQueues()
-	if err != nil {
-		logger.Fatalln(err)
-	}
-	err = q.ConsumeGameQueue(logger, kubeClient)
-	if err != nil {
-		logger.Fatalln(err)
+		logger.Fatalln("Failed to connect to RabbitMQ:", err)
 	}
 
-	apiServer := server.NewServer(kubeClient, logger)
+	// Declare queues
+	err = q.DeclareQueues()
+	if err != nil {
+		logger.Fatalln("Failed to declare RabbitMQ queues:", err)
+	}
+
+	// Start consuming messages
+	err = q.ConsumeGameQueue(logger, kubeClient)
+	if err != nil {
+		logger.Fatalln("Failed to start consuming from queue:", err)
+	}
+
+	// Log connection status
+	logger.Infof("RabbitMQ connection established: %v", q.ConnectionStatus())
+
+	// Pass queue object to server for health checks
+	apiServer := server.NewServer(kubeClient, q, logger)
 
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	api.RegisterHandlers(e, api.NewStrictHandler(apiServer, nil))
+
+	// Ensure clean shutdown of RabbitMQ connection
+	defer func() {
+		if err := q.CloseConnection(); err != nil {
+			logger.Errorln("Error closing RabbitMQ connection:", err)
+		}
+	}()
 
 	logger.Fatal(e.Start(cfg.Addr))
 }

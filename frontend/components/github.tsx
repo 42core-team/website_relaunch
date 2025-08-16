@@ -5,10 +5,9 @@ import { signIn } from "next-auth/react";
 export default function GithubLoginButton() {
   async function githubLogin() {
     try {
-      const response = await signIn("github");
-      console.log(response);
+      await signIn("github");
     } catch (error) {
-      console.log("error while logging in");
+      console.log("error while logging in:", error);
     }
   }
 

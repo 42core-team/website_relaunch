@@ -136,7 +136,6 @@ export class EventController {
         @UserId() userId: string,
         @Body() body: SetLockTeamsDateDto
     ) {
-        console.log(body.repoLockDate)
         if (!await this.eventService.isEventAdmin(eventId, userId))
             throw new UnauthorizedException("You are not authorized to lock teams for this event.");
 

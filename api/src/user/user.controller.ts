@@ -27,7 +27,6 @@ export class UserController {
       user.profilePicture,
       user.githubId,
       user.githubAccessToken,
-      user.canCreateEvent,
     );
   }
 
@@ -44,7 +43,6 @@ export class UserController {
       user.profilePicture,
       user.githubId,
       user.githubAccessToken,
-      user.canCreateEvent,
     );
   }
 

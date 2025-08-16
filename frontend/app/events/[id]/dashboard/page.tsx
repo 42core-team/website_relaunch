@@ -43,10 +43,7 @@ export default function DashboardPage() {
         const eventData = await getEventById(eventId);
         const teams = await getTeamsCountForEvent(eventId);
         const participants = await getParticipantsCountForEvent(eventId);
-
         const adminCheck = await isEventAdmin(eventId);
-
-        console.log("try to load");
 
         if (isActionError(adminCheck) || isActionError(eventData)) {
           setIsAdmin(false);

@@ -81,11 +81,6 @@ export default function GraphView({ matches }: { matches: Match[] }) {
           (COLUMN_WIDTH - MATCH_WIDTH - PADDING * 2) / 2;
         const yPos = (matchIndex + 1) * ROW_HEIGHT + PADDING + 20; // +60 for header space
 
-        console.log("Creating node for match:", match.id, "at position:", {
-          x: xPos,
-          y: yPos,
-        });
-
         newNodes.push({
           id: match.id,
           type: "matchNode",
@@ -106,23 +101,11 @@ export default function GraphView({ matches }: { matches: Match[] }) {
     setNodes(newNodes);
   }, [matches]);
 
-  const handleNodeClick: NodeMouseHandler = useCallback(
-    (event, node) => {
-      const match = matches.find((m) => m.id === node.id);
-      if (match) {
-        console.log("Match clicked:", match);
-        // Add any additional match interaction logic here
-      }
-    },
-    [matches],
-  );
-
   return (
     <div className="w-full h-[80vh]">
       <ReactFlow
         nodes={nodes}
         onNodesChange={onNodesChange}
-        onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}

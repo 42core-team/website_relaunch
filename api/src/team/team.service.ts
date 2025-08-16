@@ -236,6 +236,9 @@ export class TeamService {
             if (validSortColumns.includes(sortBy)) {
                 query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
             }
+            if(sortBy === "membersCount") {
+                query.orderBy('COUNT(user.id)', direction as 'ASC' | 'DESC');
+            }
         }
 
         const result = await query.getRawAndEntities();

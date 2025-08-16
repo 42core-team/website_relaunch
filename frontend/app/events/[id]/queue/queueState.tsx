@@ -122,20 +122,20 @@ export default function QueueState(props: {
                       <div
                         className={cn(
                           "flex-1 text-center py-2 px-3 rounded-md",
-                          match.winner?.name === match.teams[0].name
+                          match.winner?.name === match.teams[0]?.name
                             ? "bg-success-50 border border-success-200"
                             : "",
                         )}
                       >
                         <div className="font-medium">
-                          {match.teams[0].name}
-                          {match.winner?.id === match.teams[0].id && (
+                          {match.teams[0]?.name || "Unknown Team"}
+                          {match.winner?.id === match.teams[0]?.id && (
                             <span className="ml-2">👑</span>
                           )}
                         </div>
                         <div className="text-xl font-bold mt-1">
                           {match.results.find(
-                            (result) => result.team.id === match.teams[0].id,
+                            (result) => result.team.id === match.teams[0]?.id,
                           )?.score || 0}
                         </div>
                       </div>
@@ -145,20 +145,20 @@ export default function QueueState(props: {
                       <div
                         className={cn(
                           "flex-1 text-center py-2 px-3 rounded-md",
-                          match.winner?.name === match.teams[1].name
+                          match.winner?.name === match.teams[1]?.name
                             ? "bg-success-50 border border-success-200"
                             : "",
                         )}
                       >
                         <div className="font-medium">
-                          {match.teams[1].name}
-                          {match.winner?.id === match.teams[1].id && (
+                          {match.teams[1]?.name || "Unknown Team"}
+                          {match.winner?.id === match.teams[1]?.id && (
                             <span className="ml-2">👑</span>
                           )}
                         </div>
                         <div className="text-xl font-bold mt-1">
                           {match.results.find(
-                            (result) => result.team.id === match.teams[1].id,
+                            (result) => result.team?.id === match.teams[1]?.id,
                           )?.score || 0}
                         </div>
                       </div>

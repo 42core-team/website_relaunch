@@ -208,7 +208,10 @@ export default function DashboardPage() {
 
               <Button
                 onPress={() =>
-                  setEventTeamsLockDate(eventId, teamAutoLockTime).then(() => {
+                  setEventTeamsLockDate(
+                    eventId,
+                    new Date(teamAutoLockTime).getTime(),
+                  ).then(() => {
                     alert("set team auto lock date");
                   })
                 }

@@ -220,6 +220,7 @@ export class TeamService {
                 'team.name',
                 'team.locked',
                 'team.repo',
+                'team.queueScore',
                 'team.createdAt',
                 'team.updatedAt',
             ])
@@ -232,7 +233,7 @@ export class TeamService {
 
         if (sortBy) {
             const direction= searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-            const validSortColumns = ['name', 'locked', 'repo', 'createdAt', 'updatedAt'];
+            const validSortColumns = ['name', 'locked', 'repo', 'queueScore', 'createdAt', 'updatedAt'];
             if (validSortColumns.includes(sortBy)) {
                 query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
             }

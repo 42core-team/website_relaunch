@@ -20,11 +20,20 @@ export default async function TeamsPage({
   // Get filter/sort from query params
   const filterValue =
     typeof searchParamsObj?.q === "string" ? searchParamsObj.q : "";
-  const allowedSortColumns = ["name", "createdAt", "membersCount"] as const;
+  const allowedSortColumns = [
+    "name",
+    "createdAt",
+    "membersCount",
+    "queueScore",
+  ] as const;
   const sortColumn =
     typeof searchParamsObj?.sort === "string" &&
     allowedSortColumns.includes(searchParamsObj.sort as any)
-      ? (searchParamsObj.sort as "name" | "createdAt" | "membersCount")
+      ? (searchParamsObj.sort as
+          | "name"
+          | "createdAt"
+          | "membersCount"
+          | "queueScore")
       : "name";
   // Map "ascending"/"descending" to "asc"/"desc"
   let sortDirection: "asc" | "desc" | undefined;

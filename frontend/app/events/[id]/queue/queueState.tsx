@@ -145,7 +145,7 @@ export default function QueueState(props: {
                       <div
                         className={cn(
                           "flex-1 text-center py-2 px-3 rounded-md",
-                          match.winner?.name === match.teams[1].name
+                          match.winner?.name === match.teams[1]?.name
                             ? "bg-success-50 border border-success-200"
                             : "",
                         )}
@@ -158,7 +158,7 @@ export default function QueueState(props: {
                         </div>
                         <div className="text-xl font-bold mt-1">
                           {match.results.find(
-                            (result) => result.team.id === match.teams[1]?.id,
+                            (result) => result.team?.id === match.teams[1]?.id,
                           )?.score || 0}
                         </div>
                       </div>

@@ -42,8 +42,6 @@ const BasicNavbar = React.forwardRef<
   const { setIsBasicNavbarMenuOpen } = useNavbar();
   const router = useRouter();
 
-  console.log(props.session);
-
   React.useEffect(() => {
     setClickedItem(null);
   }, [pathname]);

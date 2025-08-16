@@ -115,7 +115,8 @@ export class TeamService {
                 team.event.githubOrg,
                 team.event.githubOrgSecret
             );
-        return this.teamRepository.delete(teamId);
+
+        return this.teamRepository.softDelete(teamId);
     }
 
     async leaveTeam(teamId: string, userId: string) {
@@ -213,11 +214,13 @@ export class TeamService {
             .innerJoin('team.event', 'event')
             .leftJoin('team.users', 'user')
             .where('event.id = :eventId', {eventId})
+            .andWhere('team.deletedAt IS NULL')
             .select([
                 'team.id',
                 'team.name',
                 'team.locked',
                 'team.repo',
+                'team.queueScore',
                 'team.createdAt',
                 'team.updatedAt',
             ])
@@ -230,9 +233,12 @@ export class TeamService {
 
         if (sortBy) {
             const direction= searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-            const validSortColumns = ['name', 'locked', 'repo', 'createdAt', 'updatedAt'];
+            const validSortColumns = ['name', 'locked', 'repo', 'queueScore', 'createdAt', 'updatedAt'];
             if (validSortColumns.includes(sortBy)) {
                 query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
+            }
+            if(sortBy === "membersCount") {
+                query.orderBy('COUNT(user.id)', direction as 'ASC' | 'DESC');
             }
         }
 

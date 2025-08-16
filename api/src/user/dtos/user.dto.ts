@@ -36,9 +36,4 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   githubAccessToken: string;
-
-  @ApiProperty()
-  @IsBoolean()
-  @IsOptional()
-  canCreateEvent?: boolean;
 }

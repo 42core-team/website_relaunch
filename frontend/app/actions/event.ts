@@ -110,7 +110,7 @@ export async function canUserCreateEvent(): Promise<boolean> {
 
 export async function setEventTeamsLockDate(
   eventId: string,
-  lockDate: string | null,
+  lockDate: number | null,
 ): Promise<ServerActionResponse<Event>> {
   return await handleError(
     axiosInstance.put<Event>(`event/${eventId}/lockTeamsDate`, {

@@ -15,6 +15,7 @@ import TeamInviteModal from "./TeamInviteModal";
 import { useState, useEffect } from "react";
 import { getEventById } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
+import Link from "next/link";
 
 interface TeamInfoSectionProps {
   myTeam: Team;
@@ -130,13 +131,17 @@ export const TeamInfoSection = ({
           {teamMembers.length > 0 ? (
             teamMembers.map((member) => (
               <div key={member.id} className="flex flex-col items-center">
-                <Avatar
-                  size="lg"
-                  src={member.profilePicture}
-                  name={(member.name || "User").substring(0, 2).toUpperCase()}
-                  className="mb-2"
-                />
-                <span className="text-sm font-medium">@{member.username}</span>
+                <Link href={`https://github.com/${member.username}`}>
+                  <Avatar
+                    size="lg"
+                    src={member.profilePicture}
+                    name={(member.name || "User").substring(0, 2).toUpperCase()}
+                    className="mb-2"
+                  />
+                  <span className="text-sm font-medium">
+                    @{member.username}
+                  </span>
+                </Link>
               </div>
             ))
           ) : (

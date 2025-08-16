@@ -35,7 +35,6 @@ export const authOptions: NextAuthOptions = {
               profilePicture: user.image! || githubProfile?.avatar_url!,
               githubId: account.providerAccountId,
               githubAccessToken: account.access_token,
-              canCreateEvent: false,
             });
           } else {
             await axiosInstance.put(`user/${existingUser.id}`, {
@@ -46,7 +45,6 @@ export const authOptions: NextAuthOptions = {
                 githubProfile?.avatar_url || existingUser.profilePicture,
               githubId: account.providerAccountId,
               githubAccessToken: account.access_token,
-              canCreateEvent: existingUser.canCreateEvent,
             });
           }
         } catch (e: any) {

@@ -74,8 +74,6 @@ func (c *Client) CreateGameJob(game *Game) error {
 					echo '--- Cloning repository (verbose, progress) ---';
 					GIT_TERMINAL_PROMPT=0 git clone --single-branch --depth 1 --verbose --progress %s /shared-data/repo;
 					cd /shared-data/repo;
-					echo '--- Remote details ---';
-					git remote -v;
 					echo '--- Last commit ---';
 					git --no-pager log -1 --decorate=short --pretty=fuller;
 					echo '--- Diffstat ---';

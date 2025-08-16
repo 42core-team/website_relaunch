@@ -50,6 +50,9 @@ export default function TeamsTable({
         <TableColumn key="membersCount" allowsSorting>
           Members
         </TableColumn>
+        <TableColumn key="queueScore" allowsSorting>
+          Queue Score
+        </TableColumn>
         <TableColumn key="createdAt" allowsSorting>
           Created
         </TableColumn>
@@ -63,6 +66,7 @@ export default function TeamsTable({
           >
             <TableCell>{team.name}</TableCell>
             <TableCell>{team.membersCount}</TableCell>
+            <TableCell>{team.queueScore || 0}</TableCell>
             <TableCell>
               {team.createdAt
                 ? new Date(team.createdAt).toLocaleDateString()

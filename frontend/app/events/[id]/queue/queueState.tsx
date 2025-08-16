@@ -30,10 +30,6 @@ export default function QueueState(props: {
         newQueueState.match?.state !== MatchState.IN_PROGRESS
       ) {
         if (newQueueState.match) {
-          console.log(
-            "Match has ended, resetting queue state.",
-            newQueueState.match,
-          );
           router.push(`/events/${eventId}/match/${newQueueState?.match?.id}`);
         }
       }

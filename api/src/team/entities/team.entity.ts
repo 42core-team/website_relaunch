@@ -1,6 +1,6 @@
 import {
     Column,
-    CreateDateColumn,
+    CreateDateColumn, DeleteDateColumn,
     Entity,
     JoinTable,
     ManyToMany,
@@ -60,4 +60,7 @@ export class TeamEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt: Date | null;
 }

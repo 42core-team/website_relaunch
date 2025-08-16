@@ -235,7 +235,12 @@ export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
 export async function getTeamsForEventTable(
   eventId: string,
   searchTeamName: string | undefined = undefined,
-  sortColumn: "name" | "createdAt" | "membersCount" | undefined = "name",
+  sortColumn:
+    | "name"
+    | "createdAt"
+    | "membersCount"
+    | "queueScore"
+    | undefined = "name",
   sortDirection: "asc" | "desc" = "asc",
 ) {
   const teams = (
@@ -253,6 +258,7 @@ export async function getTeamsForEventTable(
     name: team.name,
     repo: team.repo || "",
     membersCount: team.userCount,
+    queueScore: team.queueScore || 0,
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,
   }));

@@ -10,6 +10,7 @@ import {
   TableCell,
   Avatar,
 } from "@heroui/react";
+import Link from "next/link";
 
 export default function TeamUserTable({ members }: { members: TeamMember[] }) {
   return (
@@ -22,14 +23,17 @@ export default function TeamUserTable({ members }: { members: TeamMember[] }) {
         {(member) => (
           <TableRow key={member.id}>
             <TableCell>
-              <div className="flex items-center gap-3">
+              <Link
+                href={`https://github.com/${member.username}`}
+                className="flex items-center gap-3"
+              >
                 <Avatar
                   src={member.profilePicture}
                   name={member.name}
                   size="sm"
                 />
                 <span>{member.name}</span>
-              </div>
+              </Link>
             </TableCell>
             <TableCell>@{member.username}</TableCell>
           </TableRow>

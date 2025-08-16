@@ -21,14 +21,10 @@ COPY . .
 ARG NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
 ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=$NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
 
-# Persist Server Actions encryption key across builds to avoid
-# "Failed to find Server Action" between rollouts
-# https://nextjs.org/docs/messages/failed-to-find-server-action
-ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
-ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
-
 RUN apk add --no-cache git openssh
-RUN pnpm build
+RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
+    export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY)" && \
+    pnpm build
 
 # Production image
 FROM base AS runner

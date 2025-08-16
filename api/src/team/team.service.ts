@@ -115,7 +115,8 @@ export class TeamService {
                 team.event.githubOrg,
                 team.event.githubOrgSecret
             );
-        return this.teamRepository.delete(teamId);
+
+        return this.teamRepository.softDelete(teamId);
     }
 
     async leaveTeam(teamId: string, userId: string) {
@@ -213,6 +214,7 @@ export class TeamService {
             .innerJoin('team.event', 'event')
             .leftJoin('team.users', 'user')
             .where('event.id = :eventId', {eventId})
+            .andWhere('team.deletedAt IS NULL')
             .select([
                 'team.id',
                 'team.name',

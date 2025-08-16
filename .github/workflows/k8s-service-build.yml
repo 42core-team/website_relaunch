@@ -11,6 +11,7 @@ on:
     paths:
       - "k8s-service/**"
       - ".github/workflows/k8s-service-build.yml"
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       environment:
@@ -28,6 +29,12 @@ env:
 
 jobs:
   build:
+    # Only run on pull requests that are cross-branch or on direct pushes
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && 
+       github.event.pull_request.base.ref != github.event.pull_request.head.ref)
     runs-on: ubuntu-24.04
     strategy:
       matrix:

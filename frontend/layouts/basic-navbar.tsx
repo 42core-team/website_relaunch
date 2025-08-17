@@ -44,9 +44,6 @@ const BasicNavbar = React.forwardRef<
   React.useEffect(() => {
     setClickedItem(null);
   }, [pathname]);
-  React.useCallback((path: string) => {
-    setClickedItem(path);
-  }, []);
 
   const isActive = React.useCallback(
     (path: string) => {
@@ -85,7 +82,12 @@ const BasicNavbar = React.forwardRef<
     >
       {/* Left Content */}
       <NavbarBrand>
-        <Link className="flex items-center" href="/">
+        <Link
+          className="flex items-center"
+          href="/"
+          onPointerDown={() => setClickedItem("/")}
+          onClick={() => setClickedItem("/")}
+        >
           <img src="/logo-white.svg" alt="CORE" className="w-10 h-10" />
           <span className="ml-1 text-small font-medium text-default-foreground">
             CORE
@@ -101,6 +103,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/"),
             })}
             href="/"
+            onPointerDown={() => setClickedItem("/")}
+            onClick={() => setClickedItem("/")}
           >
             Home
           </Link>
@@ -111,6 +115,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/events"),
             })}
             href="/events"
+            onPointerDown={() => setClickedItem("/events")}
+            onClick={() => setClickedItem("/events")}
           >
             Events
           </Link>
@@ -121,6 +127,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/wiki"),
             })}
             href="/wiki"
+            onPointerDown={() => setClickedItem("/wiki")}
+            onClick={() => setClickedItem("/wiki")}
           >
             Wiki
           </Link>
@@ -131,6 +139,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/about"),
             })}
             href="/about"
+            onPointerDown={() => setClickedItem("/about")}
+            onClick={() => setClickedItem("/about")}
           >
             About Us
           </Link>
@@ -208,6 +218,8 @@ const BasicNavbar = React.forwardRef<
             as={Link}
             className="bg-foreground text-background"
             href="/#"
+            onPressStart={() => setClickedItem("/#")}
+            onPress={() => setClickedItem("/#")}
           >
             Get Started
           </Button>
@@ -218,6 +230,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/"),
             })}
             href="/"
+            onPointerDown={() => setClickedItem("/")}
+            onClick={() => setClickedItem("/")}
           >
             Home
           </Link>
@@ -228,6 +242,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/events"),
             })}
             href="/events"
+            onPointerDown={() => setClickedItem("/events")}
+            onClick={() => setClickedItem("/events")}
           >
             Events
           </Link>
@@ -238,6 +254,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/wiki"),
             })}
             href="/wiki"
+            onPointerDown={() => setClickedItem("/wiki")}
+            onClick={() => setClickedItem("/wiki")}
           >
             Wiki
           </Link>
@@ -248,6 +266,8 @@ const BasicNavbar = React.forwardRef<
               "font-bold text-default-foreground": isActive("/about"),
             })}
             href="/about"
+            onPointerDown={() => setClickedItem("/about")}
+            onClick={() => setClickedItem("/about")}
           >
             About us
           </Link>

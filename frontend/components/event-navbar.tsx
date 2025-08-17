@@ -51,7 +51,7 @@ export default function EventNavbar({
           { name: "Dashboard", path: `/events/${eventId}/dashboard` },
         ]
       : baseItems;
-  }, [eventId, isUserRegistered, isEventAdmin]);
+  }, [eventId, isUserRegistered, isEventAdmin, event.state]);
 
   return (
     <div className="w-full border-t border-divider">
@@ -60,9 +60,8 @@ export default function EventNavbar({
           <Link
             key={item.path}
             href={item.path}
-            aria-current={
-              (activeTab || pathname) === item.path ? "page" : undefined
-            }
+            onPointerDown={() => setActiveTab(item.path)}
+            onClick={() => setActiveTab(item.path)}
             className={`text-base hover:text-primary transition-colors ${
               (activeTab || pathname) === item.path
                 ? "text-primary font-medium border-b-2 border-primary pb-1"

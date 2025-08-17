@@ -13,7 +13,6 @@ import {
   NavbarMenuToggle,
   Button,
   cn,
-  Avatar,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,

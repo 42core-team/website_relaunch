@@ -135,7 +135,7 @@ export default function QueueState(props: {
                         </div>
                         <div className="text-xl font-bold mt-1">
                           {match.results.find(
-                            (result) => result.team.id === match.teams[0]?.id,
+                            (result) => result.team?.id === match.teams[0]?.id,
                           )?.score || 0}
                         </div>
                       </div>

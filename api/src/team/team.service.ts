@@ -83,7 +83,7 @@ export class TeamService {
 
         const repoName = event.name + '-' + name + '-' + team.id;
         try {
-            await this.githubApiService.createTeamRepository(
+            const createdRepo = await this.githubApiService.createTeamRepository(
                 repoName,
                 user.username,
                 user.githubAccessToken,
@@ -93,7 +93,7 @@ export class TeamService {
                 event.repoTemplateName
             );
 
-            team.repo = repoName;
+            team.repo = createdRepo.name;
             await this.teamRepository.save(team);
         } catch (e) {
             this.logger.error(`Failed to create repository for team ${team.id}`, e);

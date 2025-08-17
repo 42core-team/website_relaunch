@@ -13,7 +13,6 @@ import {
   NavbarMenuToggle,
   Button,
   cn,
-  Avatar,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -45,8 +44,7 @@ const BasicNavbar = React.forwardRef<
   React.useEffect(() => {
     setClickedItem(null);
   }, [pathname]);
-
-  const handleNavClick = React.useCallback((path: string) => {
+  React.useCallback((path: string) => {
     setClickedItem(path);
   }, []);
 

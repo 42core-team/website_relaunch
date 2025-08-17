@@ -118,5 +118,7 @@ export class GithubApiService {
       repo.name,
       userGithubAccessToken,
     );
+
+    return repo;
   }
 }

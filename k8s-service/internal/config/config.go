@@ -13,7 +13,7 @@ type Config struct {
 	KubePath      *string `env:"KUBE_PATH"`
 	Namespace     string  `env:"NAMESPACE, default=coregame"`
 	RabbitMQ      string  `env:"RABBITMQ, default=amqp://guest:guest@localhost:5672/"`
-	RabbitMQHTTP  string  `env:"RABBITMQ_HTTP, default=http://localhost:15672"`
+	RabbitMQHTTP  string  `env:"RABBITMQ_HTTP, default=http://guest:guest@host.docker.internal:15672"`
 	S3Endpoint    string  `env:"S3_ENDPOINT, required"`
 	S3Region      string  `env:"S3_REGION, default=eu"`
 	S3Bucket      string  `env:"S3_BUCKET, required"`

@@ -2,7 +2,8 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { title } from "@/components/primitives";
-import { CoreLogoWhite } from "../../components/social";
+import { CoreLogoWhite } from "@/components/social";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -102,12 +103,12 @@ export default function AboutPage() {
             Ready to start your journey with CORE?
           </p>
           <div className="mt-4">
-            <a
-              href="https://wiki.coregame.de"
+            <Link
+              href="https://coregame.de/wiki"
               className="inline-block px-6 py-3 rounded-full bg-primary text-background font-medium hover:bg-primary-500 transition-colors"
             >
               Get Started Today
-            </a>
+            </Link>
           </div>
         </motion.div>
       </section>

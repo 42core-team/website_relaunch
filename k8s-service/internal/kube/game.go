@@ -248,7 +248,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 			Completions:             int32Ptr(1),
 			BackoffLimit:            int32Ptr(0),
 			ActiveDeadlineSeconds:   int64Ptr(60 * 15),
-			TTLSecondsAfterFinished: int32Ptr(60 * 60 * 48),
+			TTLSecondsAfterFinished: int32Ptr(60 * 60 * 6),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
 			},

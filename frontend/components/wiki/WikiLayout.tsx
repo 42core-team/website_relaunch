@@ -48,7 +48,7 @@ export function WikiLayout({
       {/* Mobile Navigation Overlay */}
       {isMobileNavOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-50 lg:hidden"
           onClick={() => setIsMobileNavOpen(false)}
         />
       )}
@@ -76,7 +76,7 @@ export function WikiLayout({
       <div className="flex-1 min-w-0 lg:ml-0">
         {/* Header with Search and Version Selector */}
         <header
-          className={`border-b border-divider bg-content1 p-4 shadow-sm sticky top-[60px] z-40 transition-opacity duration-300 ${isBasicNavbarMenuOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
+          className={`border-b border-divider bg-content1 p-4 shadow-xs sticky top-[60px] z-40 transition-opacity duration-300 ${isBasicNavbarMenuOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
         >
           <div className="flex items-center justify-between gap-4">
             {/* Mobile Menu Button */}

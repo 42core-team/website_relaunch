@@ -125,7 +125,7 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0 }}
@@ -142,7 +142,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -159,7 +159,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -176,7 +176,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -193,7 +193,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -210,7 +210,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
@@ -227,7 +227,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
@@ -244,7 +244,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -261,7 +261,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.7 }}
@@ -278,7 +278,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.9 }}
@@ -295,7 +295,7 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-sm w-full max-w-sm mx-auto"
+              className="flex flex-col items-center p-6 rounded-lg border border-default-200 shadow-xs w-full max-w-sm mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1 }}

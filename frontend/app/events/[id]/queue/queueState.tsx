@@ -96,7 +96,7 @@ export default function QueueState(props: {
             {props.queueMatches.map((match) => (
               <div
                 key={match.id}
-                className="rounded-lg border border-default-200 p-4 shadow-sm"
+                className="rounded-lg border border-default-200 p-4 shadow-xs"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-default-500">

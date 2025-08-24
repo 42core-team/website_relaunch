@@ -70,6 +70,22 @@ jobs:
             type=ref,event=pr,prefix=pr-
             type=sha,format=short
 
+      - name: Compute Buildx cache config
+        id: cachecfg
+        run: |
+          FROM="type=gha,scope=api-${{ github.ref_name }}\n type=gha,scope=api-main"
+          TO="type=gha,mode=max,scope=api-${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            FROM="$FROM\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache"
+            TO="$TO\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max,oci-mediatypes=true"
+          fi
+          echo "from<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FROM" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "to<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$TO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -79,8 +95,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: ${{ steps.cachecfg.outputs.from }}
+          cache-to: ${{ steps.cachecfg.outputs.to }}
 
       - name: Extract short SHA for deployment
         id: short-sha

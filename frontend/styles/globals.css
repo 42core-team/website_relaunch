@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../tailwind.config.mjs";
+@import "tailwindcss";
 
 @font-face {
   font-family: "Original";
@@ -146,7 +145,7 @@ h3[id]::before,
 h4[id]::before,
 h5[id]::before,
 h6[id]::before {
-  content: '';
+  content: "";
   display: block;
   height: 80px;
   margin-top: -80px;
@@ -178,7 +177,8 @@ h6[id]::before {
   @apply mb-4 leading-relaxed text-default-700;
 }
 
-.wiki-content ul, .wiki-content ol {
+.wiki-content ul,
+.wiki-content ol {
   @apply mb-4 ml-6;
 }
 
@@ -228,7 +228,7 @@ h6[id]::before {
 }
 
 .wiki-content img {
-  @apply max-w-full h-auto rounded-lg shadow-md;
+  @apply max-w-full h-auto rounded-lg shadow-sm;
 }
 
 .wiki-content hr {
@@ -259,7 +259,7 @@ h6[id]::before {
 .wiki-content h4 .heading-anchor::before,
 .wiki-content h5 .heading-anchor::before,
 .wiki-content h6 .heading-anchor::before {
-  content: '#';
+  content: "#";
   @apply absolute -left-6 text-default-400 opacity-0 transition-opacity;
 }
 

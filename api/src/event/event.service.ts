@@ -80,7 +80,6 @@ export class EventService {
         endDate: number,
         minTeamSize: number,
         maxTeamSize: number,
-        treeFormat?: number,
         repoTemplateOwner?: string,
         repoTemplateName?: string
     ) {
@@ -96,7 +95,6 @@ export class EventService {
             location,
             minTeamSize,
             maxTeamSize,
-            treeFormat: treeFormat ?? 16,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
             permissions: [

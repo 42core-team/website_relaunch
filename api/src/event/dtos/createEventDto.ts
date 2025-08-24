@@ -54,11 +54,6 @@ export class CreateEventDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  treeFormat?: number;
-
-  @ApiProperty()
-  @IsOptional()
   @IsString()
   repoTemplateOwner?: string;
 

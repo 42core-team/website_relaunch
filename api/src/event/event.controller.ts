@@ -60,7 +60,6 @@ export class EventController {
             createEventDto.endDate,
             createEventDto.minTeamSize,
             createEventDto.maxTeamSize,
-            createEventDto.treeFormat,
             createEventDto.repoTemplateOwner,
             createEventDto.repoTemplateName,
         );

@@ -7,7 +7,6 @@ import {
   Input,
   Textarea,
   Card,
-  Chip,
   Tooltip, // Added Tooltip
 } from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
@@ -132,68 +131,74 @@ export default function CreateEventForm() {
   };
 
   return (
-    <Card className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="p-3 bg-red-100 text-red-800 rounded-md">
-            {error}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="p-3 bg-red-100 text-red-800 rounded-md mb-6">
+          {error}
+        </div>
+      )}
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Event Details</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Event Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value.trim())}
+              required
+              placeholder="Enter event name"
+            />
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Event Name</label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value.trim())}
-            required
-            placeholder="Enter event name"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Description
-          </label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value.trim())}
-            placeholder="Enter event description"
-            minRows={3}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <Input
-            value={location}
-            onChange={(e) => setLocation(e.target.value.trim())}
-            placeholder="Enter event location"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">
-              Start Date
+              Description
             </label>
-            <Input
-              type="datetime-local"
-              onChange={(e) =>
-                setStartDate(new Date(e.target.value).getTime())
-              }
-              required
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value.trim())}
+              placeholder="Enter event description"
+              minRows={3}
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-1">End Date</label>
+            <label className="block text-sm font-medium mb-1">Location</label>
             <Input
-              type="datetime-local"
-              onChange={(e) => setEndDate(new Date(e.target.value).getTime())}
-              required
+              value={location}
+              onChange={(e) => setLocation(e.target.value.trim())}
+              placeholder="Enter event location"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Start Date
+              </label>
+              <Input
+                type="datetime-local"
+                onChange={(e) =>
+                  setStartDate(new Date(e.target.value).getTime())
+                }
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">End Date</label>
+              <Input
+                type="datetime-local"
+                onChange={(e) => setEndDate(new Date(e.target.value).getTime())}
+                required
+              />
+            </div>
           </div>
         </div>
+      </Card>
 
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Team Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -222,104 +227,109 @@ export default function CreateEventForm() {
             />
           </div>
         </div>
+      </Card>
 
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">GitHub Integration</h2>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium">
-              GitHub Organization
-            </label>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Organization Name
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">
+                GitHub Organization
               </label>
-              <Input
-                required={true}
-                value={githubOrg}
-                onChange={(e) => setGithubOrg(e.target.value.trim())}
-                placeholder="e.g. 42core-team"
-              />
             </div>
-            <div>
-              <div className="flex items-center gap-1">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 <label className="block text-sm font-medium mb-1">
-                  GitHub Organization Secret
+                  Organization Name
                 </label>
-                <Tooltip
-                  content={
-                    <div className="text-xs text-default-500 p-2 max-w-xs">
-                      The token needs the following permissions:
-                      <ul className="list-disc list-inside ml-4">
-                        <li><b>Administration:</b> Repository creation, deletion, settings, teams, and collaborators.</li>
-                        <li><b>Contents:</b> Repository contents, commits, branches, downloads, releases, and merges.</li>
-                      </ul>
-                    </div>
-                  }
-                >
-                  <span className="cursor-pointer text-default-400 hover:text-default-600">
-                    &#9432; {/* Info icon character */}
-                  </span>
-                </Tooltip>
+                <Input
+                  required={true}
+                  value={githubOrg}
+                  onChange={(e) => setGithubOrg(e.target.value.trim())}
+                  placeholder="e.g. 42core-team"
+                />
               </div>
-              <Input
-                required={true}
-                value={githubOrgSecret}
-                type="password"
-                placeholder="github_pat_*"
-                onChange={(e) => setGithubOrgSecret(e.target.value.trim())}
-              />
+              <div>
+                <div className="flex items-center gap-1">
+                  <label className="block text-sm font-medium mb-1">
+                    GitHub Organization Secret
+                  </label>
+                  <Tooltip
+                    content={
+                      <div className="text-xs text-default-500 p-2 max-w-xs">
+                        The token needs the following permissions:
+                        <ul className="list-disc list-inside ml-4">
+                          <li><b>Administration:</b> Repository creation, deletion, settings, teams, and collaborators.</li>
+                          <li><b>Contents:</b> Repository contents, commits, branches, downloads, releases, and merges.</li>
+                        </ul>
+                      </div>
+                    }
+                  >
+                    <span className="cursor-pointer text-default-400 hover:text-default-600">
+                      &#9432; {/* Info icon character */}
+                    </span>
+                  </Tooltip>
+                </div>
+                <Input
+                  required={true}
+                  value={githubOrgSecret}
+                  type="password"
+                  placeholder="github_pat_*"
+                  onChange={(e) => setGithubOrgSecret(e.target.value.trim())}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium">
-              GitHub Repository Template
-            </label>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Template Owner
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">
+                GitHub Repository Template
               </label>
-              <Input
-                required={true}
-                value={repoTemplateOwner}
-                onChange={(e) => setRepoTemplateOwner(e.target.value.trim())}
-                placeholder="e.g. 42core-team"
-              />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Template Repository
-              </label>
-              <Input
-                required={true}
-                value={repoTemplateName}
-                onChange={(e) => setRepoTemplateName(e.target.value.trim())}
-                placeholder="e.g. rush-template"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Template Owner
+                </label>
+                <Input
+                  required={true}
+                  value={repoTemplateOwner}
+                  onChange={(e) => setRepoTemplateOwner(e.target.value.trim())}
+                  placeholder="e.g. 42core-team"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Template Repository
+                </label>
+                <Input
+                  required={true}
+                  value={repoTemplateName}
+                  onChange={(e) => setRepoTemplateName(e.target.value.trim())}
+                  placeholder="e.g. rush-template"
+                />
+              </div>
             </div>
           </div>
         </div>
+      </Card>
 
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="light"
-            onPress={() => router.push("/events")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" color="primary" isLoading={isLoading}>
-            Create Event
-          </Button>
-        </div>
-      </form>
-    </Card>
+      <div className="flex justify-end space-x-4">
+        <Button
+          type="button"
+          variant="light"
+          onPress={() => router.push("/events")}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" color="primary" isLoading={isLoading}>
+          Create Event
+        </Button>
+      </div>
+    </form>
   );
 }

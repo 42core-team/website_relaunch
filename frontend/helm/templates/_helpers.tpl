@@ -35,7 +35,7 @@ Common labels
 */}}
 {{- define "frontend.labels" -}}
 helm.sh/chart: {{ include "frontend.chart" . }}
-{{ include "frontend.selectorLabels" . }}
+{{- include "frontend.selectorLabels" . | nindent 0 }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -59,4 +59,4 @@ Create the name of the service account to use
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
-{{- end }} 
+{{- end }}

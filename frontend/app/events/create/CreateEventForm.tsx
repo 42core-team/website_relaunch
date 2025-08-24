@@ -8,9 +8,76 @@ import {
   Textarea,
   Card,
   Chip,
+  Tooltip, // Added Tooltip
 } from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
+
+async function validateGithubToken(orgName: string, token: string): Promise<string | null> {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github.v3+json",
+  };
+
+  try {
+    // 1. Check if the token is valid and has access to the organization
+    const orgResponse = await fetch(`https://api.github.com/orgs/${orgName}`, { headers });
+    if (!orgResponse.ok) {
+      let errorMessage = `Failed to access GitHub organization: ${orgResponse.statusText}`;
+      try {
+        const errorBody = await orgResponse.json();
+        if (errorBody && errorBody.message) {
+          errorMessage = `GitHub API Error: ${errorBody.message}`;
+        }
+      } catch (jsonError) {
+        // Ignore JSON parsing errors, use default message
+      }
+      if (orgResponse.status === 404) {
+        return `Organization '${orgName}' not found or token has no access. ${errorMessage}`;
+      }
+      return errorMessage;
+    }
+
+    // 2. Check for repository creation permissions (by trying to list repos)
+    const reposResponse = await fetch(`https://api.github.com/orgs/${orgName}/repos?type=all`, { headers });
+    if (!reposResponse.ok) {
+      let errorMessage = `Token lacks permission to list repositories in '${orgName}'. Required: 'repo' scope.`;
+      try {
+        const errorBody = await reposResponse.json();
+        if (errorBody && errorBody.message) {
+          errorMessage = `GitHub API Error: ${errorBody.message}`;
+        }
+      } catch (jsonError) {
+        // Ignore JSON parsing errors
+      }
+      return errorMessage;
+    }
+
+    // 3. Check for invitation permissions (by trying to list members)
+    const membersResponse = await fetch(`https://api.github.com/orgs/${orgName}/members`, { headers });
+    if (!membersResponse.ok) {
+      let errorMessage = `Token lacks permission to list members in '${orgName}'. Required: 'admin:org' or 'read:org' scope.`;
+      try {
+        const errorBody = await membersResponse.json();
+        if (errorBody && errorBody.message) {
+          errorMessage = `GitHub API Error: ${errorBody.message}`;
+        }
+      } catch (jsonError) {
+        // Ignore JSON parsing errors
+      }
+      return errorMessage;
+    }
+
+    // 4. Content read and write scope is generally covered by repo creation/admin permissions.
+    //    Directly checking 'contents' scope is not straightforward via REST API without trying to modify content.
+    //    Assuming if repo creation is possible, content read/write is implicitly handled for new repos.
+
+    return null; // Token is valid and has required permissions
+  } catch (error) {
+    console.error("GitHub token validation error:", error);
+    return "An unexpected error occurred during GitHub token validation.";
+  }
+}
 
 export default function CreateEventForm() {
   const router = useRouter();
@@ -33,6 +100,13 @@ export default function CreateEventForm() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    const validationError = await validateGithubToken(githubOrg, githubOrgSecret);
+    if (validationError) {
+      setError(validationError);
+      setIsLoading(false);
+      return;
+    }
 
     const result = await createEvent({
       name,
@@ -169,13 +243,31 @@ export default function CreateEventForm() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                GitHub Organization Secret
-              </label>
+              <div className="flex items-center gap-1">
+                <label className="block text-sm font-medium mb-1">
+                  GitHub Organization Secret
+                </label>
+                <Tooltip
+                  content={
+                    <div className="text-xs text-default-500 p-2 max-w-xs">
+                      The token needs the following permissions:
+                      <ul className="list-disc list-inside ml-4">
+                        <li><b>Administration:</b> Repository creation, deletion, settings, teams, and collaborators.</li>
+                        <li><b>Contents:</b> Repository contents, commits, branches, downloads, releases, and merges.</li>
+                      </ul>
+                    </div>
+                  }
+                >
+                  <span className="cursor-pointer text-default-400 hover:text-default-600">
+                    &#9432; {/* Info icon character */}
+                  </span>
+                </Tooltip>
+              </div>
               <Input
                 required={true}
                 value={githubOrgSecret}
                 type="password"
+                placeholder="github_pat_*"
                 onChange={(e) => setGithubOrgSecret(e.target.value.trim())}
               />
             </div>
@@ -187,9 +279,6 @@ export default function CreateEventForm() {
             <label className="block text-sm font-medium">
               GitHub Repository Template
             </label>
-            <Chip color="warning" size="sm">
-              Only available for Core team templates
-            </Chip>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,11 +305,6 @@ export default function CreateEventForm() {
               />
             </div>
           </div>
-          <p className="text-xs text-default-500">
-            Repository templates allow you to provide a starter code for
-            participants. Currently, this feature is only available for events
-            hosted by the Core team.
-          </p>
         </div>
 
         <div className="flex justify-end space-x-4">

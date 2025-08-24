@@ -7,8 +7,6 @@ import {
   Input,
   Textarea,
   Card,
-  Select,
-  SelectItem,
   Chip,
 } from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
@@ -72,7 +70,7 @@ export default function CreateEventForm() {
           <label className="block text-sm font-medium mb-1">Event Name</label>
           <Input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value.trim())}
             required
             placeholder="Enter event name"
           />
@@ -84,7 +82,7 @@ export default function CreateEventForm() {
           </label>
           <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => setDescription(e.target.value.trim())}
             placeholder="Enter event description"
             minRows={3}
           />
@@ -94,7 +92,7 @@ export default function CreateEventForm() {
           <label className="block text-sm font-medium mb-1">Location</label>
           <Input
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={(e) => setLocation(e.target.value.trim())}
             placeholder="Enter event location"
           />
         </div>
@@ -166,7 +164,7 @@ export default function CreateEventForm() {
               <Input
                 required={true}
                 value={githubOrg}
-                onChange={(e) => setGithubOrg(e.target.value)}
+                onChange={(e) => setGithubOrg(e.target.value.trim())}
                 placeholder="e.g. 42core-team"
               />
             </div>
@@ -178,7 +176,7 @@ export default function CreateEventForm() {
                 required={true}
                 value={githubOrgSecret}
                 type="password"
-                onChange={(e) => setGithubOrgSecret(e.target.value)}
+                onChange={(e) => setGithubOrgSecret(e.target.value.trim())}
               />
             </div>
           </div>
@@ -202,7 +200,7 @@ export default function CreateEventForm() {
               <Input
                 required={true}
                 value={repoTemplateOwner}
-                onChange={(e) => setRepoTemplateOwner(e.target.value)}
+                onChange={(e) => setRepoTemplateOwner(e.target.value.trim())}
                 placeholder="e.g. 42core-team"
               />
             </div>
@@ -213,7 +211,7 @@ export default function CreateEventForm() {
               <Input
                 required={true}
                 value={repoTemplateName}
-                onChange={(e) => setRepoTemplateName(e.target.value)}
+                onChange={(e) => setRepoTemplateName(e.target.value.trim())}
                 placeholder="e.g. rush-template"
               />
             </div>

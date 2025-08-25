@@ -52,7 +52,7 @@ export default function TeamUserTable({ members }: { members: TeamMember[] }) {
                 rel="noopener noreferrer"
                 className="text-inherit hover:underline"
               >
-                @{member.username}
+                {member.username}
               </Link>
             </TableCell>
             <TableCell>

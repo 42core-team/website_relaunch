@@ -7,6 +7,8 @@ import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
 import { isActionError } from "@/app/actions/errors";
 import { isEventAdmin } from "@/app/actions/event";
 import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
+import { Button } from "@heroui/react";
+import { ExternalLinkIcon } from "@/components/icons";
 
 export default async function MatchPage({
   params,
@@ -33,7 +35,21 @@ export default async function MatchPage({
 
   return (
     <div className="space-y-8">
-      {/* Iframe container with in-frame-style overlay control */}
+      {/* Header with open in new tab button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">Match Visualizer</h2>
+        <Button
+          size="sm"
+          variant="bordered"
+          startContent={<ExternalLinkIcon size={16} />}
+          onPress={() => window.open(visualizerUrl, '_blank')}
+          aria-label="Open visualizer in new tab"
+        >
+          Open in New Tab
+        </Button>
+      </div>
+      
+      {/* Iframe container */}
       <div className="relative w-full h-[750px] rounded-md overflow-hidden border border-gray-200">
         <iframe
           src={visualizerUrl}

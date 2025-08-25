@@ -8,7 +8,7 @@ import { isActionError } from "@/app/actions/errors";
 import { isEventAdmin } from "@/app/actions/event";
 import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
 import { Button } from "@heroui/react";
-import { ExternalLinkIcon } from "@/components/icons";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 export default async function MatchPage({
   params,
@@ -41,7 +41,7 @@ export default async function MatchPage({
         <Button
           size="sm"
           variant="bordered"
-          startContent={<ExternalLinkIcon size={16} />}
+          startContent={<ArrowTopRightOnSquareIcon className="h-4 w-4" />}
           onPress={() => window.open(visualizerUrl, '_blank')}
           aria-label="Open visualizer in new tab"
         >

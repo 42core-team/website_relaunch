@@ -2,16 +2,16 @@ name: Build API
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "api/**"
       - ".github/workflows/api-build.yml"
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "api/**"
       - ".github/workflows/api-build.yml"
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:
       environment:
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        platform: [linux/amd64]
+        platform: [ linux/amd64 ]
     permissions:
       contents: read
       packages: write

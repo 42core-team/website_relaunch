@@ -2,16 +2,16 @@ name: Build k8s-service
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "k8s-service/**"
       - ".github/workflows/k8s-service-build.yml"
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "k8s-service/**"
       - ".github/workflows/k8s-service-build.yml"
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:
       environment:
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        platform: [linux/amd64]
+        platform: [ linux/amd64 ]
     permissions:
       contents: read
       packages: write
@@ -74,6 +74,22 @@ jobs:
           echo "branch_tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Computed tag: ${TAG}"
 
+      - name: Compute Buildx cache config
+        id: cachecfg
+        run: |
+          FROM="type=gha,scope=k8s-service-${{ github.ref_name }}\n type=gha,scope=k8s-service-main"
+          TO="type=gha,mode=max,scope=k8s-service-${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            FROM="$FROM\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache"
+            TO="$TO\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max,oci-mediatypes=true"
+          fi
+          echo "from<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FROM" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "to<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$TO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -82,8 +98,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.compute-tag.outputs.branch_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: ${{ steps.cachecfg.outputs.from }}
+          cache-to: ${{ steps.cachecfg.outputs.to }}
 
       - name: Output image details
         run: |

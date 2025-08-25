@@ -2,16 +2,16 @@ name: Build Frontend
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-build.yml"
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-build.yml"
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:
       environment:
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        platform: [linux/amd64]
+        platform: [ linux/amd64 ]
     permissions:
       contents: read
       packages: write
@@ -71,6 +71,22 @@ jobs:
             type=ref,event=pr,prefix=pr-
             type=sha,format=short
 
+      - name: Compute Buildx cache config
+        id: cachecfg
+        run: |
+          FROM="type=gha,scope=frontend-${{ github.ref_name }}\n type=gha,scope=frontend-main"
+          TO="type=gha,mode=max,scope=frontend-${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            FROM="$FROM\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache"
+            TO="$TO\n type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max,oci-mediatypes=true"
+          fi
+          echo "from<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FROM" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "to<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$TO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -80,8 +96,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: ${{ steps.cachecfg.outputs.from }}
+          cache-to: ${{ steps.cachecfg.outputs.to }}
           build-args: |
             NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
           secrets: |

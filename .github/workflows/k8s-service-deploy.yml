@@ -19,7 +19,7 @@ on:
           - prod
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ format('{0}-{1}-{2}', github.workflow, github.ref, github.event_name == 'workflow_call' && github.run_id || 'manual') }}
   cancel-in-progress: true
 
 env:

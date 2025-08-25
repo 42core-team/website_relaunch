@@ -26,22 +26,15 @@ export interface TeamMember {
   avatar?: string;
   username: string;
   profilePicture?: string;
-  intraUsername?: string; // 42 intra account username, if linked
+  intraUsername?: string;
 }
 
 export interface UserSearchResult {
   id: string;
   name: string;
   username: string;
-  profilePicture?: string;
+  profilePicture: string;
   isInvited: boolean;
-}
-
-export interface TeamInviteWithDetails {
-  id: string;
-  teamId: string;
-  teamName: string;
-  createdAt: Date;
 }
 
 export async function getQueueMatches(eventId: string) {
@@ -214,24 +207,6 @@ export async function declineTeamInvite(
   return await handleError(
     axiosInstance.delete(`team/event/${eventId}/declineInvite/${teamId}`),
   );
-}
-
-/**
- * Get all teams for a specific event
- * @param eventId ID of the event
- * @returns Array of teams
- */
-export async function getTeamsForEvent(eventId: string): Promise<Team[]> {
-  const teams = (await axiosInstance.get(`team/event/${eventId}`)).data;
-
-  return teams.map((team: any) => ({
-    id: team.id,
-    name: team.name,
-    repo: team.repo,
-    membersCount: team.members.length,
-    createdAt: team.createdAt,
-    updatedAt: team.updatedAt,
-  }));
 }
 
 export async function getTeamsForEventTable(

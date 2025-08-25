@@ -56,9 +56,6 @@ export class EventEntity {
   @Column()
   maxTeamSize: number;
 
-  @Column({ default: 16 })
-  treeFormat: number;
-
   @Column({ type: "timestamp" })
   startDate: Date;
 

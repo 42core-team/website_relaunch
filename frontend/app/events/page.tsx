@@ -1,9 +1,8 @@
-export const dynamic = "force-dynamic";
-
 import { title } from "@/components/primitives";
 import { getEvents, canUserCreateEvent } from "@/app/actions/event";
 import EventsTable from "@/app/events/EventTable";
 import { Button } from "@/components/clientHeroui";
+import Link from "next/link";
 
 async function getData() {
   const [events, canCreate] = await Promise.all([
@@ -27,7 +26,7 @@ export default async function EventsPage() {
           Discover and join upcoming coding competitions
         </p>
         {canCreate && (
-          <Button color="primary" as="a" href="/events/create">
+          <Button color="primary" as={Link} href="/events/create">
             Create Event
           </Button>
         )}

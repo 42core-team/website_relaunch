@@ -155,7 +155,7 @@ const BasicNavbar = React.forwardRef<
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
                 <button
-                  className="p-0 border-none outline-none"
+                  className="p-0 border-none outline-hidden"
                   style={{ borderRadius: "50%" }}
                 >
                   <Image

@@ -81,7 +81,7 @@ jobs:
           # Debug: Check if KUBECONFIG_DATA is set
           if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
             echo "ERROR: KUBECONFIG_DATA secret is empty or not set!"
-            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: api-${{ inputs.environment }}"
+            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: ${{ inputs.environment }}"
             exit 1
           fi
 

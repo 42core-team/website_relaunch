@@ -75,7 +75,7 @@ function MatchNode({ data }: MatchNodeProps) {
 
   return (
     <motion.div
-      className={`relative rounded-lg border-2 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md`}
+      className={`relative rounded-lg border-2 shadow-xs cursor-pointer transition-all duration-200 hover:shadow-sm`}
       style={{
         width,
         height,

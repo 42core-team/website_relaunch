@@ -48,7 +48,7 @@ export class UserService {
       profilePicture,
       githubId,
       githubAccessToken,
-      canCreateEvent: canCreateEvent ?? false,
+      canCreateEvent: canCreateEvent,
     });
   }
 

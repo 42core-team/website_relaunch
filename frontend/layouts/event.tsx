@@ -25,7 +25,7 @@ export default async function EventLayout({
   if (!userId) {
     return (
       <div className="container mx-auto max-w-7xl px-6 py-12">
-        <div className="text-center p-8 shadow-sm">
+        <div className="text-center p-8 shadow-xs">
           <h2 className="text-2xl font-semibold  mb-2">
             Authentication Required
           </h2>

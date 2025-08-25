@@ -172,7 +172,7 @@ export function WikiNavigation({
                       handleTocClick(tocItem.id, e);
                       onItemClick?.();
                     }}
-                    className={`block text-xs px-2 py-1 rounded-sm transition-colors hover:bg-default-100 hover:text-primary cursor-pointer ${
+                    className={`block text-xs px-2 py-1 rounded-xs transition-colors hover:bg-default-100 hover:text-primary cursor-pointer ${
                       activeId === tocItem.id
                         ? "text-primary font-medium bg-primary-50 border-l-2 border-primary"
                         : "text-default-500"

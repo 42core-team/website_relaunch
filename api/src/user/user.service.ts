@@ -2,7 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {InjectRepository} from "@nestjs/typeorm";
 import {UserEntity} from "./entities/user.entity";
 import {Repository, UpdateResult} from "typeorm";
-import { UserInviteSearchResult } from "./dtos/user-search-invite.dto";
+import {UserInviteSearchResult} from "./dtos/user-search-invite.dto";
 
 @Injectable()
 export class UserService {
@@ -118,16 +118,17 @@ export class UserService {
             .addSelect("user.profilePicture", "profilePicture")
             .addSelect(
                 `(MAX(CASE WHEN inviteTeam.id = :teamId THEN 1 ELSE 0 END) = 1)`,
-                "isInvited",
+                'isInvited',
             )
             .innerJoin("user.events", "event", "event.id = :eventId", {eventId})
             .leftJoin("user.teams", "team")
             .leftJoin("team.event", "teamEvent", "teamEvent.id = :eventId", {eventId})
             .leftJoin("user.teamInvites", "inviteTeam")
             .leftJoin("inviteTeam.event", "inviteEvent")
+            .leftJoin("user.socialAccounts", "sa")
             .where(
-                "(LOWER(user.username) LIKE LOWER(:username) OR LOWER(user.name) LIKE LOWER(:name))",
-                {username: `%${searchQuery}%`, name: `%${searchQuery}%`},
+                "(LOWER(user.username) LIKE LOWER(:username) OR LOWER(user.name) LIKE LOWER(:name) OR LOWER(sa.username) LIKE LOWER(:social))",
+                {username: `%${searchQuery}%`, name: `%${searchQuery}%`, social: `%${searchQuery}%`},
             )
             .andWhere("team.id IS NULL")
             .andWhere(

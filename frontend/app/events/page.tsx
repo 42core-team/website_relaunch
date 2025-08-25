@@ -1,21 +1,31 @@
 import { title } from "@/components/primitives";
 import { getEvents, canUserCreateEvent } from "@/app/actions/event";
 import EventsTable from "@/app/events/EventTable";
-import { Button } from "@/components/clientHeroui";
+import { Button, Spinner } from "@/components/clientHeroui";
 import Link from "next/link";
+import { Suspense } from 'react';
 
-async function getData() {
-  const [events, canCreate] = await Promise.all([
-    getEvents(),
-    canUserCreateEvent(),
-  ]);
+export const experimental_ppr = true;
 
-  return { events, canCreate };
+async function CreateEventButton() {
+  const canCreate = await canUserCreateEvent();
+
+  if (!canCreate) return null;
+
+  return (
+    <Button color="primary" as={Link} href="/events/create">
+      Create Event
+    </Button>
+  );
 }
 
-export default async function EventsPage() {
-  const { events, canCreate } = await getData();
+async function EventsTableContent() {
+  const events = await getEvents();
 
+  return <EventsTable events={events} />;
+}
+
+export default function EventsPage() {
   return (
     <>
       <div className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
@@ -25,15 +35,17 @@ export default async function EventsPage() {
         <p className="text-lg text-default-600">
           Discover and join upcoming coding competitions
         </p>
-        {canCreate && (
-          <Button color="primary" as={Link} href="/events/create">
-            Create Event
-          </Button>
-        )}
       </div>
-      <div className="mt-8">
-        <EventsTable events={events} />
+
+      <div className="flex justify-center mb-6">
+        <Suspense fallback={null}>
+          <CreateEventButton />
+        </Suspense>
       </div>
+
+      <Suspense fallback={<Spinner size="lg" className="mt-8 flex justify-center items-center py-12"/>}>
+        <EventsTableContent />
+      </Suspense>
     </>
   );
 }

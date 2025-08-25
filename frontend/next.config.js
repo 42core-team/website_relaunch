@@ -6,6 +6,9 @@ const nextConfig = {
     level: "info",
     format: "json",
   },
+  experimental: {
+    ppr: 'incremental',
+  },
   images: {
     remotePatterns: [
       {

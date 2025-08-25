@@ -2,7 +2,6 @@
 
 import axiosInstance, { handleError } from "@/app/actions/axios";
 import { ServerActionResponse } from "@/app/actions/errors";
-import { AxiosError } from "axios";
 import { Match } from "@/app/actions/tournament-model";
 import { QueueState } from "@/app/actions/team.model";
 
@@ -27,6 +26,7 @@ export interface TeamMember {
   avatar?: string;
   username: string;
   profilePicture?: string;
+  intraUsername?: string; // 42 intra account username, if linked
 }
 
 export interface UserSearchResult {
@@ -140,6 +140,8 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
     name: member.name,
     username: member.username,
     profilePicture: member.profilePicture,
+    intraUsername: member.socialAccounts?.find((a: any) => a.platform === "42")
+      ?.username,
   }));
 }
 

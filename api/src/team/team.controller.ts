@@ -99,7 +99,7 @@ export class TeamController {
     @Get(":id/members")
     async getTeamMembers(@Param("id", new ParseUUIDPipe()) teamId: string) {
         const team = await this.teamService.getTeamById(teamId, {
-            users: true,
+            users: { socialAccounts: true },
         });
 
         return team.users;

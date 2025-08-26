@@ -49,7 +49,7 @@ updates:
       include: "scope"
     labels:
       - "dependencies"
-      - "go"
+      - "k8s-service"
 
   # Dockerfiles across services
   - package-ecosystem: "docker"
@@ -89,4 +89,4 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-      - "go"
+      - "k8s-service"

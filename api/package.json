@@ -23,7 +23,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
-    "@nestjs/microservices": "^11.1.5",
+    "@nestjs/microservices": "^11.1.6",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^6.0.0",

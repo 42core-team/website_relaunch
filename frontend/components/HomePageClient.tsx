@@ -7,6 +7,7 @@ import { button as buttonStyles } from "@heroui/theme";
 
 import { GithubIcon, WikiIcon } from "@/components/icons";
 import { CoreLogoWhite } from "@/components/social";
+import GlobalStats from "@/components/GlobalStats";
 
 export default function HomePageClient() {
   return (
@@ -42,6 +43,10 @@ export default function HomePageClient() {
           </Link>
         </div>
       </section>
+
+      {/* Global Stats Section */}
+      <GlobalStats />
+
       <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-lvh">
         <motion.div
           className="flex flex-col gap-32"

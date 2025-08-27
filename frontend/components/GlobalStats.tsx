@@ -6,8 +6,10 @@ import {getGlobalStats, MatchStats} from "@/app/actions/stats";
 import AnimatedNumber from "@/components/animatedNumber";
 import {CurrencyDollarIcon, FireIcon, UserIcon} from "@heroicons/react/16/solid";
 
-export default function GlobalStats() {
-    const [stats, setStats] = useState<MatchStats>({});
+export default function GlobalStats(props: {
+    initialStats: MatchStats
+}) {
+    const [stats, setStats] = useState<MatchStats>(props.initialStats);
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchStats = async () => {

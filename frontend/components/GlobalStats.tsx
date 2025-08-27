@@ -81,9 +81,9 @@ export default function GlobalStats(props: {
                             className={`bg-gradient-to-br ${stat.color} rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-700`}
                         >
                             <div className="flex items-center justify-between mb-4">
-                <span className="text-4xl">
-                    <stat.icon className={`w-10 h-10 ${stat.iconColor}`}/>
-                </span>
+                                 <span className="text-4xl">
+                                   <stat.icon className={`w-10 h-10 ${stat.iconColor}`}/>
+                                 </span>
                                 <div className="bg-gray-700 bg-opacity-30 rounded-full px-3 py-1 text-sm">
                                     Live
                                 </div>

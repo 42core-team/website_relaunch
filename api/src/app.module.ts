@@ -11,6 +11,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {DatabaseConfig} from "./DatabaseConfig";
 import {GithubApiModule} from "./github-api/github-api.module";
 import {ScheduleModule} from "@nestjs/schedule";
+import { StatsModule } from './stats/stats.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import {ScheduleModule} from "@nestjs/schedule";
         TeamModule,
         MatchModule,
         GithubApiModule,
+        StatsModule,
     ],
     controllers: [AppController],
     providers: [AppService],

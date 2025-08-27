@@ -2,7 +2,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     JoinTable,
     ManyToMany, ManyToOne, OneToMany,
     OneToOne,
@@ -11,6 +10,7 @@ import {
 } from "typeorm";
 import {TeamEntity} from "../../team/entities/team.entity";
 import {MatchTeamResultEntity} from "./match.team.result.entity";
+import {MatchStatsEntity} from "./matchStats.entity";
 
 export enum MatchState {
     PLANNED = "PLANNED",
@@ -56,4 +56,8 @@ export class MatchEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToOne(() => MatchStatsEntity, (stats) => stats.match, {cascade: true, onUpdate: "CASCADE", eager: true})
+    stats: MatchStatsEntity;
 }
+

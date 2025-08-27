@@ -2,6 +2,7 @@ import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {TeamService} from "../team/team.service";
 import {InjectRepository} from "@nestjs/typeorm";
 import {MatchEntity, MatchPhase, MatchState} from "./entites/match.entity";
+import {MatchStatsEntity} from "./entites/matchStats.entity";
 import {DataSource, In, Not, Repository} from "typeorm";
 import {Swiss} from "tournament-pairings"
 import {EventService} from "../event/event.service";
@@ -31,6 +32,8 @@ export class MatchService {
         @Inject(forwardRef(() => EventService)) private readonly eventService: EventService,
         @InjectRepository(MatchEntity)
         private readonly matchRepository: Repository<MatchEntity>,
+        @InjectRepository(MatchStatsEntity)
+        private readonly matchStatsRepository: Repository<MatchStatsEntity>,
         private readonly configService: ConfigService,
         private readonly dataSource: DataSource,
         private githubApiService: GithubApiService
@@ -79,7 +82,25 @@ export class MatchService {
         }
     }
 
-    async processMatchResult(matchId: string, winnerId: string) {
+    async processMatchResult(matchId: string, winnerId: string,
+                             stats: {
+                                 actions_executed: number,
+                                 damage_deposits: number,
+                                 gempiles_destroyed: number,
+                                 damage_total: number,
+                                 gems_gained: number,
+                                 damage_walls: number,
+                                 damage_cores: number,
+                                 units_spawned: number,
+                                 tiles_traveled: number
+                                 damage_self: number
+                                 damage_units: number
+                                 walls_destroyed: number
+                                 gems_transferred: number
+                                 units_destroyed: number
+                                 cores_destroyed: number
+                                 damage_opponent: number
+                             }) {
         const match = await this.matchRepository.findOne({
             where: {id: matchId},
             relations: {
@@ -103,6 +124,25 @@ export class MatchService {
         match.winner = winner;
         match.state = MatchState.FINISHED;
         match.results = []
+        match.stats = {
+            ...match.stats,
+            actionsExecuted: stats.actions_executed,
+            damageDeposits: stats.damage_deposits,
+            gempilesDestroyed: stats.gempiles_destroyed,
+            damageTotal: stats.damage_total,
+            gemsGained: stats.gems_gained,
+            damageWalls: stats.damage_walls,
+            damageCores: stats.damage_cores,
+            unitsSpawned: stats.units_spawned,
+            tilesTraveled: stats.tiles_traveled,
+            damageSelf: stats.damage_self,
+            damageUnits: stats.damage_units,
+            wallsDestroyed: stats.walls_destroyed,
+            gemsTransferred: stats.gems_transferred,
+            unitsDestroyed: stats.units_destroyed,
+            coresDestroyed: stats.cores_destroyed,
+            damageOpponent: stats.damage_opponent,
+        }
 
         if (match.phase === MatchPhase.SWISS) {
             await this.teamService.increaseTeamScore(winner.id, 1);
@@ -244,7 +284,25 @@ export class MatchService {
                 })),
                 game_end_reason: 0,
                 version: "1.0.0",
-                BOT_ID_MAPPING: botIdMapping
+                BOT_ID_MAPPING: botIdMapping,
+                stats: {
+                    actions_executed: Math.floor(Math.random() * 1000),
+                    damage_deposits: Math.floor(Math.random() * 1000),
+                    gempiles_destroyed: Math.floor(Math.random() * 1000),
+                    damage_total: Math.floor(Math.random() * 1000),
+                    gems_gained: Math.floor(Math.random() * 1000),
+                    damage_walls: Math.floor(Math.random() * 1000),
+                    damage_cores: Math.floor(Math.random() * 1000),
+                    units_spawned: Math.floor(Math.random() * 1000),
+                    tiles_traveled: Math.floor(Math.random() * 1000),
+                    damage_self: Math.floor(Math.random() * 1000),
+                    damage_units: Math.floor(Math.random() * 1000),
+                    walls_destroyed: Math.floor(Math.random() * 1000),
+                    gems_transferred: Math.floor(Math.random() * 1000),
+                    units_destroyed: Math.floor(Math.random() * 1000),
+                    cores_destroyed: Math.floor(Math.random() * 1000),
+                    damage_opponent: Math.floor(Math.random() * 1000),
+                }
             })
             return;
         }
@@ -277,7 +335,8 @@ export class MatchService {
             teams: teamIds.map(id => ({id})),
             round,
             phase,
-            state: MatchState.PLANNED
+            state: MatchState.PLANNED,
+            stats: new MatchStatsEntity()
         });
 
         return this.matchRepository.save(match);
@@ -691,5 +750,43 @@ export class MatchService {
         return this.matchRepository.update(matchId, {
             isRevealed: true
         })
+    }
+
+    getGlobalStats() {
+        return this.matchStatsRepository.createQueryBuilder("match_stats")
+            .select("SUM(match_stats.actionsExecuted)", "actionsExecuted")
+            .addSelect("SUM(match_stats.damageDeposits)", "damageDeposits")
+            .addSelect("SUM(match_stats.gempilesDestroyed)", "gempilesDestroyed")
+            .addSelect("SUM(match_stats.damageTotal)", "damageTotal")
+            .addSelect("SUM(match_stats.gemsGained)", "gemsGained")
+            .addSelect("SUM(match_stats.damageWalls)", "damageWalls")
+            .addSelect("SUM(match_stats.damageCores)", "damageCores")
+            .addSelect("SUM(match_stats.unitsSpawned)", "unitsSpawned")
+            .addSelect("SUM(match_stats.tilesTraveled)", "tilesTraveled")
+            .addSelect("SUM(match_stats.damageSelf)", "damageSelf")
+            .addSelect("SUM(match_stats.damageUnits)", "damageUnits")
+            .addSelect("SUM(match_stats.wallsDestroyed)", "wallsDestroyed")
+            .addSelect("SUM(match_stats.gemsTransferred)", "gemsTransferred")
+            .addSelect("SUM(match_stats.unitsDestroyed)", "unitsDestroyed")
+            .addSelect("SUM(match_stats.coresDestroyed)", "coresDestroyed")
+            .addSelect("SUM(match_stats.damageOpponent)", "damageOpponent")
+            .getRawOne<{
+                actionsExecuted?: string,
+                damageDeposits?: string,
+                gempilesDestroyed?: string,
+                damageTotal?: string,
+                gemsGained?: string,
+                damageWalls?: string,
+                damageCores?: string,
+                unitsSpawned?: string,
+                tilesTraveled?: string,
+                damageSelf?: string,
+                damageUnits?: string,
+                wallsDestroyed?: string,
+                gemsTransferred?: string,
+                unitsDestroyed?: string,
+                coresDestroyed?: string,
+                damageOpponent?: string
+            }>();
     }
 }

@@ -1,4 +1,3 @@
-'use server';
 import axiosInstance from "@/app/actions/axios";
 
 export interface MatchStats {

@@ -79,6 +79,21 @@ ingress:
           pathType: ImplementationSpecific
   tls: []
 
+# Redirect ingress for handling domain redirects (e.g., www to apex domain)
+ingressRedirect:
+  enabled: false
+  className: ""
+  annotations: {}
+  # Source host to redirect from (e.g., www.example.com)
+  fromHost: ""
+  # Destination host to redirect to (e.g., example.com)
+  toHost: ""
+  # HTTP status code for redirect (default: 308 permanent redirect)
+  code: "308"
+  tls:
+    enabled: false
+    secretName: ""
+
 livenessProbe:
   enabled: true
   httpGet:

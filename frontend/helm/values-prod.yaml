@@ -47,6 +47,18 @@ ingress:
         - coregame.de
       secretName: coregame-de-tls
 
+ingressRedirect:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  fromHost: "www.coregame.de"
+  toHost: "coregame.de"
+  code: "308"
+  tls:
+    enabled: true
+    secretName: "www-coregame-de-tls"
+
 nodeSelector: {}
 tolerations: []
 affinity: {}

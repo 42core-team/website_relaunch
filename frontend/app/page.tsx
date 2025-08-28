@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import HomePageClient from "@/components/HomePageClient";
+import {getGlobalStats} from "@/app/actions/stats";
 
 export const metadata: Metadata = {
     title: "CORE Game",
@@ -41,5 +42,6 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-    return <HomePageClient/>;
+    const globalStats = await getGlobalStats();
+    return <HomePageClient initialStats={globalStats}/>;
 }

@@ -8,8 +8,11 @@ import { button as buttonStyles } from "@heroui/theme";
 import { GithubIcon, WikiIcon } from "@/components/icons";
 import { CoreLogoWhite } from "@/components/social";
 import GlobalStats from "@/components/GlobalStats";
+import {MatchStats} from "@/app/actions/stats";
 
-export default function HomePageClient() {
+export default function HomePageClient(props: {
+    initialStats: MatchStats;
+}) {
   return (
     <div>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
@@ -45,7 +48,7 @@ export default function HomePageClient() {
       </section>
 
       {/* Global Stats Section */}
-      <GlobalStats />
+      <GlobalStats initialStats={props.initialStats} />
 
       <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-lvh">
         <motion.div

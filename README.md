@@ -1,3 +1,7 @@
+<a href="https://coregame.de">
+<img src="https://status.coregame.de/badge/web/status?labelColor=&color=&style=for-the-badge&label=coregame.de"/>
+</a>
+
 # Getting Started
 
 ## Running the Website

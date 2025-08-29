@@ -44,7 +44,8 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        platform: [ linux/amd64 ]
+        platform: [linux/amd64]
+        architecture: [amd64]
     permissions:
       contents: read
       packages: write
@@ -100,8 +101,10 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: ${{ steps.cachecfg.outputs.from }}
-          cache-to: ${{ steps.cachecfg.outputs.to }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }},mode=max
           build-args: |
             NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
           secrets: |

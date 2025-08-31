@@ -62,6 +62,9 @@ export class EventController {
             createEventDto.maxTeamSize,
             createEventDto.repoTemplateOwner,
             createEventDto.repoTemplateName,
+            createEventDto.gameServerDockerImage,
+            createEventDto.myCoreBotDockerImage,
+            createEventDto.monorepoUrl,
         );
     }
 

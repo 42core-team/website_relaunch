@@ -81,7 +81,10 @@ export class EventService {
         minTeamSize: number,
         maxTeamSize: number,
         repoTemplateOwner?: string,
-        repoTemplateName?: string
+        repoTemplateName?: string,
+        gameServerDockerImage?: string,
+        myCoreBotDockerImage?: string,
+        monorepoUrl?: string
     ) {
         githubOrgSecret = CryptoJS.AES.encrypt(githubOrgSecret, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
 
@@ -104,8 +107,10 @@ export class EventService {
                     },
                     role: PermissionRole.ADMIN
                 }
-            ]
-
+            ],
+            gameServerDockerImage,
+            myCoreBotDockerImage,
+            monorepoUrl
         });
     }
 

@@ -80,6 +80,15 @@ export class EventEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ nullable: true })
+  gameServerDockerImage: string;
+
+  @Column({ nullable: true })
+  myCoreBotDockerImage: string;
+
+  @Column({ nullable: true })
+  monorepoUrl: string;
+
   @JoinTable({ name: "events_users" })
   @ManyToMany(() => UserEntity, (user) => user.events)
   users: UserEntity[];

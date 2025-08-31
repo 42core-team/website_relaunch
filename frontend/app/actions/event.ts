@@ -90,6 +90,9 @@ interface EventCreateParams {
   maxTeamSize: number;
   repoTemplateOwner: string;
   repoTemplateName: string;
+  monorepoUrl?: string;
+  gameServerDockerImage?: string;
+  myCoreBotDockerImage?: string;
 }
 
 // Create a new event

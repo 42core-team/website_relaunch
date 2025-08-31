@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -107,6 +107,84 @@ export default function CreateEventForm() {
   const [repoTemplateName, setRepoTemplateName] = useState("my-core-bot");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [monorepoUrl, setMonorepoUrl] = useState(
+    "https://github.com/42core-team/monorepo",
+  );
+  const [gameServerDockerImage, setGameServerDockerImage] = useState(
+    "ghcr.io/42core-team/server",
+  );
+  const [myCoreBotDockerImage, setMyCoreBotDockerImage] = useState(
+    "ghcr.io/42core-team/my-core-bot",
+  );
+  const [gameServerImageTag, setGameServerImageTag] = useState("");
+  const [myCoreBotImageTag, setMyCoreBotImageTag] = useState("");
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [tagFetchError, setTagFetchError] = useState<string | null>(null);
+
+  // Extract owner/repo from a GitHub URL like https://github.com/owner/repo
+  const parseGitHubRepo = (
+    url: string,
+  ): { owner: string; repo: string } | null => {
+    try {
+      const u = new URL(url.trim());
+      if (u.hostname !== "github.com") return null;
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts.length < 2) return null;
+      return { owner: parts[0], repo: parts[1].replace(/\.git$/, "") };
+    } catch {
+      return null;
+    }
+  };
+
+  // Fetch tags when monorepo URL changes
+  useEffect(() => {
+    const parsed = parseGitHubRepo(monorepoUrl);
+    if (!parsed) {
+      setAvailableTags([]);
+      setTagFetchError(null);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const fetchTags = async () => {
+      setIsLoadingTags(true);
+      setTagFetchError(null);
+      try {
+        const headers: Record<string, string> = {
+          Accept: "application/vnd.github+json",
+        };
+        const url = `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/tags?per_page=100`;
+        const res = await fetch(url, { headers, signal: controller.signal });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(
+            body?.message || `Failed to fetch tags (${res.status})`,
+          );
+        }
+        const data: Array<{ name: string }> = await res.json();
+        if (!cancelled) {
+          setAvailableTags(
+            Array.from(new Set((data || []).map((t) => t.name))),
+          );
+        }
+      } catch (e: any) {
+        if (!cancelled && e?.name !== "AbortError") {
+          setAvailableTags([]);
+          setTagFetchError(e?.message || "Failed to fetch tags");
+        }
+      } finally {
+        if (!cancelled) setIsLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [monorepoUrl, githubOrgSecret]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -135,6 +213,16 @@ export default function CreateEventForm() {
       maxTeamSize,
       repoTemplateOwner: repoTemplateOwner,
       repoTemplateName: repoTemplateName,
+      monorepoUrl: monorepoUrl || undefined,
+      gameServerDockerImage:
+        (gameServerDockerImage || "").trim() &&
+        (gameServerImageTag || "").trim()
+          ? `${gameServerDockerImage.trim()}:${gameServerImageTag.trim()}`
+          : gameServerDockerImage || undefined,
+      myCoreBotDockerImage:
+        (myCoreBotDockerImage || "").trim() && (myCoreBotImageTag || "").trim()
+          ? `${myCoreBotDockerImage.trim()}:${myCoreBotImageTag.trim()}`
+          : myCoreBotDockerImage || undefined,
     });
 
     if (isActionError(result)) {
@@ -248,7 +336,7 @@ export default function CreateEventForm() {
                 isRequired
                 label="Organization Name"
                 labelPlacement="outside"
-                placeholder="e.g. 42core-team"
+                placeholder="e.g. 42-core-repos"
                 value={githubOrg}
                 onValueChange={(v) => setGithubOrg(v.trim())}
               />
@@ -301,11 +389,85 @@ export default function CreateEventForm() {
                 isRequired
                 label="Template Repository"
                 labelPlacement="outside"
-                placeholder="e.g. rush-template"
+                placeholder="e.g. my-core-bot"
                 value={repoTemplateName}
                 onValueChange={(v) => setRepoTemplateName(v.trim())}
               />
             </div>
+          </div>
+        </Card>
+
+        <Card className="w-full p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            Docker Image Configuration
+          </h2>
+          <div className="space-y-4">
+            <Input
+              label="Monorepo URL"
+              labelPlacement="outside"
+              placeholder="https://github.com/42core-team/monorepo"
+              value={monorepoUrl}
+              onValueChange={(v) => setMonorepoUrl(v.trim())}
+              description="GitHub repository URL to fetch available Docker image tags"
+            />
+
+            {tagFetchError && (
+              <div className="text-sm text-danger">{tagFetchError}</div>
+            )}
+            {isLoadingTags && (
+              <div className="text-xs text-default-500">Loading tags…</div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Game Server Base Image"
+                labelPlacement="outside"
+                placeholder="e.g., ghcr.io/42core-team/server"
+                value={gameServerDockerImage}
+                onValueChange={(v) => setGameServerDockerImage(v.trim())}
+              />
+              <Input
+                label="My Core Bot Base Image"
+                labelPlacement="outside"
+                placeholder="e.g., ghcr.io/42core-team/my-core-bot"
+                value={myCoreBotDockerImage}
+                onValueChange={(v) => setMyCoreBotDockerImage(v.trim())}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Game Server Image Tag
+                </label>
+                <Input
+                  placeholder="e.g., dev, v0.0.0.0"
+                  value={gameServerImageTag}
+                  onValueChange={setGameServerImageTag}
+                  className="w-full"
+                  list="repo-tags"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  My Core Bot Image Tag
+                </label>
+                <Input
+                  placeholder="e.g., dev, v0.0.0.0"
+                  value={myCoreBotImageTag}
+                  onValueChange={setMyCoreBotImageTag}
+                  className="w-full"
+                  list="repo-tags"
+                />
+              </div>
+            </div>
+
+            {/* Datalist provides dropdown suggestions while still allowing free text */}
+            <datalist id="repo-tags">
+              {availableTags.map((tag) => (
+                <option key={tag} value={tag} />
+              ))}
+            </datalist>
           </div>
         </Card>
 

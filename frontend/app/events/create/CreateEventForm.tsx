@@ -245,7 +245,7 @@ export default function CreateEventForm() {
         </div>
       )}
 
-      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 px-4 md:px-6">
+      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 px-4 md:px-6 mb-16">
         <Card className="w-full p-6 flex flex-col gap-4">
           <h2 className="text-xl font-semibold mb-4">Event Details</h2>
           <div className="flex flex-col gap-4">

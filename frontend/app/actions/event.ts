@@ -22,6 +22,9 @@ export interface Event {
   repoLockDate?: string;
   areTeamsLocked: boolean;
   state: EventState;
+  monorepoUrl?: string;
+  gameServerDockerImage?: string;
+  myCoreBotDockerImage?: string;
 }
 
 export async function getEventById(

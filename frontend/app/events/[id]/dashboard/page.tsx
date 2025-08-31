@@ -67,7 +67,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [eventId, session.data?.user.id]);
+  }, [eventId, session.status]);
 
   if (loading || !event) {
     return (
@@ -121,6 +121,58 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 text-white">
+              Docker Configuration
+            </h2>
+            <div className="space-y-4">
+              {event.monorepoUrl && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Monorepo URL
+                  </h3>
+                  <a
+                    href={event.monorepoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 break-all"
+                  >
+                    {event.monorepoUrl}
+                  </a>
+                </div>
+              )}
+
+              {event.gameServerDockerImage && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Game Server Docker Image
+                  </h3>
+                  <p className="text-white font-mono break-all">
+                    {event.gameServerDockerImage}
+                  </p>
+                </div>
+              )}
+
+              {event.myCoreBotDockerImage && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    My Core Bot Docker Image
+                  </h3>
+                  <p className="text-white font-mono break-all">
+                    {event.myCoreBotDockerImage}
+                  </p>
+                </div>
+              )}
+
+              {!event.monorepoUrl &&
+                !event.gameServerDockerImage &&
+                !event.myCoreBotDockerImage && (
+                  <p className="text-gray-400 italic">
+                    No Docker configuration set for this event.
+                  </p>
+                )}
             </div>
           </div>
           <div className="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">

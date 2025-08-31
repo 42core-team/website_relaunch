@@ -2,17 +2,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Input,
-  Textarea,
-  Card,
-  Tooltip, // Added Tooltip
-} from "@heroui/react";
+import { Button, Input, Textarea, Card, Tooltip, Form } from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
 
-async function validateGithubToken(orgName: string, token: string): Promise<string | null> {
+async function validateGithubToken(
+  orgName: string,
+  token: string,
+): Promise<string | null> {
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github.v3+json",
@@ -20,7 +17,9 @@ async function validateGithubToken(orgName: string, token: string): Promise<stri
 
   try {
     // 1. Check if the token is valid and has access to the organization
-    const orgResponse = await fetch(`https://api.github.com/orgs/${orgName}`, { headers });
+    const orgResponse = await fetch(`https://api.github.com/orgs/${orgName}`, {
+      headers,
+    });
     if (!orgResponse.ok) {
       let errorMessage = `Failed to access GitHub organization: ${orgResponse.statusText}`;
       try {
@@ -38,7 +37,10 @@ async function validateGithubToken(orgName: string, token: string): Promise<stri
     }
 
     // 2. Check for repository creation permissions (by trying to list repos)
-    const reposResponse = await fetch(`https://api.github.com/orgs/${orgName}/repos?type=all`, { headers });
+    const reposResponse = await fetch(
+      `https://api.github.com/orgs/${orgName}/repos?type=all`,
+      { headers },
+    );
     if (!reposResponse.ok) {
       let errorMessage = `Token lacks permission to list repositories in '${orgName}'. Required: 'repo' scope.`;
       try {
@@ -53,7 +55,10 @@ async function validateGithubToken(orgName: string, token: string): Promise<stri
     }
 
     // 3. Check for invitation permissions (by trying to list members)
-    const membersResponse = await fetch(`https://api.github.com/orgs/${orgName}/members`, { headers });
+    const membersResponse = await fetch(
+      `https://api.github.com/orgs/${orgName}/members`,
+      { headers },
+    );
     if (!membersResponse.ok) {
       let errorMessage = `Token lacks permission to list members in '${orgName}'. Required: 'admin:org' or 'read:org' scope.`;
       try {
@@ -95,12 +100,15 @@ export default function CreateEventForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    const validationError = await validateGithubToken(githubOrg, githubOrgSecret);
+    const validationError = await validateGithubToken(
+      githubOrg,
+      githubOrgSecret,
+    );
     if (validationError) {
       setError(validationError);
       setIsLoading(false);
@@ -131,14 +139,17 @@ export default function CreateEventForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <Form
+      className="w-full justify-center items-center space-y-4"
+      onSubmit={onSubmit}
+    >
       {error && (
         <div className="p-3 bg-red-100 text-red-800 rounded-md mb-6">
           {error}
         </div>
       )}
 
-      <Card className="p-6">
+      <Card className="p-6 flex flex-col gap-4 max-w-md">
         <h2 className="text-xl font-semibold mb-4">Event Details</h2>
         <div className="space-y-4">
           <div>
@@ -261,8 +272,14 @@ export default function CreateEventForm() {
                       <div className="text-xs text-default-500 p-2 max-w-xs">
                         The token needs the following permissions:
                         <ul className="list-disc list-inside ml-4">
-                          <li><b>Administration:</b> Repository creation, deletion, settings, teams, and collaborators.</li>
-                          <li><b>Contents:</b> Repository contents, commits, branches, downloads, releases, and merges.</li>
+                          <li>
+                            <b>Administration:</b> Repository creation,
+                            deletion, settings, teams, and collaborators.
+                          </li>
+                          <li>
+                            <b>Contents:</b> Repository contents, commits,
+                            branches, downloads, releases, and merges.
+                          </li>
                         </ul>
                       </div>
                     }
@@ -330,6 +347,6 @@ export default function CreateEventForm() {
           Create Event
         </Button>
       </div>
-    </form>
+    </Form>
   );
 }

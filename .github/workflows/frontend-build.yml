@@ -40,7 +40,6 @@ jobs:
       (github.event_name == 'pull_request' &&
        github.head_ref != 'dev' &&
        github.event.pull_request.base.ref != github.event.pull_request.head.ref)
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:

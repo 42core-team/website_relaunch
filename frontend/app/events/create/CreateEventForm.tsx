@@ -91,6 +91,16 @@ async function validateGithubToken(
   }
 }
 
+function combineImageAndTag(
+  image: string | undefined,
+  tag: string | undefined,
+): string | undefined {
+  if (!image?.trim() || !tag?.trim()) {
+    return image || undefined;
+  }
+  return `${image.trim()}:${tag.trim()}`;
+}
+
 export default function CreateEventForm() {
   const router = useRouter();
 
@@ -218,20 +228,18 @@ export default function CreateEventForm() {
       repoTemplateOwner: repoTemplateOwner,
       repoTemplateName: repoTemplateName,
       monorepoUrl: monorepoUrl || undefined,
-      gameServerDockerImage:
-        (gameServerDockerImage || "").trim() &&
-        (gameServerImageTag || "").trim()
-          ? `${gameServerDockerImage.trim()}:${gameServerImageTag.trim()}`
-          : gameServerDockerImage || undefined,
-      myCoreBotDockerImage:
-        (myCoreBotDockerImage || "").trim() && (myCoreBotImageTag || "").trim()
-          ? `${myCoreBotDockerImage.trim()}:${myCoreBotImageTag.trim()}`
-          : myCoreBotDockerImage || undefined,
-      visualizerDockerImage:
-        (visualizerDockerImage || "").trim() &&
-        (visualizerImageTag || "").trim()
-          ? `${visualizerDockerImage.trim()}:${visualizerImageTag.trim()}`
-          : visualizerDockerImage || undefined,
+      gameServerDockerImage: combineImageAndTag(
+        gameServerDockerImage,
+        gameServerImageTag,
+      ),
+      myCoreBotDockerImage: combineImageAndTag(
+        myCoreBotDockerImage,
+        myCoreBotImageTag,
+      ),
+      visualizerDockerImage: combineImageAndTag(
+        visualizerDockerImage,
+        visualizerImageTag,
+      ),
     });
 
     if (isActionError(result)) {
@@ -321,7 +329,7 @@ export default function CreateEventForm() {
               labelPlacement="outside"
               className="w-full"
               value={minTeamSize.toString()}
-              onValueChange={(v) => setMinTeamSize(parseInt(v || "0", 10))}
+              onValueChange={(v) => setMinTeamSize(parseInt(v || "1", 10))}
             />
             <Input
               isRequired
@@ -332,7 +340,7 @@ export default function CreateEventForm() {
               labelPlacement="outside"
               className="w-full"
               value={maxTeamSize.toString()}
-              onValueChange={(v) => setMaxTeamSize(parseInt(v || "0", 10))}
+              onValueChange={(v) => setMaxTeamSize(parseInt(v || "1", 10))}
             />
           </div>
         </Card>

@@ -149,203 +149,164 @@ export default function CreateEventForm() {
         </div>
       )}
 
-      <Card className="p-6 flex flex-col gap-4 max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Event Details</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Name</label>
+      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 px-4 md:px-6">
+        <Card className="w-full p-6 flex flex-col gap-4">
+          <h2 className="text-xl font-semibold mb-4">Event Details</h2>
+          <div className="flex flex-col gap-4">
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value.trim())}
-              required
+              isRequired
+              label="Event Name"
+              labelPlacement="outside"
               placeholder="Enter event name"
+              value={name}
+              onValueChange={(v) => setName(v.trim())}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
             <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value.trim())}
+              label="Description"
+              labelPlacement="outside"
               placeholder="Enter event description"
               minRows={3}
+              value={description}
+              onValueChange={(v) => setDescription(v.trim())}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Location</label>
             <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value.trim())}
+              label="Location"
+              labelPlacement="outside"
               placeholder="Enter event location"
+              value={location}
+              onValueChange={(v) => setLocation(v.trim())}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Start Date
-              </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
+                isRequired
                 type="datetime-local"
-                onChange={(e) =>
-                  setStartDate(new Date(e.target.value).getTime())
-                }
-                required
+                label="Start Date"
+                labelPlacement="outside"
+                onValueChange={(v) => setStartDate(new Date(v).getTime())}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">End Date</label>
               <Input
+                isRequired
                 type="datetime-local"
-                onChange={(e) => setEndDate(new Date(e.target.value).getTime())}
-                required
+                label="End Date"
+                labelPlacement="outside"
+                onValueChange={(v) => setEndDate(new Date(v).getTime())}
               />
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Team Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Min Team Size
-            </label>
+        <Card className="w-full p-6 flex flex-col gap-4">
+          <h2 className="text-xl font-semibold">Team Settings</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <Input
+              isRequired
               type="number"
               min={1}
               max={10}
+              label="Min Team Size"
+              labelPlacement="outside"
+              className="w-full"
               value={minTeamSize.toString()}
-              onChange={(e) => setMinTeamSize(parseInt(e.target.value, 10))}
-              required
+              onValueChange={(v) => setMinTeamSize(parseInt(v || "0", 10))}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Max Team Size
-            </label>
             <Input
+              isRequired
               type="number"
               min={minTeamSize}
               max={10}
+              label="Max Team Size"
+              labelPlacement="outside"
+              className="w-full"
               value={maxTeamSize.toString()}
-              onChange={(e) => setMaxTeamSize(parseInt(e.target.value, 10))}
-              required
+              onValueChange={(v) => setMaxTeamSize(parseInt(v || "0", 10))}
             />
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">GitHub Integration</h2>
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium">
-                GitHub Organization
-              </label>
+        <Card className="w-full p-6">
+          <h2 className="text-xl font-semibold mb-4">GitHub Integration</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                isRequired
+                label="Organization Name"
+                labelPlacement="outside"
+                placeholder="e.g. 42core-team"
+                value={githubOrg}
+                onValueChange={(v) => setGithubOrg(v.trim())}
+              />
+              <Input
+                isRequired
+                type="password"
+                label={
+                  <div className="flex items-center gap-1">
+                    <span>GitHub Organization Secret</span>
+                    <Tooltip
+                      content={
+                        <div className="text-xs text-default-500 p-2 max-w-xs">
+                          The token needs the following permissions:
+                          <ul className="list-disc list-inside ml-4">
+                            <li>
+                              <b>Administration:</b> Repository creation,
+                              deletion, settings, teams, and collaborators.
+                            </li>
+                            <li>
+                              <b>Contents:</b> Repository contents, commits,
+                              branches, downloads, releases, and merges.
+                            </li>
+                          </ul>
+                        </div>
+                      }
+                    >
+                      <span className="cursor-pointer text-default-400 hover:text-default-600">
+                        &#9432;
+                      </span>
+                    </Tooltip>
+                  </div>
+                }
+                labelPlacement="outside"
+                placeholder="github_pat_*"
+                value={githubOrgSecret}
+                onValueChange={(v) => setGithubOrgSecret(v.trim())}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Organization Name
-                </label>
-                <Input
-                  required={true}
-                  value={githubOrg}
-                  onChange={(e) => setGithubOrg(e.target.value.trim())}
-                  placeholder="e.g. 42core-team"
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-1">
-                  <label className="block text-sm font-medium mb-1">
-                    GitHub Organization Secret
-                  </label>
-                  <Tooltip
-                    content={
-                      <div className="text-xs text-default-500 p-2 max-w-xs">
-                        The token needs the following permissions:
-                        <ul className="list-disc list-inside ml-4">
-                          <li>
-                            <b>Administration:</b> Repository creation,
-                            deletion, settings, teams, and collaborators.
-                          </li>
-                          <li>
-                            <b>Contents:</b> Repository contents, commits,
-                            branches, downloads, releases, and merges.
-                          </li>
-                        </ul>
-                      </div>
-                    }
-                  >
-                    <span className="cursor-pointer text-default-400 hover:text-default-600">
-                      &#9432; {/* Info icon character */}
-                    </span>
-                  </Tooltip>
-                </div>
-                <Input
-                  required={true}
-                  value={githubOrgSecret}
-                  type="password"
-                  placeholder="github_pat_*"
-                  onChange={(e) => setGithubOrgSecret(e.target.value.trim())}
-                />
-              </div>
+              <Input
+                isRequired
+                label="Template Owner"
+                labelPlacement="outside"
+                placeholder="e.g. 42core-team"
+                value={repoTemplateOwner}
+                onValueChange={(v) => setRepoTemplateOwner(v.trim())}
+              />
+              <Input
+                isRequired
+                label="Template Repository"
+                labelPlacement="outside"
+                placeholder="e.g. rush-template"
+                value={repoTemplateName}
+                onValueChange={(v) => setRepoTemplateName(v.trim())}
+              />
             </div>
           </div>
+        </Card>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium">
-                GitHub Repository Template
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Template Owner
-                </label>
-                <Input
-                  required={true}
-                  value={repoTemplateOwner}
-                  onChange={(e) => setRepoTemplateOwner(e.target.value.trim())}
-                  placeholder="e.g. 42core-team"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Template Repository
-                </label>
-                <Input
-                  required={true}
-                  value={repoTemplateName}
-                  onChange={(e) => setRepoTemplateName(e.target.value.trim())}
-                  placeholder="e.g. rush-template"
-                />
-              </div>
-            </div>
-          </div>
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="light"
+            onPress={() => router.push("/events")}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" color="primary" isLoading={isLoading}>
+            Create Event
+          </Button>
         </div>
-      </Card>
-
-      <div className="flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="light"
-          onPress={() => router.push("/events")}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" color="primary" isLoading={isLoading}>
-          Create Event
-        </Button>
       </div>
     </Form>
   );

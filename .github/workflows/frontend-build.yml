@@ -105,9 +105,9 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }},mode=max
           build-args: |
-            NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
+            NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID != '' && vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID || 'NEXT_PUBLIC_FORTY_TWO_CLIENT_ID was not set' }}
           secrets: |
-            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY != '' && secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY || 'CORE-Game' }}
 
       - name: Extract short SHA for deployment
         id: short-sha

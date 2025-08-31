@@ -188,7 +188,7 @@ export default function CreateEventForm() {
       cancelled = true;
       controller.abort();
     };
-  }, [monorepoUrl, githubOrgSecret]);
+  }, [monorepoUrl]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -206,11 +206,11 @@ export default function CreateEventForm() {
     }
 
     const result = await createEvent({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       githubOrg,
       githubOrgSecret,
-      location,
+      location: location.trim(),
       startDate: startDate?.getTime() ?? 0,
       endDate: endDate?.getTime() ?? 0,
       minTeamSize,
@@ -264,7 +264,7 @@ export default function CreateEventForm() {
               labelPlacement="outside"
               placeholder="Enter event name"
               value={name}
-              onValueChange={(v) => setName(v.trim())}
+              onValueChange={(v) => setName(v)}
             />
 
             <Textarea
@@ -273,7 +273,7 @@ export default function CreateEventForm() {
               placeholder="Enter event description"
               minRows={3}
               value={description}
-              onValueChange={(v) => setDescription(v.trim())}
+              onValueChange={(v) => setDescription(v)}
             />
 
             <Input
@@ -281,7 +281,7 @@ export default function CreateEventForm() {
               labelPlacement="outside"
               placeholder="Enter event location"
               value={location}
-              onValueChange={(v) => setLocation(v.trim())}
+              onValueChange={(v) => setLocation(v)}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

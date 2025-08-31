@@ -2,7 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Input, Textarea, Card, Tooltip, Form } from "@heroui/react";
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  Tooltip,
+  Form,
+  DateInput,
+} from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
 
@@ -91,8 +99,8 @@ export default function CreateEventForm() {
   const [githubOrg, setGithubOrg] = useState("");
   const [githubOrgSecret, setGithubOrgSecret] = useState("");
   const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState(0);
-  const [endDate, setEndDate] = useState(0);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [minTeamSize, setMinTeamSize] = useState(1);
   const [maxTeamSize, setMaxTeamSize] = useState(4);
   const [repoTemplateOwner, setRepoTemplateOwner] = useState("42core-team");
@@ -121,8 +129,8 @@ export default function CreateEventForm() {
       githubOrg,
       githubOrgSecret,
       location,
-      startDate,
-      endDate,
+      startDate: startDate?.getTime() ?? 0,
+      endDate: endDate?.getTime() ?? 0,
       minTeamSize,
       maxTeamSize,
       repoTemplateOwner: repoTemplateOwner,
@@ -180,19 +188,25 @@ export default function CreateEventForm() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
+              <DateInput
                 isRequired
-                type="datetime-local"
+                granularity="minute"
                 label="Start Date"
                 labelPlacement="outside"
-                onValueChange={(v) => setStartDate(new Date(v).getTime())}
+                hourCycle={24}
+                onChange={(date) =>
+                  setStartDate(date ? new Date(date.toString()) : undefined)
+                }
               />
-              <Input
+              <DateInput
                 isRequired
-                type="datetime-local"
+                granularity="minute"
                 label="End Date"
                 labelPlacement="outside"
-                onValueChange={(v) => setEndDate(new Date(v).getTime())}
+                hourCycle={24}
+                onChange={(date) =>
+                  setEndDate(date ? new Date(date.toString()) : undefined)
+                }
               />
             </div>
           </div>

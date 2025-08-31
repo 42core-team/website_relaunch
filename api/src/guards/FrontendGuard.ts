@@ -24,7 +24,7 @@ export class FrontendGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const authorization = request.headers.authorization;
     if (
-      !authorization &&
+      !authorization ||
       authorization !== this.config.getOrThrow("FRONTEND_SECRET")
     )
       throw new UnauthorizedException();

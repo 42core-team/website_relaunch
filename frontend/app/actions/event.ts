@@ -25,6 +25,7 @@ export interface Event {
   monorepoUrl?: string;
   gameServerDockerImage?: string;
   myCoreBotDockerImage?: string;
+  visualizerDockerImage?: string;
 }
 
 export async function getEventById(
@@ -93,9 +94,10 @@ interface EventCreateParams {
   maxTeamSize: number;
   repoTemplateOwner: string;
   repoTemplateName: string;
-  monorepoUrl?: string;
   gameServerDockerImage?: string;
   myCoreBotDockerImage?: string;
+  visualizerDockerImage?: string;
+  monorepoUrl?: string;
 }
 
 // Create a new event

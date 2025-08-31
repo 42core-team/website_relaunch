@@ -75,5 +75,10 @@ export class CreateEventDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
+  visualizerDockerImage?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   monorepoUrl?: string;
 }

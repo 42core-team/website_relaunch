@@ -166,6 +166,17 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {event.visualizerDockerImage && (
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Visualizer Docker Image
+                  </h3>
+                  <p className="text-white font-mono break-all">
+                    {event.visualizerDockerImage}
+                  </p>
+                </div>
+              )}
+
               {!event.monorepoUrl &&
                 !event.gameServerDockerImage &&
                 !event.myCoreBotDockerImage && (

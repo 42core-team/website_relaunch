@@ -87,6 +87,9 @@ export class EventEntity {
   myCoreBotDockerImage: string;
 
   @Column({ nullable: true })
+  visualizerDockerImage: string;
+
+  @Column({ nullable: true })
   monorepoUrl: string;
 
   @JoinTable({ name: "events_users" })

@@ -116,8 +116,12 @@ export default function CreateEventForm() {
   const [myCoreBotDockerImage, setMyCoreBotDockerImage] = useState(
     "ghcr.io/42core-team/my-core-bot",
   );
+  const [visualizerDockerImage, setVisualizerDockerImage] = useState(
+    "ghcr.io/42core-team/visualizer",
+  );
   const [gameServerImageTag, setGameServerImageTag] = useState("");
   const [myCoreBotImageTag, setMyCoreBotImageTag] = useState("");
+  const [visualizerImageTag, setVisualizerImageTag] = useState("");
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [tagFetchError, setTagFetchError] = useState<string | null>(null);
@@ -223,6 +227,11 @@ export default function CreateEventForm() {
         (myCoreBotDockerImage || "").trim() && (myCoreBotImageTag || "").trim()
           ? `${myCoreBotDockerImage.trim()}:${myCoreBotImageTag.trim()}`
           : myCoreBotDockerImage || undefined,
+      visualizerDockerImage:
+        (visualizerDockerImage || "").trim() &&
+        (visualizerImageTag || "").trim()
+          ? `${visualizerDockerImage.trim()}:${visualizerImageTag.trim()}`
+          : visualizerDockerImage || undefined,
     });
 
     if (isActionError(result)) {
@@ -433,6 +442,13 @@ export default function CreateEventForm() {
                 value={myCoreBotDockerImage}
                 onValueChange={(v) => setMyCoreBotDockerImage(v.trim())}
               />
+              <Input
+                label="Visualizer Base Image"
+                labelPlacement="outside"
+                placeholder="e.g., ghcr.io/42core-team/visualizer"
+                value={visualizerDockerImage}
+                onValueChange={(v) => setVisualizerDockerImage(v.trim())}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -456,6 +472,18 @@ export default function CreateEventForm() {
                   placeholder="e.g., dev, v0.0.0.0"
                   value={myCoreBotImageTag}
                   onValueChange={setMyCoreBotImageTag}
+                  className="w-full"
+                  list="repo-tags"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Visualizer Image Tag
+                </label>
+                <Input
+                  placeholder="e.g., dev, v0.0.0.0"
+                  value={visualizerImageTag}
+                  onValueChange={setVisualizerImageTag}
                   className="w-full"
                   list="repo-tags"
                 />

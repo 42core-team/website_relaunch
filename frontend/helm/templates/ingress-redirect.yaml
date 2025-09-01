@@ -15,7 +15,7 @@ metadata:
     {{- include "frontend.labels" . | nindent 4 }}
   annotations:
     # Required redirect annotations
-    nginx.ingress.kubernetes.io/permanent-redirect: "https://{{ .Values.ingressRedirect.toHost }}$request_uri"
+    nginx.ingress.kubernetes.io/permanent-redirect: "https://{{ .Values.ingressRedirect.toHost }}"
     nginx.ingress.kubernetes.io/permanent-redirect-code: "{{ .Values.ingressRedirect.code | default "308" }}"
     {{- with .Values.ingressRedirect.annotations }}
     # Custom annotations (merged)

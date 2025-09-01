@@ -43,7 +43,7 @@ export function WikiLayout({
   };
 
   return (
-    <div className="flex bg-background min-h-screen">
+    <div className="flex bg-background">
       {/* Mobile Navigation Overlay */}
       {isMobileNavOpen && (
         <div

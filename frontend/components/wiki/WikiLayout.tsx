@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { WikiNavigation } from "./WikiNavigation";
 import { WikiSearch } from "./WikiSearch";
-import { VersionSelector } from "./VersionSelector";
 import { WikiNavItem, WikiVersion } from "@/lib/markdown";
 import { buildVersionPath } from "@/lib/wiki-navigation";
 import { useNavbar } from "@/contexts/NavbarContext";
@@ -44,7 +43,7 @@ export function WikiLayout({
   };
 
   return (
-    <div className="flex bg-background">
+    <div className="flex bg-background min-h-screen">
       {/* Mobile Navigation Overlay */}
       {isMobileNavOpen && (
         <div
@@ -73,7 +72,7 @@ export function WikiLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 lg:ml-0">
+      <div className="flex-1 min-w-0 lg:ml-0 flex flex-col h-[calc(100vh-60px)]">
         {/* Header with Search and Version Selector */}
         <header
           className={`border-b border-divider bg-content1 p-4 shadow-xs sticky top-[60px] z-40 transition-opacity duration-300 ${isBasicNavbarMenuOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
@@ -279,7 +278,7 @@ export function WikiLayout({
         </header>
 
         {/* Content Area */}
-        <main className="p-4 sm:p-6 bg-background">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
           <div className="max-w-4xl mx-auto">{children}</div>
         </main>
       </div>

@@ -42,7 +42,63 @@ The following environment variables can be configured in the values files:
 - `NEXTAUTH_URL`: The public URL for NextAuth.js
 - `NEXTAUTH_SECRET`: Secret for NextAuth.js session encryption (stored as Kubernetes secret)
 
-### Secrets Required
+### Ingress rate limiting
+
+Basic request rate limiting is enabled via nginx-ingress annotations in the environment values files:
+
+- `nginx.ingress.kubernetes.io/limit-rps`: max requests per second per client IP
+- `nginx.ingress.kubernetes.io/limit-burst`: allowed burst over the RPS
+- `nginx.ingress.kubernetes.io/limit-connections`: concurrent connections per client IP
+
+Notes:
+
+- Limits are enforced per nginx controller pod. With multiple replicas (e.g., 3), the effective total can be up to ~3x if traffic is evenly distributed.
+- If your cluster sits behind an external load balancer or proxy, ensure client IP is preserved (e.g., configure `use-forwarded-headers` and proper `proxy-real-ip-cidr` on the ingress controller) so limits apply per real client IP.
+- Tune values per environment in `values-dev.yaml` and `values-prod.yaml`.
+
+### Redirect ingress
+
+The chart supports an optional redirect ingress for handling domain redirects (e.g., www to apex domain). This uses nginx ingress annotations to issue HTTP redirects without requiring additional services.
+
+#### Configuration
+
+```yaml
+ingressRedirect:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  fromHost: "www.example.com"
+  toHost: "example.com"
+  code: "308"
+  tls:
+    enabled: true
+    secretName: "www-example-com-tls"
+```
+
+#### Example: Production www redirect
+
+```yaml
+ingressRedirect:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  fromHost: "www.coregame.de"
+  toHost: "coregame.de"
+  code: "308"
+  tls:
+    enabled: true
+    secretName: "www-coregame-de-tls"
+```
+
+This configuration will:
+- Create a separate ingress for `www.coregame.de`
+- Issue HTTP 308 (permanent) redirects to `https://coregame.de`
+- Include TLS certificate management for the www subdomain
+- Preserve the original request path and query parameters
+
+## Secrets Required
 
 Set up the following secrets in GitHub Environments:
 

@@ -25,8 +25,9 @@ env:
   # 42 OAuth Configuration - public variable
   NEXT_PUBLIC_FORTY_TWO_CLIENT_ID: "prod-42-client-id"
   # Backend API Configuration
-  BACKEND_URL: "https://api.coregame.de"
+  BACKEND_URL: "http://api-main"
   NEXT_PUBLIC_VISUALIZER_URL: "https://visualizer.coregame.de"
+  NEXT_PUBLIC_BACKEND_PUBLIC_URL: "https://api.coregame.de"
 
 ingress:
   enabled: true
@@ -34,6 +35,9 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-burst: "20"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
   hosts:
     - host: coregame.de
       paths:
@@ -43,6 +47,18 @@ ingress:
     - hosts:
         - coregame.de
       secretName: coregame-de-tls
+
+ingressRedirect:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  fromHost: "www.coregame.de"
+  toHost: "coregame.de"
+  code: "308"
+  tls:
+    enabled: true
+    secretName: "www-coregame-de-tls"
 
 nodeSelector: {}
 tolerations: []

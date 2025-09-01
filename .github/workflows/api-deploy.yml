@@ -18,6 +18,10 @@ on:
           - dev
           - prod
 
+concurrency:
+  group: ${{ format('{0}-{1}-{2}', github.workflow, github.ref, github.event_name == 'workflow_call' && github.run_id || 'manual') }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-api
@@ -34,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create deployment
         id: deployment

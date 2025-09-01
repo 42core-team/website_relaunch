@@ -1,18 +1,18 @@
 import { useParams } from "next/navigation";
 import {
-  Button,
   Avatar,
-  useDisclosure,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
+  Button,
   Chip,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure,
 } from "@heroui/react";
 import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getEventById } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
 import Link from "next/link";
@@ -127,25 +127,35 @@ export const TeamInfoSection = ({
             </Button>
           )}
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex gap-3 items-start flex-wrap">
           {teamMembers.length > 0 ? (
             teamMembers.map((member) => (
-              <div key={member.id} className="flex flex-col items-center">
-                <Link href={`https://github.com/${member.username}`}>
+              <Link
+                key={member.id}
+                href={`https://github.com/${member.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group w-full max-w-[8rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded-xl"
+                aria-label={`Open ${member.username}'s GitHub profile`}
+              >
+                <div className="flex flex-col items-center rounded-xl bg-content1/50 p-4 ring-1 ring-default-200 shadow-sm transition hover:shadow-md hover:ring-primary/60">
                   <Avatar
                     size="lg"
                     src={member.profilePicture}
                     name={(member.name || "User").substring(0, 2).toUpperCase()}
+                    isBordered
                     className="mb-2"
                   />
-                  <span className="text-sm font-medium">
-                    @{member.username}
+                  <span className="text-sm font-medium text-default-700 text-center truncate w-full group-hover:text-primary">
+                    {member.username}
                   </span>
-                </Link>
-              </div>
+                </div>
+              </Link>
             ))
           ) : (
-            <p className="text-default-500">No team members found</p>
+            <p className="text-default-500 col-span-full text-center">
+              No team members found
+            </p>
           )}
         </div>
       </div>

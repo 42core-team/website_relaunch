@@ -110,13 +110,13 @@ export const TeamInviteModal = ({
                   <div className="flex items-center gap-3">
                     <Avatar
                       size="sm"
-                      src={user.profilePicture}
                       name={(user.name || "User").substring(0, 2).toUpperCase()}
+                      src={user.profilePicture}
                     />
                     <div>
                       <p className="font-medium">{user.name}</p>
                       <p className="text-default-500 text-sm">
-                        @{user.username}
+                        {user.username}
                       </p>
                     </div>
                   </div>

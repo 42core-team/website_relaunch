@@ -1,5 +1,5 @@
 # Multi-stage build for Next.js production with pnpm
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 
 # Install pnpm globally
 RUN npm install -g pnpm
@@ -20,6 +20,10 @@ COPY . .
 # Add build argument for NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
 ARG NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
 ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=$NEXT_PUBLIC_FORTY_TWO_CLIENT_ID
+
+# Add build argument for NEXT_PUBLIC_BACKEND_PUBLIC_URL
+ARG NEXT_PUBLIC_BACKEND_PUBLIC_URL
+ENV NEXT_PUBLIC_BACKEND_PUBLIC_URL=$NEXT_PUBLIC_BACKEND_PUBLIC_URL
 
 RUN apk add --no-cache git openssh
 RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \

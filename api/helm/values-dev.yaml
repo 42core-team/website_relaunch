@@ -13,7 +13,6 @@ resources:
     memory: 256Mi
 
 env:
-  PORT: "3001"
   # Database configuration
   DB_TYPE: postgres
   DB_PORT: "5432"
@@ -33,6 +32,9 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "https://dev.coregame.de"
     nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.ingress.kubernetes.io/limit-burst: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
   hosts:
     - host: dev.api.coregame.de
       paths:
@@ -52,4 +54,5 @@ secrets:
   DB_PASSWORD: ""
   DB_URL: ""
   API_SECRET_ENCRYPTION_KEY: ""
+  FRONTEND_SECRET: ""
   RABBITMQ_URL: ""

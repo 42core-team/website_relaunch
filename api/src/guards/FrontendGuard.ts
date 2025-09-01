@@ -1,8 +1,8 @@
 import {
-  CanActivate,
-  createParamDecorator,
-  ExecutionContext,
-  UnauthorizedException,
+    CanActivate,
+    createParamDecorator,
+    ExecutionContext, Injectable,
+    UnauthorizedException,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { ConfigService } from "@nestjs/config";
@@ -14,17 +14,16 @@ export const UserId = createParamDecorator(
   },
 );
 
+@Injectable()
 export class FrontendGuard implements CanActivate {
   constructor(private readonly config: ConfigService) {}
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    if (!this.config) return true;
     const request = context.switchToHttp().getRequest();
     const authorization = request.headers.authorization;
     if (
-      !authorization &&
       authorization !== this.config.getOrThrow("FRONTEND_SECRET")
     )
       throw new UnauthorizedException();

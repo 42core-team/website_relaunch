@@ -237,7 +237,11 @@ export function WikiNavigation({
   };
 
   return (
-    <nav className="w-64 h-full overflow-y-auto border-r border-divider bg-content1">
+    <nav
+      className="w-64 h-full overflow-y-auto border-r border-divider bg-content1"
+      aria-label="Wiki sidebar navigation"
+      role="navigation"
+    >
       <div className="p-4">
         <h2 className="text-lg font-semibold mb-4 text-default-700">Wiki</h2>
         <div className="space-y-1">

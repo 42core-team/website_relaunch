@@ -84,6 +84,7 @@ export function WikiLayout({
               onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
               className="lg:hidden p-2 rounded-md hover:bg-default-100 transition-colors"
               aria-label="Toggle navigation"
+              aria-expanded={isMobileNavOpen}
             >
               <svg
                 className="w-5 h-5"

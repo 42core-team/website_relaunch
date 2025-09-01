@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { WikiNavigation } from "./WikiNavigation";
 import { WikiSearch } from "./WikiSearch";
@@ -29,6 +29,35 @@ export function WikiLayout({
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState(false);
   const { isBasicNavbarMenuOpen } = useNavbar();
+
+  // Ensure clicks on in-content heading anchors scroll inside wiki-content only
+  useEffect(() => {
+    const container = document.querySelector(".main-wiki-content");
+    if (!container) return;
+
+    const links = container.querySelectorAll("a.heading-anchor");
+    const handleClick = (e: Event) => {
+      e.preventDefault();
+      const href = (e.currentTarget as HTMLAnchorElement).getAttribute("href");
+      const targetId = href?.startsWith("#") ? href.slice(1) : null;
+      if (targetId) {
+        const target = document.getElementById(targetId);
+        if (target) {
+          const offset =
+            target.offsetTop - (container as HTMLElement).offsetTop;
+          (container as HTMLElement).scrollTo({
+            top: offset,
+            behavior: "smooth",
+          });
+        }
+      }
+    };
+
+    links.forEach((link) => link.addEventListener("click", handleClick));
+    return () => {
+      links.forEach((link) => link.removeEventListener("click", handleClick));
+    };
+  }, []);
 
   const handleVersionChange = (newVersion: string) => {
     if (newVersion === currentVersion) return;

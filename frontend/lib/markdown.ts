@@ -342,10 +342,6 @@ async function getFilePathFromSlugWithVersion(
     return path.join(versionDir, ...decodedSlug, "README.md");
   }
 }
-async function getFilePathFromSlug(slug: string[]): Promise<string> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getFilePathFromSlugWithVersion(slug, defaultVersion);
-}
 
 function formatVersionName(slug: string): string {
   // Handle special version naming

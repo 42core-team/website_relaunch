@@ -76,7 +76,28 @@ export function WikiNavigation({
       });
 
       if (closestEntry) {
-        setActiveId(closestEntry.target.id);
+        const newId = closestEntry.target.id;
+        setActiveId(newId);
+        // Ensure the active TOC link in the sidebar is visible
+        requestAnimationFrame(() => {
+          const activeLink = document.querySelector(`a[href="#${newId}"]`);
+          if (activeLink instanceof HTMLElement) {
+            const contentContainer = document.querySelector(
+              ".wiki-sidebar-navigation",
+            );
+
+            if (contentContainer instanceof HTMLElement) {
+              const offset =
+                activeLink.offsetTop -
+                contentContainer.clientHeight / 2 +
+                activeLink.clientHeight / 2;
+              contentContainer.scrollTo({
+                top: offset,
+                behavior: "smooth",
+              });
+            }
+          }
+        });
       }
     };
 
@@ -243,7 +264,7 @@ export function WikiNavigation({
 
   return (
     <nav
-      className="w-64 h-full overflow-y-auto border-r border-divider bg-content1"
+      className="wiki-sidebar-navigation w-64 h-full overflow-y-auto border-r border-divider bg-content1"
       aria-label="Wiki sidebar navigation"
       role="navigation"
     >

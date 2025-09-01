@@ -18,7 +18,6 @@ resources:
 
 env:
   NODE_ENV: production
-  PORT: "3001"
   # Database configuration
   DB_TYPE: postgres
   DB_PORT: "5432"

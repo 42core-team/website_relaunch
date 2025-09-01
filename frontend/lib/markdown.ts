@@ -82,7 +82,17 @@ export async function getWikiPageWithVersion(
 ): Promise<WikiPage | null> {
   try {
     const filePath = await getFilePathFromSlugWithVersion(slug, version);
-    const fileContent = await fs.readFile(filePath, "utf8");
+    let fileContent: string;
+    try {
+      fileContent = await fs.readFile(filePath, "utf8");
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        // If the file truly does not exist, signal not found so nice error message appears
+        return null;
+      } else {
+        throw err;
+      }
+    }
     const { data, content } = matter(fileContent);
 
     // Process markdown content with callout support
@@ -197,14 +207,24 @@ export async function getWikiPageWithVersion(
       },
     );
 
-    const stats = await fs.stat(filePath);
+    let lastModified: Date;
+    try {
+      const stats = await fs.stat(filePath);
+      lastModified = stats.mtime;
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        lastModified = new Date(0); // fallback for missing file
+      } else {
+        throw err;
+      }
+    }
 
     return {
       slug,
       title: data.title || getTitleFromSlug(slug),
       content: htmlContent,
       frontmatter: data,
-      lastModified: stats.mtime,
+      lastModified,
       version,
     };
   } catch (error) {
@@ -331,15 +351,27 @@ async function getFilePathFromSlugWithVersion(
   }
 
   // Try direct file path first
-  const directPath = path.join(versionDir, ...decodedSlug) + ".md";
+  const candidateDirect = path.resolve(versionDir, ...decodedSlug) + ".md";
 
-  // Check if direct path exists
+  // Security check: ensure path is inside versionDir
+  if (!candidateDirect.startsWith(path.resolve(versionDir))) {
+    throw new Error("Invalid wiki path");
+  }
+
   try {
-    await fs.access(directPath);
-    return directPath;
+    await fs.access(candidateDirect);
+    return candidateDirect;
   } catch {
-    // If direct path doesn't exist, try README in directory
-    return path.join(versionDir, ...decodedSlug, "README.md");
+    // If not exist, try README in directory
+    const candidateReadme = path.resolve(
+      versionDir,
+      ...decodedSlug,
+      "README.md",
+    );
+    if (!candidateReadme.startsWith(path.resolve(versionDir))) {
+      throw new Error("Invalid wiki path");
+    }
+    return candidateReadme;
   }
 }
 

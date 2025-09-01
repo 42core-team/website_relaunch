@@ -60,6 +60,7 @@ export function WikiLayout({
         transform lg:transform-none transition-transform duration-300 ease-in-out
         ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         flex-shrink-0
+        overflow-y-auto overflow-x-hidden break-words whitespace-normal
       `}
       >
         <WikiNavigation

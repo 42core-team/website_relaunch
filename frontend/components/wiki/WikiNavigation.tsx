@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { WikiNavItem } from "@/lib/markdown";
-import { Link } from "@heroui/link";
 import { Accordion, AccordionItem } from "@heroui/react";
+import Link from "next/link";
 
 interface TocItem {
   id: string;
@@ -174,7 +174,7 @@ export function WikiNavigation({
         <div key={uniqueKey}>
           <Link
             href={getVersionAwareUrl(itemPath)}
-            onPress={onItemClick}
+            onClick={onItemClick}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
               isActive ? "bg-primary-50 text-primary-600" : "text-default-600"
             }`}

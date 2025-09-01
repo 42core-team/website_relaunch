@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { Link } from "@heroui/link";
 
 interface TocItem {
   id: string;

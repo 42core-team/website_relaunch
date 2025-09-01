@@ -279,7 +279,7 @@ export function WikiLayout({
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
+        <main className="main-wiki-content flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
           <div className="max-w-4xl mx-auto">{children}</div>
         </main>
       </div>

@@ -100,8 +100,13 @@ export function WikiNavigation({
     setActiveId(id); // Immediate feedback
 
     const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    const contentContainer = document.querySelector(".main-wiki-content");
+    if (element && contentContainer instanceof HTMLElement) {
+      const targetOffset = element.offsetTop - contentContainer.offsetTop;
+      contentContainer.scrollTo({
+        top: targetOffset,
+        behavior: "smooth",
+      });
     }
 
     if (scrollTimeoutRef.current) {

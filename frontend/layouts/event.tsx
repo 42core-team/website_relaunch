@@ -37,26 +37,18 @@ export default async function EventLayout({
 
   const event = await getEventById(eventId);
   if (isActionError(event))
-    return (
-      <div className="container mx-auto max-w-7xl px-6">
-        Error: {event.error}
-      </div>
-    );
+    throw new Error("Could not get Event: " + event.error);
 
   const isEventAdminState = await isEventAdmin(eventId);
   const isUserRegistered = await isUserRegisteredForEvent(eventId);
   const showJoinNotice = await shouldShowJoinNotice(eventId);
 
   if (isActionError(isEventAdminState) || isActionError(isUserRegistered)) {
-    return (
-      <div className="container mx-auto max-w-7xl px-6">
-        Error: Unable to fetch event details.
-      </div>
-    );
+    throw new Error("Error: Unable to fetch event details");
   }
 
   if (!event) {
-    return <div>Event not found</div>;
+    throw new Error("Error: Unable to fetch event details");
   }
 
   return (

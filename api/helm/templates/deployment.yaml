@@ -63,6 +63,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "api.fullname" . }}-secrets
                   key: API_SECRET_ENCRYPTION_KEY
+            - name: FRONTEND_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "api.fullname" . }}-secrets
+                  key: FRONTEND_SECRET
           {{- if .Values.resources }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

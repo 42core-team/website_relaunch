@@ -1,8 +1,30 @@
+"use client";
 import { Link } from "@heroui/link";
 import { Button } from "@heroui/button";
 import { siteConfig } from "@/config/site";
 
 export default function Footer() {
+  const handleReportIssue = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const repo = "42core-team/website_relaunch";
+    const base = `https://github.com/${repo}/issues/new`;
+    const title = encodeURIComponent(
+      `Feedback: ${document.title || "Website issue/idea"}`,
+    );
+    const ua = navigator.userAgent;
+    const body = encodeURIComponent(
+      `Please describe the issue or suggestion:\n\n- Page URL: ${location.href}\n- Referrer: ${
+        document.referrer || "N/A"
+      }\n- What were you trying to do?\n- Steps to reproduce:\n- Expected result:\n- Actual result:\n- Screenshot(s): Drag-and-drop or paste here\n- Browser: ${ua}\n- OS:\n- Device:\n- Time (UTC): ${new Date()
+        .toISOString()
+        .replace("T", " ")
+        .replace(
+          "Z",
+          " UTC",
+        )}\n\nAdditional context:\n\nType of report: [ ] Bug [ ] Content issue [ ] Design [ ] Performance [ ] Accessibility`,
+    );
+    location.href = `${base}?labels=feedback&title=${title}&body=${body}`;
+  };
   return (
     <footer className="w-full border-t border-default-200">
       <div className="container mx-auto max-w-7xl py-12 px-8">
@@ -27,16 +49,22 @@ export default function Footer() {
                 Home
               </Link>
               <Link
-                href="/about"
+                href="/events"
                 className="text-default-500 hover:text-primary"
               >
-                About
+                Events
               </Link>
               <Link
                 href="/wiki"
                 className="text-default-500 hover:text-primary"
               >
-                Documentation
+                Wiki
+              </Link>
+              <Link
+                href="/about"
+                className="text-default-500 hover:text-primary"
+              >
+                About Us
               </Link>
             </div>
           </div>
@@ -46,22 +74,27 @@ export default function Footer() {
             <h3 className="font-bold mb-4">Connect</h3>
             <div className="flex flex-col gap-2">
               <Link
+                href="https://status.coregame.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-default-500 hover:text-primary"
+              >
+                Status Page
+              </Link>
+              <Link
                 href={siteConfig.links.github}
                 isExternal
                 className="text-default-500 hover:text-primary"
               >
                 GitHub
               </Link>
-              <Button
-                className="max-w-fit px-4 mt-2"
-                color="primary"
-                variant="flat"
-                size="sm"
-                as={Link}
-                href="/wiki"
+              <a
+                href="#"
+                onClick={handleReportIssue}
+                className="text-default-500 hover:text-primary"
               >
-                Get Started
-              </Button>
+                Report an issue
+              </a>
             </div>
           </div>
         </div>
@@ -70,7 +103,7 @@ export default function Footer() {
         <div className="mt-8 pt-8 border-t border-default-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-default-500 text-sm">
-              © 2024 CORE Game. All rights reserved.
+              © 2025 CORE Game. All rights reserved.
             </p>
             <div className="flex gap-4 text-sm">
               <Link

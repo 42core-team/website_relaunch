@@ -100,7 +100,12 @@ export function WikiSearch({
                         setTimeout(() => {
                           // Try to find and scroll to the text using a more robust method
                           const searchText = query.trim().toLowerCase();
-                          const elements = document.querySelectorAll(
+                          const contentContainer =
+                            document.querySelector(".main-wiki-content");
+                          if (contentContainer == null) {
+                            return;
+                          }
+                          const elements = contentContainer.querySelectorAll(
                             "p, h1, h2, h3, h4, h5, h6, li, td, th",
                           );
 
@@ -110,10 +115,21 @@ export function WikiSearch({
                                 ?.toLowerCase()
                                 .includes(searchText)
                             ) {
-                              element.scrollIntoView({
-                                behavior: "smooth",
-                                block: "center",
-                              });
+                              const docElement = document.getElementById(
+                                element.id,
+                              );
+                              if (
+                                docElement &&
+                                contentContainer instanceof HTMLElement
+                              ) {
+                                const targetOffset =
+                                  docElement.offsetTop -
+                                  contentContainer.offsetTop;
+                                contentContainer.scrollTo({
+                                  top: targetOffset,
+                                  behavior: "smooth",
+                                });
+                              }
 
                               // Temporarily highlight the element
                               const originalBg = (element as HTMLElement).style

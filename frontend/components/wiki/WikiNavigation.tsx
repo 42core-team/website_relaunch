@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { WikiNavItem } from "@/lib/markdown";
-import { Link } from "@heroui/link";
 import { Accordion, AccordionItem } from "@heroui/react";
+import Link from "next/link";
 
 interface TocItem {
   id: string;
@@ -76,7 +76,28 @@ export function WikiNavigation({
       });
 
       if (closestEntry) {
-        setActiveId(closestEntry.target.id);
+        const newId = closestEntry.target.id;
+        setActiveId(newId);
+        // Ensure the active TOC link in the sidebar is visible
+        requestAnimationFrame(() => {
+          const activeLink = document.querySelector(`a[href="#${newId}"]`);
+          if (activeLink instanceof HTMLElement) {
+            const contentContainer = document.querySelector(
+              ".wiki-sidebar-navigation",
+            );
+
+            if (contentContainer instanceof HTMLElement) {
+              const offset =
+                activeLink.offsetTop -
+                contentContainer.clientHeight / 2 +
+                activeLink.clientHeight / 2;
+              contentContainer.scrollTo({
+                top: offset,
+                behavior: "smooth",
+              });
+            }
+          }
+        });
       }
     };
 
@@ -100,8 +121,13 @@ export function WikiNavigation({
     setActiveId(id); // Immediate feedback
 
     const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    const contentContainer = document.querySelector(".main-wiki-content");
+    if (element && contentContainer instanceof HTMLElement) {
+      const targetOffset = element.offsetTop - contentContainer.offsetTop;
+      contentContainer.scrollTo({
+        top: targetOffset,
+        behavior: "smooth",
+      });
     }
 
     if (scrollTimeoutRef.current) {
@@ -148,7 +174,7 @@ export function WikiNavigation({
         <div key={uniqueKey}>
           <Link
             href={getVersionAwareUrl(itemPath)}
-            onPress={onItemClick}
+            onClick={onItemClick}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
               isActive ? "bg-primary-50 text-primary-600" : "text-default-600"
             }`}
@@ -225,7 +251,7 @@ export function WikiNavigation({
       <Link
         key={uniqueKey}
         href={getVersionAwareUrl(itemPath)}
-        onPress={onItemClick}
+        onClick={onItemClick}
         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors hover:bg-default-100 ${
           isActive ? "bg-primary-50 text-primary-600" : "text-default-600"
         }`}
@@ -237,7 +263,11 @@ export function WikiNavigation({
   };
 
   return (
-    <nav className="w-64 h-full overflow-y-auto border-r border-divider bg-content1">
+    <nav
+      className="wiki-sidebar-navigation w-64 h-full overflow-y-auto border-r border-divider bg-content1"
+      aria-label="Wiki sidebar navigation"
+      role="navigation"
+    >
       <div className="p-4">
         <h2 className="text-lg font-semibold mb-4 text-default-700">Wiki</h2>
         <div className="space-y-1">

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { WikiNavigation } from "./WikiNavigation";
 import { WikiSearch } from "./WikiSearch";
-import { VersionSelector } from "./VersionSelector";
 import { WikiNavItem, WikiVersion } from "@/lib/markdown";
 import { buildVersionPath } from "@/lib/wiki-navigation";
 import { useNavbar } from "@/contexts/NavbarContext";
@@ -30,6 +29,35 @@ export function WikiLayout({
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState(false);
   const { isBasicNavbarMenuOpen } = useNavbar();
+
+  // Ensure clicks on in-content heading anchors scroll inside wiki-content only
+  useEffect(() => {
+    const container = document.querySelector(".main-wiki-content");
+    if (!container) return;
+
+    const links = container.querySelectorAll("a.heading-anchor");
+    const handleClick = (e: Event) => {
+      e.preventDefault();
+      const href = (e.currentTarget as HTMLAnchorElement).getAttribute("href");
+      const targetId = href?.startsWith("#") ? href.slice(1) : null;
+      if (targetId) {
+        const target = document.getElementById(targetId);
+        if (target) {
+          const offset =
+            target.offsetTop - (container as HTMLElement).offsetTop;
+          (container as HTMLElement).scrollTo({
+            top: offset,
+            behavior: "smooth",
+          });
+        }
+      }
+    };
+
+    links.forEach((link) => link.addEventListener("click", handleClick));
+    return () => {
+      links.forEach((link) => link.removeEventListener("click", handleClick));
+    };
+  }, []);
 
   const handleVersionChange = (newVersion: string) => {
     if (newVersion === currentVersion) return;
@@ -61,6 +89,7 @@ export function WikiLayout({
         transform lg:transform-none transition-transform duration-300 ease-in-out
         ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         flex-shrink-0
+        overflow-y-auto overflow-x-hidden break-words whitespace-normal
       `}
       >
         <WikiNavigation
@@ -73,7 +102,7 @@ export function WikiLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 lg:ml-0">
+      <div className="flex-1 min-w-0 lg:ml-0 flex flex-col h-[calc(100vh-60px)]">
         {/* Header with Search and Version Selector */}
         <header
           className={`border-b border-divider bg-content1 p-4 shadow-xs sticky top-[60px] z-40 transition-opacity duration-300 ${isBasicNavbarMenuOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
@@ -84,6 +113,7 @@ export function WikiLayout({
               onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
               className="lg:hidden p-2 rounded-md hover:bg-default-100 transition-colors"
               aria-label="Toggle navigation"
+              aria-expanded={isMobileNavOpen}
             >
               <svg
                 className="w-5 h-5"
@@ -278,7 +308,7 @@ export function WikiLayout({
         </header>
 
         {/* Content Area */}
-        <main className="p-4 sm:p-6 bg-background">
+        <main className="main-wiki-content flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
           <div className="max-w-4xl mx-auto">{children}</div>
         </main>
       </div>

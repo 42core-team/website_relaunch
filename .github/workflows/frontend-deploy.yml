@@ -185,6 +185,7 @@ jobs:
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
             --set env.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID="${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}" \
+            --set env.NEXT_PUBLIC_BACKEND_PUBLIC_URL="${{ vars.NEXT_PUBLIC_BACKEND_PUBLIC_URL }}" \
             --set secrets.FORTY_TWO_CLIENT_SECRET="${{ secrets.FORTY_TWO_CLIENT_SECRET }}" \
             --set secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}" \
             --validate
@@ -209,6 +210,7 @@ jobs:
             --set secrets.CLIENT_SECRET_GITHUB="${{ secrets.CLIENT_SECRET_GITHUB }}" \
             --set secrets.BACKEND_SECRET="${{ secrets.BACKEND_SECRET }}" \
             --set env.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID="${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}" \
+            --set env.NEXT_PUBLIC_BACKEND_PUBLIC_URL="${{ vars.NEXT_PUBLIC_BACKEND_PUBLIC_URL }}" \
             --set secrets.FORTY_TWO_CLIENT_SECRET="${{ secrets.FORTY_TWO_CLIENT_SECRET }}" \
             --set secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}" \
             --wait \

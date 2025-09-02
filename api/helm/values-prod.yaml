@@ -18,7 +18,6 @@ resources:
 
 env:
   NODE_ENV: production
-  PORT: "3001"
   # Database configuration
   DB_TYPE: postgres
   DB_PORT: "5432"
@@ -60,4 +59,5 @@ secrets:
   DB_PASSWORD: ""
   DB_URL: ""
   API_SECRET_ENCRYPTION_KEY: ""
+  FRONTEND_SECRET: ""
   RABBITMQ_URL: ""

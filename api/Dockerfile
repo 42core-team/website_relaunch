@@ -14,5 +14,4 @@ RUN npm ci --only=production && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
-EXPOSE 3001
 CMD ["node", "dist/main.js"]

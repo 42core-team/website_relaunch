@@ -8,6 +8,7 @@ import {ConfigService} from "@nestjs/config";
 import {TeamService} from "../team/team.service";
 import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
 import {Cron, CronExpression} from "@nestjs/schedule";
+import { EventVersionDto } from './dtos/eventVersionDto';
 
 @Injectable()
 export class EventService {
@@ -69,6 +70,18 @@ export class EventService {
         });
     }
 
+    async getEventVersion(id: string): Promise<EventVersionDto> {
+        const event = await this.eventRepository.findOneOrFail({
+            where: {id},
+        });
+
+        return {
+            gameServerVersion: event.gameServerDockerImage,
+            myCoreBotVersion: event.myCoreBotDockerImage,
+            visualizerVersion: event.visualizerDockerImage,
+        };
+    }
+
     createEvent(
         userId: string,
         name: string,
@@ -81,7 +94,11 @@ export class EventService {
         minTeamSize: number,
         maxTeamSize: number,
         repoTemplateOwner?: string,
-        repoTemplateName?: string
+        repoTemplateName?: string,
+        gameServerDockerImage?: string,
+        myCoreBotDockerImage?: string,
+        visualizerDockerImage?: string,
+        monorepoUrl?: string,
     ) {
         githubOrgSecret = CryptoJS.AES.encrypt(githubOrgSecret, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
 
@@ -104,8 +121,11 @@ export class EventService {
                     },
                     role: PermissionRole.ADMIN
                 }
-            ]
-
+            ],
+            gameServerDockerImage,
+            myCoreBotDockerImage,
+            visualizerDockerImage,
+            monorepoUrl
         });
     }
 

@@ -61,4 +61,24 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   repoTemplateName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  gameServerDockerImage?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  myCoreBotDockerImage?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  visualizerDockerImage?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  monorepoUrl?: string;
 }

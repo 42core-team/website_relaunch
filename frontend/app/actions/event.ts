@@ -22,6 +22,10 @@ export interface Event {
   repoLockDate?: string;
   areTeamsLocked: boolean;
   state: EventState;
+  monorepoUrl?: string;
+  gameServerDockerImage?: string;
+  myCoreBotDockerImage?: string;
+  visualizerDockerImage?: string;
 }
 
 export async function getEventById(
@@ -90,6 +94,10 @@ interface EventCreateParams {
   maxTeamSize: number;
   repoTemplateOwner: string;
   repoTemplateName: string;
+  gameServerDockerImage?: string;
+  myCoreBotDockerImage?: string;
+  visualizerDockerImage?: string;
+  monorepoUrl?: string;
 }
 
 // Create a new event

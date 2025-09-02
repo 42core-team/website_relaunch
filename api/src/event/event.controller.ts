@@ -38,7 +38,6 @@ export class EventController {
         return await this.eventService.getEventById(id);
     }
 
-    @UseGuards() // This overwrites the @UseGuards(FrontendGuard) so that this endpoint can be accessed by anyone
     @Get(":id/version")
     async getEventVersion(@Param("id", new ParseUUIDPipe()) id: string) {
         return await this.eventService.getEventVersion(id);

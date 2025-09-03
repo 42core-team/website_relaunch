@@ -7,6 +7,12 @@ import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
 import { isActionError } from "@/app/actions/errors";
 import { isEventAdmin } from "@/app/actions/event";
 import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
+import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
+
+export const metadata: Metadata = {
+  title: "Match Details",
+  description: "View the replay and logs for this match.",
+};
 
 export default async function MatchPage({
   params,

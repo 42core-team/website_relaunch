@@ -6,6 +6,11 @@ import {
 } from "@/app/actions/tournament";
 import { Match } from "@/app/actions/tournament-model";
 
+export const metadata = {
+  title: "Tournament Bracket",
+  description: "View the tournament bracket and match results.",
+};
+
 export default async function page({
   params,
 }: {

@@ -4,6 +4,29 @@ import { Card } from "@/components/clientHeroui";
 import { getTeamById, getTeamMembers } from "@/app/actions/team";
 import TeamUserTable from "./TeamUserTable";
 import BackButton from "./BackButton";
+import { Metadata } from "next";
+import { isActionError } from "@/app/actions/errors";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; teamId: string }>;
+}): Promise<Metadata> {
+  const { teamId } = await params;
+  const team = await getTeamById(teamId);
+
+  if (isActionError(team) || !team) {
+    return {
+      title: "Team Not Found",
+      description: "This team could not be found on the CORE Game platform.",
+    };
+  }
+
+  return {
+    title: `Team ${team.name}`,
+    description: `Details for team ${team.name} in CORE Game.`,
+  };
+}
 
 interface TeamDetailPageProps {
   params: Promise<{

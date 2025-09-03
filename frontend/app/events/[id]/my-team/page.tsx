@@ -11,6 +11,11 @@ import {
 import { isUserRegisteredForEvent } from "@/app/actions/event";
 import TeamView from "./teamView";
 
+export const metadata = {
+  title: "My Team",
+  description: "View and manage your team for this event in CORE Game.",
+};
+
 export default async function Page({
   params,
 }: {

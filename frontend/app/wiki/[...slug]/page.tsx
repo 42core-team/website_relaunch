@@ -50,7 +50,7 @@ export async function generateMetadata({
 
   if (!page) {
     return {
-      title: "Page Not Found - CORE Wiki",
+      title: "Page Not Found | CORE Wiki",
     };
   }
 
@@ -59,17 +59,17 @@ export async function generateMetadata({
   const plainText = page.content.replace(/<[^>]+>/g, "").slice(0, 160);
   const description = plainText || `Documentation for ${page.title}`;
   return {
-    title: `${page.title}${versionSuffix} - CORE Wiki`,
+    title: `${page.title}${versionSuffix} | CORE Wiki`,
     description,
     openGraph: {
-      title: `${page.title}${versionSuffix} - CORE Wiki`,
+      title: `${page.title}${versionSuffix} | CORE Wiki`,
       description,
       url,
       type: "article",
     },
     twitter: {
       card: "summary",
-      title: `${page.title}${versionSuffix} - CORE Wiki`,
+      title: `${page.title}${versionSuffix} | CORE Wiki`,
       description,
     },
     alternates: {

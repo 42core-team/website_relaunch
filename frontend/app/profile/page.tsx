@@ -1,4 +1,24 @@
-"use client";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile",
+  description:
+    "Manage your CORE Game account and your linked social platforms.",
+  openGraph: {
+    title: "Profile",
+    description:
+      "Manage your CORE Game account and your linked social platforms.",
+    type: "profile",
+  },
+  twitter: {
+    card: "summary",
+    title: "Profile",
+    description:
+      "Manage your CORE Game account and your linked social platforms.",
+  },
+};
+
+("use client");
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";

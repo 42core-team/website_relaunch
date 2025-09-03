@@ -11,66 +11,35 @@ export const metadata: Metadata = {
     template: "%s | CORE Game",
   },
   description:
-    "CORE is a programming competition where you write a bot to compete against other players. Protect your core, spawn units, manage resources, and outsmart your opponents in this strategic coding challenge.",
+    "Official homepage of CORE Game, the strategic programming competition where you develop bots to outsmart opponents.",
   keywords: [
     "programming competition",
     "bot programming",
+    "42 school",
     "strategy game",
     "coding challenge",
-    "game development",
-    "competitive programming",
-    "AI bots",
-    "42 school",
+    "coding game",
   ],
-  authors: [{ name: "Team Core Game" }],
-  creator: "Team Core Game",
-  publisher: "CORE Game",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://coregame.de"),
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: process.env.NEXTAUTH_URL || "https://coregame.de",
-    title: "CORE Game",
+    title: "Home - CORE Game",
     description:
-      "CORE is a programming competition where you write a bot to compete against other players. Protect your core, spawn units, manage resources, and outsmart your opponents in this strategic coding challenge.",
-    siteName: "CORE Game",
+      "Official homepage of CORE Game, the strategic programming competition where you develop bots to outsmart opponents.",
+    type: "website",
     images: [
       {
-        url: "/api/og",
-        width: 1200,
-        height: 630,
+        url: "/CORE-Logo.svg",
         alt: "CORE Game",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CORE Game",
+    title: "Home - CORE Game",
     description:
-      "CORE is a programming competition where you write a bot to compete against other players. Protect your core, spawn units, manage resources, and outsmart your opponents in this strategic coding challenge.",
-    images: ["/api/og"],
-    creator: "@coregame",
+      "Official homepage of CORE Game, the strategic programming competition where you develop bots to outsmart opponents.",
+    images: ["/CORE-Logo.svg"],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  category: "game",
+  category: "coding game",
 };
 
 export default function App({ children }: { children: React.ReactNode }) {

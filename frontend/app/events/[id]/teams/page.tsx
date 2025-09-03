@@ -3,10 +3,16 @@ import { Card } from "@/components/clientHeroui";
 import { getTeamsForEventTable } from "@/app/actions/team";
 import TeamsSearchBar from "./TeamsSearchBar";
 import TeamsTable from "./TeamsTable";
+import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 
 type TeamsPageProps = {
   params: Promise<{ id: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export const metadata: Metadata = {
+  title: "Teams",
+  description: "Browse and join teams for this event in CORE Game.",
 };
 
 export default async function TeamsPage({

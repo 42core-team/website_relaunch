@@ -5,6 +5,11 @@ import { motion } from "framer-motion";
 import { title } from "@/components/primitives";
 import { DownloadIcon } from "@/components/icons";
 
+export const metadata = {
+  title: "Rush Subject",
+  description: "Secret Rush Subject.",
+};
+
 export default function RushPage() {
   const [mounted, setMounted] = useState(false);
   const pdfUrl =

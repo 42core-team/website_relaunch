@@ -3,6 +3,22 @@ import { getEvents, canUserCreateEvent } from "@/app/actions/event";
 import EventsTable from "@/app/events/EventTable";
 import { Button } from "@/components/clientHeroui";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Events",
+  description: "Browse, join, and create events in CORE Game.",
+  openGraph: {
+    title: "Events",
+    description: "Browse, join, and create events in CORE Game.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Events",
+    description: "Browse, join, and create events in CORE Game.",
+  },
+};
 
 async function getData() {
   const [events, canCreate] = await Promise.all([

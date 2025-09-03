@@ -4,6 +4,11 @@ import { authOptions } from "@/app/utils/authOptions";
 import { canUserCreateEvent } from "@/app/actions/event";
 import { title } from "@/components/primitives";
 import CreateEventForm from "./CreateEventForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Event",
+};
 
 export default async function CreateEventPage() {
   const session = await getServerSession(authOptions);

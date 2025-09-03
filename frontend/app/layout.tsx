@@ -6,6 +6,9 @@ import DefaultLayout from "@/layouts/default";
 import ClientProviders from "@/components/ClientProviders";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXTAUTH_URL ?? "https://coregame.de",
+  ),
   title: {
     default: "CORE Game",
     template: "%s | CORE Game",
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/CORE-Logo.svg",
+        url: "/CORE-LOGO.svg",
         alt: "CORE Game",
       },
     ],
@@ -37,7 +40,7 @@ export const metadata: Metadata = {
     title: "Home - CORE Game",
     description:
       "Official homepage of CORE Game, the strategic programming competition where you develop bots to outsmart opponents.",
-    images: ["/CORE-Logo.svg"],
+    images: ["/CORE-LOGO.svg"],
   },
   category: "coding game",
 };

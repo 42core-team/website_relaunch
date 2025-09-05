@@ -221,7 +221,7 @@ export async function getWikiPageWithVersion(
 
     return {
       slug,
-      title: data.title || getTitleFromSlug(slug),
+      title: getTitleFromSlug(slug),
       content: htmlContent,
       frontmatter: data,
       lastModified,
@@ -314,23 +314,6 @@ export async function getWikiNavigationWithVersion(
   return buildNavigation(versionDir);
 }
 
-export async function getAllWikiPages(): Promise<WikiPage[]> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getAllWikiPagesForVersion(defaultVersion);
-}
-
-// Legacy function for backward compatibility
-export async function getWikiPage(slug: string[]): Promise<WikiPage | null> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getWikiPageWithVersion(slug, defaultVersion);
-}
-
-// Legacy function for backward compatibility
-export async function getWikiNavigation(): Promise<WikiNavItem[]> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getWikiNavigationWithVersion(defaultVersion);
-}
-
 async function getFilePathFromSlugWithVersion(
   slug: string[],
   version?: string,
@@ -376,35 +359,18 @@ async function getFilePathFromSlugWithVersion(
 }
 
 function formatVersionName(slug: string): string {
-  // Handle special version naming
-  if (slug.toLowerCase().includes("season")) {
-    return slug
-      .replace(/([a-z])(\d)/, "$1 $2")
-      .replace(/^./, (c) => c.toUpperCase());
-  }
-  if (slug.toLowerCase().includes("rush")) {
-    return slug
-      .replace(/([a-z])(\d)/, "$1 $2")
-      .replace(/^./, (c) => c.toUpperCase());
-  }
-
   // Convert kebab-case or snake_case to Title Case
   return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 function getTitleFromSlug(slug: string[]): string {
-  if (slug.length === 0) return "Home";
+  if (slug.length === 0) return "README";
   // Decode the last segment to handle URL-encoded characters
   const lastSegment = decodeURIComponent(slug[slug.length - 1]);
   return formatTitle(lastSegment);
 }
 
 function formatTitle(name: string): string {
-  // Handle special cases
-  if (name.toLowerCase() === "readme") return "Overview";
-  if (name.toLowerCase() === "api-reference") return "API Reference";
-  if (name.toLowerCase() === "faq") return "FAQ";
-
   // Convert kebab-case or snake_case to Title Case
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 }

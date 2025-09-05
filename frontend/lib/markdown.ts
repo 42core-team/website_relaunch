@@ -61,10 +61,24 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
         versions.push({
           name: formatVersionName(entry.name),
           slug: entry.name,
-          isDefault: entry.name === DEFAULT_WIKI_VERSION,
+          isDefault: false, // assign below based on newest tag
         });
       }
     }
+
+    // Determine newest stable tag as default, if any exist
+    const tagSlugs = versions
+      .map((v) => v.slug)
+      .filter((slug) => isStableTagName(slug));
+
+    let defaultSlug = DEFAULT_WIKI_VERSION;
+    if (tagSlugs.length > 0) {
+      defaultSlug = tagSlugs.sort(compareTagNamesDesc)[0];
+    }
+
+    versions.forEach((v) => {
+      v.isDefault = v.slug === defaultSlug;
+    });
 
     return versions.sort((a, b) => {
       if (a.isDefault) return -1;
@@ -373,6 +387,30 @@ function getTitleFromSlug(slug: string[]): string {
 function formatTitle(name: string): string {
   // Convert kebab-case or snake_case to Title Case
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
+// Helpers to detect and compare stable tag directory names like "v1.2.3" or "1.2.3.4"
+function isStableTagName(name: string): boolean {
+  if (name.includes("-")) return false; // exclude pre-release markers
+  const normalized = name.startsWith("v") ? name.slice(1) : name;
+  return /^\d+(?:\.\d+)*$/.test(normalized);
+}
+
+function parseTagNumbers(name: string): number[] {
+  const normalized = name.startsWith("v") ? name.slice(1) : name;
+  return normalized.split(".").map((n) => parseInt(n, 10) || 0);
+}
+
+function compareTagNamesDesc(a: string, b: string): number {
+  const aNums = parseTagNumbers(a);
+  const bNums = parseTagNumbers(b);
+  const maxLen = Math.max(aNums.length, bNums.length);
+  for (let i = 0; i < maxLen; i++) {
+    const aVal = aNums[i] ?? 0;
+    const bVal = bNums[i] ?? 0;
+    if (aVal !== bVal) return bVal - aVal; // descending: larger first
+  }
+  return 0;
 }
 
 export async function searchWikiPages(

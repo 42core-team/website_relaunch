@@ -5,7 +5,6 @@ const path = require("path");
 const repoUrl = "https://github.com/42core-team/wiki.git";
 const BRANCHES = ["season2-reloaded", "season2", "season1", "rush02"];
 const BASE_DIR = path.join(__dirname, "../content/wiki");
-const MONOREPO_URL = "https://github.com/42core-team/monorepo.git";
 
 if (!fs.existsSync(BASE_DIR)) {
   fs.mkdirSync(BASE_DIR, { recursive: true });
@@ -58,12 +57,58 @@ function copyDirContentsSync(srcDir, destDir) {
   return true;
 }
 
-const TAGS = getStableTags();
+// ---- Select only newest micro per base vX.Y.Z ----
+function isNumericTag(tag) {
+  const norm = tag.startsWith("v") ? tag.slice(1) : tag;
+  return /^\d+(?:\.\d+)*$/.test(norm);
+}
 
-TAGS.forEach((tag) => {
-  const targetDir = path.join(BASE_DIR, tag);
+function parseTagNumbers(tag) {
+  const norm = tag.startsWith("v") ? tag.slice(1) : tag;
+  return norm.split(".").map((n) => parseInt(n, 10) || 0);
+}
+
+function compareTagDesc(a, b) {
+  const aNums = parseTagNumbers(a);
+  const bNums = parseTagNumbers(b);
+  const maxLen = Math.max(aNums.length, bNums.length);
+  for (let i = 0; i < maxLen; i++) {
+    const av = aNums[i] ?? 0;
+    const bv = bNums[i] ?? 0;
+    if (av !== bv) return bv - av; // descending
+  }
+  return 0;
+}
+
+function baseKey(tag) {
+  const nums = parseTagNumbers(tag);
+  const base = [nums[0] ?? 0, nums[1] ?? 0, nums[2] ?? 0].join(".");
+  return "v" + base;
+}
+
+function pickLatestPerBase(tags) {
+  const filtered = tags.filter((t) => isNumericTag(t));
+  const map = new Map(); // base -> bestTag
+  for (const t of filtered) {
+    const base = baseKey(t);
+    const current = map.get(base);
+    // If there is no current best, or 't' is newer than current
+    if (!current || compareTagDesc(current, t) > 0) {
+      map.set(base, t);
+    }
+  }
+  return Array.from(map.entries());
+}
+
+const TAGS = getStableTags();
+const latestPerBase = pickLatestPerBase(TAGS);
+
+latestPerBase.forEach(([base, tag]) => {
+  const targetDir = path.join(BASE_DIR, base);
   if (fs.existsSync(targetDir)) {
-    console.log(`Tag ${tag} already present at ${targetDir}, skipping.`);
+    console.log(
+      `Base ${base} already present at ${targetDir} (tag ${tag}), skipping.`,
+    );
     return;
   }
 
@@ -72,7 +117,9 @@ TAGS.forEach((tag) => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 
-  console.log(`Cloning monorepo tag ${tag} (wiki only) into ${targetDir}...`);
+  console.log(
+    `Cloning monorepo tag ${tag} (wiki only) into ${targetDir} as ${base}...`,
+  );
   execSync(
     `git clone --depth 1 --filter=blob:none --sparse --branch ${tag} ${MONOREPO_URL} "${tempDir}"`,
     { stdio: "inherit" },

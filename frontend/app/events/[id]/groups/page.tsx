@@ -2,6 +2,12 @@ import Actions from "@/app/events/[id]/groups/actions";
 import { getSwissMatches } from "@/app/actions/tournament";
 import GraphView from "@/app/events/[id]/groups/graphView";
 
+export const metadata = {
+  title: "Group Phase",
+  description:
+    "In the group phase, teams compete using the Swiss tournament system, with rankings determined by the Buchholz scoring system.",
+};
+
 export default async function page({
   params,
 }: {

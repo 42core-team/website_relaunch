@@ -1,17 +1,13 @@
-"use client";
+import type { Metadata } from "next";
+import RRClient from "./rr-client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+export const dynamic = "force-dynamic";
 
-export default async function RickRollPage() {
-  const shouldRedirectToVideo = Math.random() < 0.5;
-  const redirectUrl = shouldRedirectToVideo
-    ? "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    : "/";
+export const metadata: Metadata = {
+  title: "Never Gonna Give You Up",
+  description: "You've been rickrolled!",
+};
 
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push(redirectUrl);
-  }, [router]);
+export default function RickRollPage() {
+  return <RRClient />;
 }

@@ -2,55 +2,100 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import { button as buttonStyles } from "@heroui/theme";
 
 import { GithubIcon, WikiIcon } from "@/components/icons";
 import { CoreLogoWhite } from "@/components/social";
 import GlobalStats from "@/components/GlobalStats";
-import {MatchStats} from "@/app/actions/stats";
+import { MatchStats } from "@/app/actions/stats";
+import { useTheme } from "next-themes";
 
-export default function HomePageClient(props: {
-    initialStats: MatchStats;
-}) {
+export default function HomePageClient(props: { initialStats: MatchStats }) {
+  const { resolvedTheme } = useTheme();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const visualizerTheme =
+    isMounted && resolvedTheme === "light" ? "light" : "dark";
+
+  const visualizerUrl = useMemo(() => {
+    const base = process.env.NEXT_PUBLIC_VISUALIZER_URL;
+    const params = new URLSearchParams({
+      autoplay:
+        "https://raw.githubusercontent.com/42core-team/monorepo/refs/heads/dev/visualizer/public/replays/replay_latest.json",
+      speed: "5",
+      ui: "false",
+      theme: visualizerTheme,
+      gridlines: "off",
+      themeColor: "000000",
+      suppress_version_warning: "true",
+    });
+    return `${base}/?${params.toString()}`;
+  }, [visualizerTheme]);
+
   return (
     <div>
-      <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-        <div className="inline-block text-center justify-center w-full">
+      <section className="flex flex-col items-center justify-center mb-15">
+        {/* Foreground (logo + text + links) */}
+        <div className="relative z-10 inline-block text-center justify-center w-full mb-25">
           <CoreLogoWhite className="mx-auto w-[30%] h-auto" />
-          <span className="text-2xl font-bold">
+          <span className="text-2xl font-bold block mt-2">
             Imagine a game contest that brings people
             <br />
             from around the world together for fun and learning.
           </span>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Link
+              className={buttonStyles({
+                color: "primary",
+                radius: "full",
+                variant: "shadow",
+              })}
+              href="/wiki"
+            >
+              <WikiIcon size={20} />
+              Documentation
+            </Link>
+            <Link
+              className={buttonStyles({ variant: "bordered", radius: "full" })}
+              href="https://github.com/42core-team/my-core-bot"
+            >
+              <GithubIcon size={20} />
+              GitHub
+            </Link>
+          </div>
         </div>
 
-        <div className="flex gap-3">
-          <Link
-            className={buttonStyles({
-              color: "primary",
-              radius: "full",
-              variant: "shadow",
-            })}
-            href="/wiki"
-          >
-            <WikiIcon size={20} />
-            Documentation
-          </Link>
-          <Link
-            className={buttonStyles({ variant: "bordered", radius: "full" })}
-            href="https://github.com/42core-team/my-core-bot"
-          >
-            <GithubIcon size={20} />
-            GitHub
-          </Link>
+        {/* Visualizer Embed under the logo */}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-6xl px-4 mx-auto">
+            <div className="w-full aspect-video overflow-hidden flex items-center justify-center rounded-2xl">
+              {isMounted && (
+                <iframe
+                  key={visualizerUrl}
+                  src={visualizerUrl}
+                  className="min-w-full min-h-full"
+                  allow="autoplay; fullscreen"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  style={{ pointerEvents: "initial" }}
+                  title="CORE Game Replay"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Global Stats Section */}
       <GlobalStats initialStats={props.initialStats} />
 
-      <section className="flex flex-col items-center justify-center gap-32 py-12 min-h-lvh">
+      <section className="flex flex-col items-center justify-center gap-16 min-h-lvh">
         <motion.div
           className="flex flex-col gap-32"
           initial={{ opacity: 0 }}
@@ -93,7 +138,7 @@ export default function HomePageClient(props: {
                     What is Necessary to Play
                   </h1>
                   <p className="text-2xl"></p>
-                  <p className="text-xl text-gray-400">{`All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you&apos;re a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!`}</p>
+                  <p className="text-xl text-gray-400">{`All you need is basic programming knowledge, a curious mind, and a hunger for competition! Whether you\'re a beginner or an experienced coder, you can jump in, experiment, and refine your bot as you go. No fancy hardware required—just bring your creativity and a love for coding!`}</p>
                 </div>
               ),
               delay: 0.6,
@@ -114,7 +159,7 @@ export default function HomePageClient(props: {
               delay: 0.8,
               direction: -1,
             },
-          ].map((character, index) => (
+          ].map((character) => (
             <motion.div
               key={character.alt}
               className="flex flex-col items-center min-h-lvh justify-center relative"

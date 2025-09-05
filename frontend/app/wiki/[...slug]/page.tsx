@@ -13,18 +13,14 @@ interface WikiPageProps {
 }
 
 async function parseSlugForVersion(slug: string[]) {
-  // Get available versions first to get the default
   const versions = await getAvailableVersions();
   const defaultVersion = await getDefaultWikiVersion();
 
-  // Check if first segment is a version
   if (slug.length === 0) {
     return { version: defaultVersion, pagePath: [] };
   }
 
   const possibleVersion = slug[0];
-
-  // Check if the first segment matches any available version
   const isVersion = versions.some((v) => v.slug === possibleVersion);
 
   if (isVersion) {
@@ -32,6 +28,11 @@ async function parseSlugForVersion(slug: string[]) {
       version: possibleVersion,
       pagePath: slug.slice(1),
     };
+  }
+
+  // If user explicitly requests a version that doesn't exist, 404
+  if (slug.length > 0) {
+    notFound();
   }
 
   return {
@@ -49,15 +50,56 @@ export async function generateMetadata({
 
   if (!page) {
     return {
-      title: "Page Not Found - CORE Wiki",
+      title: "Page Not Found | CORE Wiki",
     };
   }
 
   const versionSuffix = version !== "latest" ? ` (${version})` : "";
+  const url = `/wiki/${version}/${pagePath.join("/")}`;
+  const plainText = page.content.replace(/<[^>]+>/g, "").slice(0, 160);
+  const description = plainText || `Documentation for ${page.title}`;
   return {
-    title: `${page.title}${versionSuffix} - CORE Wiki`,
-    description: `Documentation for ${page.title}`,
+    title: `${page.title}${versionSuffix} | CORE Wiki`,
+    description,
+    openGraph: {
+      title: `${page.title}${versionSuffix} | CORE Wiki`,
+      description,
+      url,
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title: `${page.title}${versionSuffix} | CORE Wiki`,
+      description,
+    },
+    alternates: {
+      canonical: url,
+    },
   };
+}
+
+export async function generateStaticParams() {
+  const versions = await getAvailableVersions();
+  const params: { slug: string[] }[] = [];
+
+  for (const version of versions) {
+    const nav = await getWikiNavigationWithVersion(version.slug);
+    const traverse = (items: any[], prefix: string[] = []) => {
+      for (const item of items) {
+        if (item.isFile) {
+          params.push({ slug: [version.slug, ...item.slug] });
+        }
+        if (item.children) {
+          traverse(item.children, item.slug);
+        }
+      }
+    };
+    traverse(nav);
+    // also push version root
+    params.push({ slug: [version.slug] });
+  }
+
+  return params;
 }
 
 export default async function WikiPage({ params }: WikiPageProps) {

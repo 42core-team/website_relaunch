@@ -38,6 +38,11 @@ export class EventController {
         return await this.eventService.getEventById(id);
     }
 
+    @Get(":id/version")
+    async getEventVersion(@Param("id", new ParseUUIDPipe()) id: string) {
+        return await this.eventService.getEventVersion(id);
+    }
+
     @UseGuards(UserGuard)
     @Post()
     createEvent(
@@ -62,6 +67,10 @@ export class EventController {
             createEventDto.maxTeamSize,
             createEventDto.repoTemplateOwner,
             createEventDto.repoTemplateName,
+            createEventDto.gameServerDockerImage,
+            createEventDto.myCoreBotDockerImage,
+            createEventDto.visualizerDockerImage,
+            createEventDto.monorepoUrl,
         );
     }
 

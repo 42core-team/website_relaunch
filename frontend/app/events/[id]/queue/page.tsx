@@ -3,8 +3,14 @@ import {
   getMyEventTeam,
   getQueueMatches,
   getQueueState,
-  Team,
 } from "@/app/actions/team";
+import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
+
+export const metadata: Metadata = {
+  title: "Queue",
+  description:
+    "Join the event queue to play matches against other participants.",
+};
 
 export default async function EventQueuePage({
   params,

@@ -83,13 +83,14 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
     return versions.sort((a, b) => {
       if (a.isDefault) return -1;
       if (b.isDefault) return 1;
-      return a.name.localeCompare(b.name);
+      return b.name.localeCompare(a.name);
     });
   } catch (error) {
     console.error("Error reading versions:", error);
     return [];
   }
 }
+
 export async function getWikiPageWithVersion(
   slug: string[],
   version?: string,

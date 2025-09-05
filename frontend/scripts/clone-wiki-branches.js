@@ -5,6 +5,7 @@ const path = require("path");
 const repoUrl = "https://github.com/42core-team/wiki.git";
 const BRANCHES = ["season2-reloaded", "season2", "season1", "rush02"];
 const BASE_DIR = path.join(__dirname, "../content/wiki");
+const MONOREPO_URL = "https://github.com/42core-team/monorepo.git";
 
 if (!fs.existsSync(BASE_DIR)) {
   fs.mkdirSync(BASE_DIR, { recursive: true });
@@ -92,7 +93,6 @@ function pickLatestPerBase(tags) {
   for (const t of filtered) {
     const base = baseKey(t);
     const current = map.get(base);
-    // If there is no current best, or 't' is newer than current
     if (!current || compareTagDesc(current, t) > 0) {
       map.set(base, t);
     }

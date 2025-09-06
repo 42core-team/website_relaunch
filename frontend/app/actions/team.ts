@@ -23,6 +23,7 @@ export interface Team {
 export interface TeamMember {
   id: string;
   name: string;
+  isEventAdmin: boolean;
   avatar?: string;
   username: string;
   profilePicture?: string;
@@ -131,6 +132,7 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
   return members.map((member: any) => ({
     id: member.id,
     name: member.name,
+    isEventAdmin: member.isEventAdmin,
     username: member.username,
     profilePicture: member.profilePicture,
     intraUsername: member.socialAccounts?.find((a: any) => a.platform === "42")

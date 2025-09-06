@@ -32,11 +32,6 @@ export class TeamController {
     ) {
     }
 
-    @EventPattern("repository_created")
-    async handleRepositoryCreated(data: { teamId: string, repositoryName: string }) {
-        await this.teamService.setTeamRepository(data.teamId, data.repositoryName);
-    }
-
     @Get(":id")
     getTeamById(@Param("id", new ParseUUIDPipe()) id: string) {
         return this.teamService.getTeamById(id);

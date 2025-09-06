@@ -336,7 +336,6 @@ export class TeamService {
     }
 
     async setTeamRepository(teamId: string, repositoryName: string) {
-        console.log("Setting team repository:", teamId, repositoryName);
         return this.teamRepository.update(teamId, {repo: repositoryName});
     }
 }

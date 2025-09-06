@@ -27,7 +27,7 @@
     "@heroui/snippet": "^2.2.26",
     "@heroui/spinner": "^2.2.22",
     "@heroui/switch": "^2.2.23",
-    "@heroui/system": "2.4.21",
+    "@heroui/system": "^2.4.21",
     "@heroui/tabs": "^2.2.22",
     "@heroui/tooltip": "^2.2.22",
     "@react-aria/visually-hidden": "^3.8.27",
@@ -56,14 +56,14 @@
   },
   "devDependencies": {
     "@heroui/theme": "^2.4.21",
-    "@tailwindcss/postcss": "^4.1.12",
-    "@types/node": "^24.3.0",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "lint-staged": "^16.1.6",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
-    "tailwindcss": "^4.1.12",
+    "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2"
   }
 }

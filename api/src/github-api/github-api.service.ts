@@ -84,6 +84,7 @@ export class GithubApiService {
     encryptedSecret: string,
     repoTemplateOwner: string,
     repoTemplateName: string,
+    teamId: string
   ) {
       this.githubClient.emit('create_team_repository', {
         name,
@@ -93,6 +94,7 @@ export class GithubApiService {
         encryptedSecret,
         repoTemplateOwner,
         repoTemplateName,
+        teamId
       })
   }
 }

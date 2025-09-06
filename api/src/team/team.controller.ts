@@ -19,6 +19,7 @@ import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
 import {EventService} from "../event/event.service";
 import {UserGuard} from "../guards/UserGuard";
+import {EventPattern} from "@nestjs/microservices";
 
 // TODO: create pipe or guard for user team validation, so we don't have to check for team existence in every endpoint
 @UseGuards(FrontendGuard)
@@ -29,6 +30,11 @@ export class TeamController {
         private readonly userService: UserService,
         private readonly eventService: EventService,
     ) {
+    }
+
+    @EventPattern("repository_created")
+    async handleRepositoryCreated(data: { teamId: string, repositoryName: string }) {
+        await this.teamService.setTeamRepository(data.teamId, data.repositoryName);
     }
 
     @Get(":id")

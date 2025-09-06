@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-service-dev
+  labels:
+    app: k8s-service
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-service
+      environment: dev
+  template:
+    metadata:
+      labels:
+        app: k8s-service
+        environment: dev
+    spec:
+      serviceAccountName: k8s-service-admin
+      containers:
+        - name: k8s-service
+          imagePullPolicy: Always
+          image: ghcr.io/42core-team/k8s-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENVIRONMENT
+              value: "dev"
+            - name: NAMESPACE
+              value: "development"
+            - name: AWS_REGION
+              value: "eu-01"
+            - name: S3_BUCKET
+              value: "core-replays"
+            - name: S3_ENDPOINT
+              value: "https://object.storage.eu01.onstackit.cloud/core-replays"
+            - name: AWS_ACCESS_KEY_ID
+              value: "***"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "***"
+            - name: RABBITMQ
+              value: "***"
+            - name: RABBITMQ_HTTP
+              value: "***"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-service-dev
+  labels:
+    app: k8s-service
+    environment: dev
+spec:
+  ports:
+    - port: 80
+      targetPort: 9000
+      protocol: TCP
+      name: http
+  selector:
+    app: k8s-service
+    environment: dev
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-service-admin
+  labels:
+    app: k8s-service
+    environment: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-service-admin-role
+rules:
+  - apiGroups: [ "*" ]
+    resources: [ "*" ]
+    verbs: [ "*" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-service-admin-binding
+subjects:
+  - kind: ServiceAccount
+    name: k8s-service-admin
+    namespace: development
+roleRef:
+  kind: ClusterRole
+  name: k8s-service-admin-role
+  apiGroup: rbac.authorization.k8s.io

@@ -90,7 +90,8 @@ export class TeamService {
                 event.githubOrg,
                 event.githubOrgSecret,
                 event.repoTemplateOwner,
-                event.repoTemplateName
+                event.repoTemplateName,
+                team.id
             );
 
             //team.repo = createdRepo.name;
@@ -232,12 +233,12 @@ export class TeamService {
         }
 
         if (sortBy) {
-            const direction= searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+            const direction = searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
             const validSortColumns = ['name', 'locked', 'repo', 'queueScore', 'createdAt', 'updatedAt'];
             if (validSortColumns.includes(sortBy)) {
                 query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
             }
-            if(sortBy === "membersCount") {
+            if (sortBy === "membersCount") {
                 query.orderBy('COUNT(user.id)', direction as 'ASC' | 'DESC');
             }
         }
@@ -332,5 +333,10 @@ export class TeamService {
                 name: "ASC"
             }
         });
+    }
+
+    async setTeamRepository(teamId: string, repositoryName: string) {
+        console.log("Setting team repository:", teamId, repositoryName);
+        return this.teamRepository.update(teamId, {repo: repositoryName});
     }
 }

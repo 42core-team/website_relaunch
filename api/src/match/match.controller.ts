@@ -83,6 +83,17 @@ export class MatchController {
         return await this.matchService.getQueueMatches(eventId, userId);
     }
 
+    @UseGuards(UserGuard)
+    @Get("queue/:eventId/admin")
+    async getAllQueueMatches(
+        @Param("eventId", ParseUUIDPipe) eventId: string,
+        @UserId() userId: string
+    ) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException("You are not authorized to view all queue matches.");
+        return await this.matchService.getAllQueueMatches(eventId);
+    }
+
     @Get("logs/:matchId")
     async getMatchLogs(@Param("matchId", ParseUUIDPipe) matchId: string, @UserId() userId: string) {
         const logs = await this.matchService.getMatchLogs(matchId, userId);

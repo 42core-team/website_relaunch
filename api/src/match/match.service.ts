@@ -679,6 +679,30 @@ export class MatchService {
         })
     }
 
+    async getAllQueueMatches(eventId: string) {
+        return this.matchRepository.find({
+            where: {
+                teams: {
+                    event: {
+                        id: eventId
+                    }
+                },
+                phase: MatchPhase.QUEUE,
+            },
+            relations: {
+                results: {
+                    team: true
+                },
+                teams: true,
+                winner: true,
+            },
+            take: 100,
+            order: {
+                createdAt: "DESC"
+            },
+        })
+    }
+
     async getMatchLogs(matchId: string, userId: string): Promise<{
         container: string,
         team?: string,

@@ -86,6 +86,8 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            CURRENT_BRANCH=${{ github.head_ref || github.ref_name }}
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.head_ref }}-${{ matrix.architecture }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
@@ -109,6 +111,7 @@ jobs:
             NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
             NEXT_PUBLIC_BACKEND_PUBLIC_URL=${{ vars.NEXT_PUBLIC_BACKEND_PUBLIC_URL }}
             NEXT_PUBLIC_VISUALIZER_URL=${{ vars.NEXT_PUBLIC_VISUALIZER_URL }}
+            CURRENT_BRANCH=${{ github.ref_name }}
           secrets: |
             NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
 

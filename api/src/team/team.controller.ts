@@ -19,7 +19,6 @@ import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
 import {EventService} from "../event/event.service";
 import {UserGuard} from "../guards/UserGuard";
-import {EventPattern} from "@nestjs/microservices";
 
 // TODO: create pipe or guard for user team validation, so we don't have to check for team existence in every endpoint
 @UseGuards(FrontendGuard)

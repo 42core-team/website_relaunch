@@ -104,7 +104,11 @@ export async function generateStaticParams() {
 
 export default async function WikiPage({ params }: WikiPageProps) {
   const { slug = [] } = await params;
-  const { version, pagePath } = await parseSlugForVersion(slug);
+  let { version, pagePath } = await parseSlugForVersion(slug);
+
+  if (pagePath.length === 0) {
+    pagePath = ["README"];
+  }
 
   let page: any = null;
   let isImageError = false;

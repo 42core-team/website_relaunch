@@ -13,6 +13,9 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { GithubIcon } from "@/components/icons";
+import CoreLogo from "@/components/CoreLogo";
+import {Tooltip} from "@heroui/tooltip";
+
 
 export default function TeamUserTable({ members }: { members: TeamMember[] }) {
   return (
@@ -42,6 +45,16 @@ export default function TeamUserTable({ members }: { members: TeamMember[] }) {
                   name={member.name}
                   size="sm"
                 />
+                {member.isEventAdmin && (
+                  <Tooltip content="Admin">
+                    <CoreLogo
+                      fill="#E66100"
+                      width={30}
+                      height={30}
+                      className="rounded-full"
+                    />
+                  </Tooltip>
+                )}
                 <span>{member.name}</span>
               </div>
             </TableCell>

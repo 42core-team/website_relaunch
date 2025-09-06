@@ -17,7 +17,6 @@ import {Cron, CronExpression} from "@nestjs/schedule";
 import {GithubApiService} from "../github-api/github-api.service";
 import {FindOptionsRelations} from "typeorm/find-options/FindOptionsRelations";
 import {MatchTeamResultEntity} from "./entites/match.team.result.entity";
-import * as process from "node:process";
 
 @Injectable()
 export class MatchService {

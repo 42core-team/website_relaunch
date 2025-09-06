@@ -110,7 +110,7 @@ func (c *Client) CreateGameJob(game *Game) error {
 			Name:  containerName,
 			Image: bot.Image,
 			Command: []string{
-				"sh", "-c", fmt.Sprintf("cd /shared-data/repo && make build && ./bot %s", *bot.RndID),
+				"sh", "-c", fmt.Sprintf("cd /shared-data/repo/my-core-bot && make && ./bot %s", *bot.RndID),
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{

@@ -232,12 +232,12 @@ export class TeamService {
         }
 
         if (sortBy) {
-            const direction= searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+            const direction = searchDir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
             const validSortColumns = ['name', 'locked', 'repo', 'queueScore', 'createdAt', 'updatedAt'];
             if (validSortColumns.includes(sortBy)) {
                 query.orderBy(`team.${sortBy}`, direction as 'ASC' | 'DESC');
             }
-            if(sortBy === "membersCount") {
+            if (sortBy === "membersCount") {
                 query.orderBy('COUNT(user.id)', direction as 'ASC' | 'DESC');
             }
         }

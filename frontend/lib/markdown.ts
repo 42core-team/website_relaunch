@@ -61,21 +61,36 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
         versions.push({
           name: formatVersionName(entry.name),
           slug: entry.name,
-          isDefault: entry.name === DEFAULT_WIKI_VERSION,
+          isDefault: false, // assign below based on newest tag
         });
       }
     }
 
+    // Determine newest stable tag as default, if any exist
+    const tagSlugs = versions
+      .map((v) => v.slug)
+      .filter((slug) => isStableTagName(slug));
+
+    let defaultSlug = DEFAULT_WIKI_VERSION;
+    if (tagSlugs.length > 0) {
+      defaultSlug = tagSlugs.sort(compareTagNamesDesc)[0];
+    }
+
+    versions.forEach((v) => {
+      v.isDefault = v.slug === defaultSlug;
+    });
+
     return versions.sort((a, b) => {
       if (a.isDefault) return -1;
       if (b.isDefault) return 1;
-      return a.name.localeCompare(b.name);
+      return b.name.localeCompare(a.name);
     });
   } catch (error) {
     console.error("Error reading versions:", error);
     return [];
   }
 }
+
 export async function getWikiPageWithVersion(
   slug: string[],
   version?: string,
@@ -221,7 +236,7 @@ export async function getWikiPageWithVersion(
 
     return {
       slug,
-      title: data.title || getTitleFromSlug(slug),
+      title: getTitleFromSlug(slug),
       content: htmlContent,
       frontmatter: data,
       lastModified,
@@ -314,23 +329,6 @@ export async function getWikiNavigationWithVersion(
   return buildNavigation(versionDir);
 }
 
-export async function getAllWikiPages(): Promise<WikiPage[]> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getAllWikiPagesForVersion(defaultVersion);
-}
-
-// Legacy function for backward compatibility
-export async function getWikiPage(slug: string[]): Promise<WikiPage | null> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getWikiPageWithVersion(slug, defaultVersion);
-}
-
-// Legacy function for backward compatibility
-export async function getWikiNavigation(): Promise<WikiNavItem[]> {
-  const defaultVersion = await getDefaultWikiVersion();
-  return getWikiNavigationWithVersion(defaultVersion);
-}
-
 async function getFilePathFromSlugWithVersion(
   slug: string[],
   version?: string,
@@ -376,37 +374,44 @@ async function getFilePathFromSlugWithVersion(
 }
 
 function formatVersionName(slug: string): string {
-  // Handle special version naming
-  if (slug.toLowerCase().includes("season")) {
-    return slug
-      .replace(/([a-z])(\d)/, "$1 $2")
-      .replace(/^./, (c) => c.toUpperCase());
-  }
-  if (slug.toLowerCase().includes("rush")) {
-    return slug
-      .replace(/([a-z])(\d)/, "$1 $2")
-      .replace(/^./, (c) => c.toUpperCase());
-  }
-
   // Convert kebab-case or snake_case to Title Case
-  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  return slug.replace(/[-_]/g, " ");
 }
 
 function getTitleFromSlug(slug: string[]): string {
-  if (slug.length === 0) return "Home";
+  if (slug.length === 0) return "README";
   // Decode the last segment to handle URL-encoded characters
   const lastSegment = decodeURIComponent(slug[slug.length - 1]);
   return formatTitle(lastSegment);
 }
 
 function formatTitle(name: string): string {
-  // Handle special cases
-  if (name.toLowerCase() === "readme") return "Overview";
-  if (name.toLowerCase() === "api-reference") return "API Reference";
-  if (name.toLowerCase() === "faq") return "FAQ";
-
   // Convert kebab-case or snake_case to Title Case
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
+// Helpers to detect and compare stable tag directory names like "v1.2.3" or "1.2.3.4"
+function isStableTagName(name: string): boolean {
+  if (name.includes("-")) return false; // exclude pre-release markers
+  const normalized = name.startsWith("v") ? name.slice(1) : name;
+  return /^\d+(?:\.\d+)*$/.test(normalized);
+}
+
+function parseTagNumbers(name: string): number[] {
+  const normalized = name.startsWith("v") ? name.slice(1) : name;
+  return normalized.split(".").map((n) => parseInt(n, 10) || 0);
+}
+
+function compareTagNamesDesc(a: string, b: string): number {
+  const aNums = parseTagNumbers(a);
+  const bNums = parseTagNumbers(b);
+  const maxLen = Math.max(aNums.length, bNums.length);
+  for (let i = 0; i < maxLen; i++) {
+    const aVal = aNums[i] ?? 0;
+    const bVal = bNums[i] ?? 0;
+    if (aVal !== bVal) return bVal - aVal; // descending: larger first
+  }
+  return 0;
 }
 
 export async function searchWikiPages(

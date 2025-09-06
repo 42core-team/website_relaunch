@@ -56,7 +56,7 @@ export class TeamService {
 
         await Promise.all(team.users.map(async (user) => {
             try {
-                await this.githubApiService.removeWritePermissionsForUser(
+                await this.githubApiService.removeWritePermissions(
                     user.username,
                     team.event.githubOrg,
                     team.repo,
@@ -93,7 +93,7 @@ export class TeamService {
                 event.repoTemplateName
             );
 
-            team.repo = createdRepo.name;
+            //team.repo = createdRepo.name;
             await this.teamRepository.save(team);
         } catch (e) {
             this.logger.error(`Failed to create repository for team ${team.id}`, e);

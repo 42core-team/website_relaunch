@@ -1,16 +1,16 @@
 import {
-    Controller,
-    Get,
-    Param,
-    Body,
-    Post,
-    UseGuards,
     BadRequestException,
-    Put,
-    NotFoundException,
+    Body,
+    Controller,
     Delete,
-    Query,
+    Get,
+    NotFoundException,
+    Param,
     ParseUUIDPipe,
+    Post,
+    Put,
+    Query,
+    UseGuards,
 } from "@nestjs/common";
 import {FrontendGuard, UserId} from "../guards/FrontendGuard";
 import {TeamService} from "./team.service";
@@ -19,6 +19,7 @@ import {InviteUserDto} from "./dtos/inviteUserDto";
 import {UserService} from "../user/user.service";
 import {EventService} from "../event/event.service";
 import {UserGuard} from "../guards/UserGuard";
+import {PermissionRole} from "../user/entities/user.entity";
 
 // TODO: create pipe or guard for user team validation, so we don't have to check for team existence in every endpoint
 @UseGuards(FrontendGuard)
@@ -98,11 +99,30 @@ export class TeamController {
 
     @Get(":id/members")
     async getTeamMembers(@Param("id", new ParseUUIDPipe()) teamId: string) {
+        const event = await this.eventService.getEventByTeamId(teamId);
         const team = await this.teamService.getTeamById(teamId, {
-            users: { socialAccounts: true },
+            users: {
+                socialAccounts: true,
+                permissions: {
+                    event: true
+                }
+            },
         });
 
-        return team.users;
+        return team.users.map(user => {
+            const isEventAdmin = user.permissions.some(p => p.event.id === event.id && p.role === PermissionRole.ADMIN);
+            return {
+                id: user.id,
+                name: user.name,
+                username: user.username,
+                profilePicture: user.profilePicture,
+                isEventAdmin,
+                socialAccounts: user.socialAccounts.map(sa => ({
+                    platform: sa.platform,
+                    username: sa.username,
+                })),
+            };
+        });
     }
 
     @UseGuards(UserGuard)

@@ -70,6 +70,17 @@ export class EventService {
         });
     }
 
+    async getEventByTeamId(teamId: string, relations: FindOptionsRelations<EventEntity> = {}): Promise<EventEntity> {
+        return await this.eventRepository.findOneOrFail({
+            where: {
+                teams: {
+                    id: teamId
+                }
+            },
+            relations
+        });
+    }
+
     async getEventVersion(id: string): Promise<EventVersionDto> {
         const event = await this.eventRepository.findOneOrFail({
             where: {id},

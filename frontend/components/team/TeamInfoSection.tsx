@@ -140,6 +140,7 @@ export const TeamInfoSection = ({
               >
                 <div className="flex flex-col items-center rounded-xl bg-content1/50 p-4 ring-1 ring-default-200 shadow-sm transition hover:shadow-md hover:ring-primary/60">
                   <Avatar
+                      style={member.isEventAdmin ? {outline: "orange 2px solid"} : {}}
                     size="lg"
                     src={member.profilePicture}
                     name={(member.name || "User").substring(0, 2).toUpperCase()}

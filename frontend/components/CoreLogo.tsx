@@ -5,7 +5,11 @@ interface LogoBlackProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
 }
 
-const CoreLogo: React.FC<LogoBlackProps> = ({ fill = "currentColor", className, ...props }) => (
+const CoreLogo: React.FC<LogoBlackProps> = ({
+  fill = "currentColor",
+  className,
+  ...props
+}) => (
   <svg
     width="16"
     height="16"
@@ -25,4 +29,3 @@ const CoreLogo: React.FC<LogoBlackProps> = ({ fill = "currentColor", className, 
 );
 
 export default CoreLogo;
-

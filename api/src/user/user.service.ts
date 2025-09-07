@@ -121,8 +121,7 @@ export class UserService {
                 'isInvited',
             )
             .innerJoin("user.events", "event", "event.id = :eventId", {eventId})
-            .leftJoin("user.teams", "team")
-            .leftJoin("team.event", "teamEvent", "teamEvent.id = :eventId", {eventId})
+            .leftJoin("user.teams", "team", "team.eventId = :eventId", {eventId})
             .leftJoin("user.teamInvites", "inviteTeam")
             .leftJoin("inviteTeam.event", "inviteEvent")
             .leftJoin("user.socialAccounts", "sa")

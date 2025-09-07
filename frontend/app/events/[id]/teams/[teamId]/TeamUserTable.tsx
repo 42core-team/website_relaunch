@@ -14,8 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { GithubIcon } from "@/components/icons";
 import CoreLogo from "@/components/CoreLogo";
-import {Tooltip} from "@heroui/tooltip";
-
+import { Tooltip } from "@heroui/tooltip";
 
 export default function TeamUserTable({ members }: { members: TeamMember[] }) {
   return (

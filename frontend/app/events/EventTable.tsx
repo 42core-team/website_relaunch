@@ -31,7 +31,9 @@ export default function EventsTable({ events }: { events: Event[] }) {
     }
   };
 
-  const stateColor = (state: EventState): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
+  const stateColor = (
+    state: EventState,
+  ): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
     switch (state) {
       case EventState.TEAM_FINDING:
         return "primary";
@@ -83,7 +85,11 @@ export default function EventsTable({ events }: { events: Event[] }) {
                   href={`/events/${event.id}`}
                   className="flex w-full items-center gap-2"
                 >
-                  <Chip size="sm" variant="flat" color={stateColor(event.state)}>
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color={stateColor(event.state)}
+                  >
                     {formatState(event.state)}
                   </Chip>
                 </Link>

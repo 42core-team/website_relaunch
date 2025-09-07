@@ -1,5 +1,9 @@
 import { title } from "@/components/primitives";
-import { getEvents, canUserCreateEvent, getMyEvents } from "@/app/actions/event";
+import {
+  getEvents,
+  canUserCreateEvent,
+  getMyEvents,
+} from "@/app/actions/event";
 import EventsTabs from "@/app/events/EventsTabs";
 import { Button } from "@/components/clientHeroui";
 import Link from "next/link";

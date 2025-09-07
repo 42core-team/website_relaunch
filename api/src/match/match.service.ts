@@ -815,20 +815,23 @@ export class MatchService {
 
     async getQueueMatchesTimeSeries(params: {
         interval?: 'minute' | 'hour' | 'day',
-        rangeHours?: number,
+        start?: Date,
+        end?: Date,
         eventId?: string,
     }): Promise<Array<{ bucket: string, count: number }>> {
         const interval = params.interval ?? 'hour';
-        const rangeHours = params.rangeHours ?? 24;
-        const start = new Date(Date.now() - rangeHours * 60 * 60 * 1000);
-
         const valid = new Set(['minute', 'hour', 'day']);
         const unit = valid.has(interval) ? interval : 'hour';
+
+        // Determine time range
+        const now = new Date();
+        const start = params.start ?? new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const end = params.end ?? now;
 
         const qb = this.matchRepository.createQueryBuilder('m')
             .where('m.phase = :phase', { phase: MatchPhase.QUEUE })
             .andWhere('m.state = :state', { state: MatchState.FINISHED })
-            .andWhere('m.updatedAt >= :start', { start })
+            .andWhere('m.updatedAt BETWEEN :start AND :end', { start, end })
             .select(`date_trunc('${unit}', m."updatedAt")`, 'bucket')
             .addSelect('COUNT(DISTINCT m.id)', 'count')
             .groupBy('bucket')

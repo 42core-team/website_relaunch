@@ -134,11 +134,34 @@ export class MatchController {
         @Param('eventId') eventId: string,
         @UserId() userId: string,
         @Query('interval') interval?: 'minute' | 'hour' | 'day',
-        @Query('rangeHours') rangeHours?: string,
+        @Query('start') startStr?: string,
+        @Query('end') endStr?: string,
     ) {
         if (!await this.eventService.isEventAdmin(eventId, userId))
             throw new UnauthorizedException("You are not authorized to view queue match stats.");
-        const rh = rangeHours ? parseInt(rangeHours, 10) : undefined;
-        return this.matchService.getQueueMatchesTimeSeries({interval, rangeHours: rh, eventId});
+
+        let start: Date | undefined = undefined;
+        let end: Date | undefined = undefined;
+
+        if (startStr) {
+            const d = new Date(startStr);
+            if (isNaN(d.getTime())) {
+                throw new BadRequestException('Invalid start date');
+            }
+            start = d;
+        }
+        if (endStr) {
+            const d = new Date(endStr);
+            if (isNaN(d.getTime())) {
+                throw new BadRequestException('Invalid end date');
+            }
+            end = d;
+        }
+
+        if (start && end && start > end) {
+            throw new BadRequestException('Start date must be before end date');
+        }
+
+        return this.matchService.getQueueMatchesTimeSeries({ interval, start, end, eventId });
     }
 }

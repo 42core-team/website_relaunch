@@ -3,6 +3,8 @@ import { getQueueMatchesAdmin } from "@/app/actions/team";
 import { isActionError } from "@/app/actions/errors";
 import { isEventAdmin } from "@/app/actions/event";
 import QueueMatchesList from "@/components/QueueMatchesList";
+import QueueMatchesChart from "@/components/QueueMatchesChart";
+import { getQueueMatchesTimeSeries } from "@/app/actions/stats";
 
 export const metadata: Metadata = {
   title: "Queue Matches",
@@ -25,11 +27,20 @@ export default async function EventQueueMatchesAdminPage({
     );
   }
 
-  const matches = await getQueueMatchesAdmin(id);
+  const [matches, series] = await Promise.all([
+    getQueueMatchesAdmin(id),
+    getQueueMatchesTimeSeries(id, "hour", 24),
+  ])
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">All Queue Matches</h1>
+
+      <div className="mb-10">
+        <h2 className="text-xl font-semibold mb-4">Matches played (last 24h)</h2>
+        <QueueMatchesChart data={series} />
+      </div>
+
       <QueueMatchesList eventId={id} matches={matches} />
     </div>
   );

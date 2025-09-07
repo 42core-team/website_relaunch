@@ -5,7 +5,7 @@ import {
     Logger,
     Param,
     ParseUUIDPipe,
-    Put,
+    Put, Query,
     UnauthorizedException,
     UseGuards
 } from '@nestjs/common';
@@ -126,6 +126,19 @@ export class MatchController {
     async getMatchById(
         @Param("matchId", ParseUUIDPipe) matchId: string
     ): Promise<MatchEntity> {
-       return await this.matchService.getMatchById(matchId);
+        return await this.matchService.getMatchById(matchId);
+    }
+
+    @Get('queue/:eventId/timeseries')
+    async getQueueMatchesTimeSeries(
+        @Param('eventId') eventId: string,
+        @UserId() userId: string,
+        @Query('interval') interval?: 'minute' | 'hour' | 'day',
+        @Query('rangeHours') rangeHours?: string,
+    ) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException("You are not authorized to view queue match stats.");
+        const rh = rangeHours ? parseInt(rangeHours, 10) : undefined;
+        return this.matchService.getQueueMatchesTimeSeries({interval, rangeHours: rh, eventId});
     }
 }

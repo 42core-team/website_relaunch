@@ -93,7 +93,10 @@ export class EventEntity {
   monorepoUrl: string;
 
   @JoinTable({ name: "events_users" })
-  @ManyToMany(() => UserEntity, (user) => user.events)
+  @ManyToMany(() => UserEntity, (user) => user.events, {
+      onUpdate: "CASCADE",
+      cascade: true,
+  })
   users: UserEntity[];
 
   @OneToMany(() => TeamEntity, (team) => team.event, { onDelete: "CASCADE" })

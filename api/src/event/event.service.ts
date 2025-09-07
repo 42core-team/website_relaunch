@@ -146,6 +146,11 @@ export class EventService {
                     role: PermissionRole.ADMIN
                 }
             ],
+            users: [
+                {
+                    id: userId
+                }
+            ],
             gameServerDockerImage,
             myCoreBotDockerImage,
             visualizerDockerImage,

@@ -36,7 +36,7 @@ export async function getQueueMatchesTimeSeries(
     startISO?: string,
     endISO?: string,
 ): Promise<QueueMatchesTimeBucket[]> {
-    const params = new URLSearchParams({ interval });
+    const params = new URLSearchParams({interval});
     if (startISO) params.set("start", startISO);
     if (endISO) params.set("end", endISO);
 

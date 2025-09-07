@@ -162,6 +162,6 @@ export class MatchController {
             throw new BadRequestException('Start date must be before end date');
         }
 
-        return this.matchService.getQueueMatchesTimeSeries({ interval, start, end, eventId });
+        return this.matchService.getQueueMatchesTimeSeries({interval, start, end, eventId});
     }
 }

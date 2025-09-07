@@ -829,9 +829,9 @@ export class MatchService {
         const end = params.end ?? now;
 
         const qb = this.matchRepository.createQueryBuilder('m')
-            .where('m.phase = :phase', { phase: MatchPhase.QUEUE })
-            .andWhere('m.state = :state', { state: MatchState.FINISHED })
-            .andWhere('m.updatedAt BETWEEN :start AND :end', { start, end })
+            .where('m.phase = :phase', {phase: MatchPhase.QUEUE})
+            .andWhere('m.state = :state', {state: MatchState.FINISHED})
+            .andWhere('m.updatedAt BETWEEN :start AND :end', {start, end})
             .select(`date_trunc('${unit}', m."updatedAt")`, 'bucket')
             .addSelect('COUNT(DISTINCT m.id)', 'count')
             .groupBy('bucket')
@@ -839,11 +839,11 @@ export class MatchService {
 
         if (params.eventId) {
             qb.innerJoin('m.teams', 't')
-              .innerJoin('t.event', 'e')
-              .andWhere('e.id = :eventId', { eventId: params.eventId });
+                .innerJoin('t.event', 'e')
+                .andWhere('e.id = :eventId', {eventId: params.eventId});
         }
 
         const rows = await qb.getRawMany<{ bucket: Date, count: string }>();
-        return rows.map(r => ({ bucket: new Date(r.bucket as any).toISOString(), count: parseInt(r.count, 10) }));
+        return rows.map(r => ({bucket: new Date(r.bucket as any).toISOString(), count: parseInt(r.count, 10)}));
     }
 }

@@ -52,7 +52,9 @@ export default async function EventQueueMatchesAdminPage({
     let endDate = new Date(endISO);
 
     if (startDate > endDate) {
-        const tmp = startDate; startDate = endDate; endDate = tmp;
+        const tmp = startDate;
+        startDate = endDate;
+        endDate = tmp;
     }
 
     const [matches, series] = await Promise.all([
@@ -67,12 +69,13 @@ export default async function EventQueueMatchesAdminPage({
             <h1 className="text-3xl font-bold mb-8">All Queue Matches</h1>
 
             <div className="mb-6">
-                <QueueMatchesControls initialInterval={interval} initialStartISO={startDate.toISOString()} initialEndISO={endDate.toISOString()} />
+                <QueueMatchesControls initialInterval={interval} initialStartISO={startDate.toISOString()}
+                                      initialEndISO={endDate.toISOString()}/>
             </div>
 
             <div className="mb-10">
                 <h2 className="text-xl font-semibold mb-4">{chartTitle}</h2>
-                <QueueMatchesChart data={series} title={chartTitle} />
+                <QueueMatchesChart data={series} title={chartTitle}/>
             </div>
 
             <QueueMatchesList eventId={id} matches={matches}/>

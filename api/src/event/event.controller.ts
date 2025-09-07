@@ -77,6 +77,7 @@ export class EventController {
             createEventDto.myCoreBotDockerImage,
             createEventDto.visualizerDockerImage,
             createEventDto.monorepoUrl,
+            createEventDto.isPrivate,
         );
     }
 

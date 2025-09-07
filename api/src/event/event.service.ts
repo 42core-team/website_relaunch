@@ -57,6 +57,9 @@ export class EventService {
 
     getAllEvents(): Promise<EventEntity[]> {
         return this.eventRepository.find({
+            where: {
+                isPrivate: false,
+            },
             order: {
                 startDate: "ASC"
             }
@@ -123,6 +126,7 @@ export class EventService {
         myCoreBotDockerImage?: string,
         visualizerDockerImage?: string,
         monorepoUrl?: string,
+        isPrivate: boolean = false,
     ) {
         githubOrgSecret = CryptoJS.AES.encrypt(githubOrgSecret, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
 
@@ -154,7 +158,8 @@ export class EventService {
             gameServerDockerImage,
             myCoreBotDockerImage,
             visualizerDockerImage,
-            monorepoUrl
+            monorepoUrl,
+            isPrivate
         });
     }
 

@@ -92,6 +92,9 @@ export class EventEntity {
   @Column({ nullable: true })
   monorepoUrl: string;
 
+  @Column({ default: false })
+  isPrivate: boolean;
+
   @JoinTable({ name: "events_users" })
   @ManyToMany(() => UserEntity, (user) => user.events, {
       onUpdate: "CASCADE",

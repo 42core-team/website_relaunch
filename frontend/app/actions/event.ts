@@ -26,6 +26,7 @@ export interface Event {
   gameServerDockerImage?: string;
   myCoreBotDockerImage?: string;
   visualizerDockerImage?: string;
+  isPrivate: boolean;
 }
 
 export async function getEventById(
@@ -98,6 +99,7 @@ interface EventCreateParams {
   myCoreBotDockerImage?: string;
   visualizerDockerImage?: string;
   monorepoUrl?: string;
+  isPrivate?: boolean;
 }
 
 // Create a new event

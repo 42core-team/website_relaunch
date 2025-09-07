@@ -68,7 +68,7 @@ export class EventEntity {
   @Column({default: false})
   areTeamsLocked: boolean;
 
-  @Column({ type: "enum", enum: EventState, default: EventState.TEAM_FINDING })
+  @Column({ type: "enum", enum: EventState, default: EventState.CODING_PHASE })
   state: EventState;
 
   @Column({ default: 0 })
@@ -92,8 +92,14 @@ export class EventEntity {
   @Column({ nullable: true })
   monorepoUrl: string;
 
+  @Column({ default: false })
+  isPrivate: boolean;
+
   @JoinTable({ name: "events_users" })
-  @ManyToMany(() => UserEntity, (user) => user.events)
+  @ManyToMany(() => UserEntity, (user) => user.events, {
+      onUpdate: "CASCADE",
+      cascade: true,
+  })
   users: UserEntity[];
 
   @OneToMany(() => TeamEntity, (team) => team.event, { onDelete: "CASCADE" })

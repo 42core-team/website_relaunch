@@ -28,6 +28,12 @@ export class EventController {
     ) {
     }
 
+    @UseGuards(UserGuard)
+    @Get("my")
+    async getMyEvents(@UserId() userId: string) {
+        return this.eventService.getEventsForUser(userId);
+    }
+
     @Get()
     getAllEvents() {
         return this.eventService.getAllEvents();

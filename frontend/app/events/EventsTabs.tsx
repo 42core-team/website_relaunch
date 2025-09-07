@@ -1,0 +1,29 @@
+"use client";
+
+import { Tab, Tabs } from "@heroui/react";
+import EventsTable from "@/app/events/EventTable";
+import { Event } from "@/app/actions/event";
+
+export default function EventsTabs({
+  myEvents,
+  allEvents,
+}: {
+  myEvents: Event[];
+  allEvents: Event[];
+}) {
+  return (
+    <Tabs
+      aria-label="Events tabs"
+      className="w-full"
+      variant="underlined"
+      defaultSelectedKey={myEvents.length ? "my" : "all"}
+    >
+      <Tab key="my" title={`My Events (${myEvents.length})`}>
+        <EventsTable events={myEvents} />
+      </Tab>
+      <Tab key="all" title={`All Events (${allEvents.length})`}>
+        <EventsTable events={allEvents} />
+      </Tab>
+    </Tabs>
+  );
+}

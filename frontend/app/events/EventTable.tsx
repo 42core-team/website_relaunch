@@ -7,11 +7,47 @@ import {
   TableColumn,
   TableRow,
   TableCell,
+  Chip,
 } from "@heroui/react";
 import Link from "next/link";
 import { Event } from "@/app/actions/event";
+import { EventState } from "@/app/actions/event-model";
 
 export default function EventsTable({ events }: { events: Event[] }) {
+  const formatState = (state: EventState) => {
+    switch (state) {
+      case EventState.TEAM_FINDING:
+        return "Team Finding";
+      case EventState.CODING_PHASE:
+        return "Coding Phase";
+      case EventState.SWISS_ROUND:
+        return "Swiss Round";
+      case EventState.ELIMINATION_ROUND:
+        return "Elimination Round";
+      case EventState.FINISHED:
+        return "Finished";
+      default:
+        return state;
+    }
+  };
+
+  const stateColor = (state: EventState): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
+    switch (state) {
+      case EventState.TEAM_FINDING:
+        return "primary";
+      case EventState.CODING_PHASE:
+        return "secondary";
+      case EventState.SWISS_ROUND:
+        return "warning";
+      case EventState.ELIMINATION_ROUND:
+        return "warning";
+      case EventState.FINISHED:
+        return "success";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <div className="mt-8">
       <Table aria-label="Events table">
@@ -19,6 +55,7 @@ export default function EventsTable({ events }: { events: Event[] }) {
           <TableColumn>Name</TableColumn>
           <TableColumn>Start Date</TableColumn>
           <TableColumn>Team Size</TableColumn>
+          <TableColumn>State</TableColumn>
         </TableHeader>
         <TableBody items={events} emptyContent="No events found">
           {(event) => (
@@ -39,6 +76,16 @@ export default function EventsTable({ events }: { events: Event[] }) {
               <TableCell>
                 <Link href={`/events/${event.id}`} className="block w-full">
                   {event.minTeamSize} - {event.maxTeamSize} members
+                </Link>
+              </TableCell>
+              <TableCell>
+                <Link
+                  href={`/events/${event.id}`}
+                  className="flex w-full items-center gap-2"
+                >
+                  <Chip size="sm" variant="flat" color={stateColor(event.state)}>
+                    {formatState(event.state)}
+                  </Chip>
                 </Link>
               </TableCell>
             </TableRow>

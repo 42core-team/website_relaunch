@@ -68,7 +68,7 @@ export class EventEntity {
   @Column({default: false})
   areTeamsLocked: boolean;
 
-  @Column({ type: "enum", enum: EventState, default: EventState.TEAM_FINDING })
+  @Column({ type: "enum", enum: EventState, default: EventState.CODING_PHASE })
   state: EventState;
 
   @Column({ default: 0 })

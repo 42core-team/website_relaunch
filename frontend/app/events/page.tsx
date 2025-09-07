@@ -1,6 +1,6 @@
 import { title } from "@/components/primitives";
-import { getEvents, canUserCreateEvent } from "@/app/actions/event";
-import EventsTable from "@/app/events/EventTable";
+import { getEvents, canUserCreateEvent, getMyEvents } from "@/app/actions/event";
+import EventsTabs from "@/app/events/EventsTabs";
 import { Button } from "@/components/clientHeroui";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -21,16 +21,17 @@ export const metadata: Metadata = {
 };
 
 async function getData() {
-  const [events, canCreate] = await Promise.all([
+  const [allEvents, myEvents, canCreate] = await Promise.all([
     getEvents(),
+    getMyEvents(),
     canUserCreateEvent(),
   ]);
 
-  return { events, canCreate };
+  return { allEvents, myEvents, canCreate };
 }
 
 export default async function EventsPage() {
-  const { events, canCreate } = await getData();
+  const { allEvents, myEvents, canCreate } = await getData();
 
   return (
     <>
@@ -48,7 +49,7 @@ export default async function EventsPage() {
         )}
       </div>
       <div className="mt-8">
-        <EventsTable events={events} />
+        <EventsTabs myEvents={myEvents} allEvents={allEvents} />
       </div>
     </>
   );

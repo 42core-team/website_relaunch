@@ -39,7 +39,7 @@ export class EventService {
                 try {
                     const events = await this.eventRepository.findBy({
                         areTeamsLocked: false,
-                        state: EventState.TEAM_FINDING,
+                        state: EventState.CODING_PHASE,
                         repoLockDate: LessThanOrEqual(new Date())
                     })
                     for (const event of events) {
@@ -60,6 +60,19 @@ export class EventService {
             order: {
                 startDate: "ASC"
             }
+        });
+    }
+
+    async getEventsForUser(userId: string): Promise<EventEntity[]> {
+        return this.eventRepository.find({
+            where: {
+                users: {
+                    id: userId,
+                },
+            },
+            order: {
+                startDate: "ASC",
+            },
         });
     }
 

@@ -125,3 +125,11 @@ export async function setEventTeamsLockDate(
     }),
   );
 }
+
+export async function getMyEvents(): Promise<Event[]> {
+  try {
+    return (await axiosInstance.get("event/my")).data as Event[];
+  } catch {
+    return [];
+  }
+}

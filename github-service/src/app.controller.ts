@@ -1,9 +1,10 @@
-import {Controller} from '@nestjs/common';
+import {Controller, Logger} from '@nestjs/common';
 import {AppService} from './app.service';
 import {EventPattern} from "@nestjs/microservices";
 
 @Controller()
 export class AppController {
+    private readonly logger = new Logger(AppController.name);
     constructor(private readonly appService: AppService) {
     }
 
@@ -14,6 +15,12 @@ export class AppController {
         repoName: string,
         encryptedSecret: string,
     }) {
+        const safeData = {
+            username: data.username,
+            repoOwner: data.repoOwner,
+            repoName: data.repoName,
+        };
+        this.logger.log(`remove_write_permissions event received ${JSON.stringify(safeData)}`);
         return await this.appService.removeWritePermissionsForUser(
             data.username,
             data.repoOwner,
@@ -30,7 +37,12 @@ export class AppController {
         encryptedSecret: string,
         githubAccessToken: string,
     }) {
-        console.log("add_user_to_repository event received with data:", data);
+        const safeData = {
+            repositoryName: data.repositoryName,
+            username: data.username,
+            githubOrg: data.githubOrg,
+        };
+        this.logger.log(`add_user_to_repository event received ${JSON.stringify(safeData)}`);
         return await this.appService.addUserToRepository(
             data.repositoryName,
             data.username,
@@ -47,7 +59,12 @@ export class AppController {
         githubOrg: string,
         encryptedSecret: string,
     }) {
-        console.log("remove_user_from_repository event received with data:", data);
+        const safeData = {
+            repositoryName: data.repositoryName,
+            username: data.username,
+            githubOrg: data.githubOrg,
+        };
+        this.logger.log(`remove_user_from_repository event received ${JSON.stringify(safeData)}`);
         return await this.appService.removeUserFromRepository(
             data.repositoryName,
             data.username,
@@ -62,7 +79,11 @@ export class AppController {
         githubOrg: string,
         encryptedSecret: string,
     }) {
-        console.log("delete_repository event received with data:", data);
+        const safeData = {
+            repositoryName: data.repositoryName,
+            githubOrg: data.githubOrg,
+        };
+        this.logger.log(`delete_repository event received ${JSON.stringify(safeData)}`);
         return await this.appService.deleteRepository(
             data.repositoryName,
             data.githubOrg,
@@ -81,7 +102,15 @@ export class AppController {
         repoTemplateName: string,
         teamId: string
     }) {
-        console.log("create_team_repository event received with data:", data);
+        const safeData = {
+            name: data.name,
+            username: data.username,
+            githubOrg: data.githubOrg,
+            repoTemplateOwner: data.repoTemplateOwner,
+            repoTemplateName: data.repoTemplateName,
+            teamId: data.teamId,
+        };
+        this.logger.log(`create_team_repository event received ${JSON.stringify(safeData)}`);
         return await this.appService.createTeamRepository(
             data.name,
             data.username,

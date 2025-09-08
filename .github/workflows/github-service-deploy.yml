@@ -1,0 +1,217 @@
+name: Deploy github-service
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+
+concurrency:
+  group: ${{ format('{0}-{1}-{2}', github.workflow, github.ref, github.event_name == 'workflow_call' && github.run_id || 'manual') }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-github-service
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: github-service-${{ inputs.environment }}
+
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Create deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'github-service-${{ inputs.environment }}',
+              description: 'Deploying github-service to ${{ inputs.environment }}',
+              auto_merge: false,
+              required_contexts: []
+            });
+
+            core.setOutput('deployment_id', deployment.data.id);
+            return deployment.data.id;
+
+      - name: Set deployment status to in progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'in_progress',
+              description: 'Deployment started'
+            });
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.13.3"
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.28.4"
+
+      - name: Configure Kubernetes context
+        run: |
+          if [ -z "${{ secrets.KUBECONFIG_DATA }}" ]; then
+            echo "ERROR: KUBECONFIG_DATA secret is empty or not set!"
+            echo "Please ensure KUBECONFIG_DATA is configured in the GitHub environment: github-service-${{ inputs.environment }}"
+            exit 1
+          fi
+          mkdir -p ~/.kube
+          if ! echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config 2>/tmp/base64_error; then
+            echo "ERROR: Failed to decode base64 secret"
+            cat /tmp/base64_error
+            exit 1
+          fi
+          chmod 600 ~/.kube/config
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Determine deployment configuration
+        id: config
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          BRANCH_NAME="${{ github.ref_name }}"
+          SANITIZED_BRANCH=$(echo "${BRANCH_NAME}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^\|-\|$//g')
+          IMAGE_TAG="sha-${SHORT_SHA}"
+          IMAGE_REPO="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+          case "${ENVIRONMENT}" in
+            "prod")
+              VALUES_FILE="values-prod.yaml"
+              NAMESPACE="production"
+              ;;
+            "dev")
+              VALUES_FILE="values-dev.yaml"
+              NAMESPACE="development"
+              ;;
+            *)
+              echo "Unknown environment: ${ENVIRONMENT}"
+              exit 1
+              ;;
+          esac
+
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "values_file=${VALUES_FILE}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_repo=${IMAGE_REPO}" >> $GITHUB_OUTPUT
+          echo "release_name=github-service-${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.config.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-email=${{ github.actor }}@users.noreply.github.com \
+            --namespace=${{ steps.config.outputs.namespace }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Validate Helm chart
+        run: |
+          cd github-service/helm
+          helm lint . --values ${{ steps.config.outputs.values_file }}
+          helm template ${{ steps.config.outputs.release_name }} . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
+            --set secrets.RABBITMQ_URL="${{ secrets.RABBITMQ_URL }}" \
+            --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
+            --validate
+
+      - name: Deploy with Helm
+        run: |
+          cd github-service/helm
+          helm upgrade --install \
+            ${{ steps.config.outputs.release_name }} \
+            . \
+            --namespace ${{ steps.config.outputs.namespace }} \
+            --values ${{ steps.config.outputs.values_file }} \
+            --set image.tag=${{ steps.config.outputs.image_tag }} \
+            --set image.repository=${{ steps.config.outputs.image_repo }} \
+            --set secrets.RABBITMQ_URL="${{ secrets.RABBITMQ_URL }}" \
+            --set secrets.API_SECRET_ENCRYPTION_KEY="${{ secrets.API_SECRET_ENCRYPTION_KEY }}" \
+            --wait \
+            --timeout=5m \
+            --atomic \
+            --history-max=5
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/${{ steps.config.outputs.release_name }} -n ${{ steps.config.outputs.namespace }} --timeout=300s
+          kubectl get pods -n ${{ steps.config.outputs.namespace }} -l app.kubernetes.io/name=github-service
+
+      - name: Set deployment status to success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'success',
+              description: 'Deployment completed successfully'
+            });
+
+      - name: Set deployment status to failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: '${{ steps.deployment.outputs.deployment_id }}',
+              state: 'failure',
+              description: 'Deployment failed'
+            });
+
+      - name: Deployment summary
+        run: |
+          echo "## github-service Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ steps.config.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Namespace:** ${{ steps.config.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** ${{ steps.config.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Values file:** ${{ steps.config.outputs.values_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ steps.config.outputs.image_repo }}:${{ steps.config.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+
+

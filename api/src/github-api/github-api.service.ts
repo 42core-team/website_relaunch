@@ -1,4 +1,4 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {ConfigService} from "@nestjs/config";
 import {getRabbitmqConfig} from "../main";

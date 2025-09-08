@@ -44,9 +44,10 @@ export class AppService {
         username: string,
         githubOrg: string,
         encryptedSecret: string,
-        githubAccessToken: string,
+        encryptedGithubAccessToken: string,
     ) {
         const secret = this.decryptSecret(encryptedSecret);
+        const githubAccessToken = this.decryptSecret(encryptedGithubAccessToken);
         const githubApi = new GitHubApiClient({
             token: secret,
         });
@@ -76,7 +77,6 @@ export class AppService {
             token: secret,
         });
         const repositoryApi = new RepositoryApi(githubApi);
-        const userApi = new UserApi(githubApi);
         await repositoryApi.removeCollaborator(githubOrg, repositoryName, username);
     }
 
@@ -96,13 +96,14 @@ export class AppService {
     async createTeamRepository(
         name: string,
         username: string,
-        userGithubAccessToken: string,
+        encryptedUserGithubAccessToken: string,
         githubOrg: string,
         encryptedSecret: string,
         repoTemplateOwner: string,
         repoTemplateName: string,
         teamId: string
     ) {
+        const githubAccessToken = this.decryptSecret(encryptedUserGithubAccessToken);
         const secret = this.decryptSecret(encryptedSecret);
         const githubApi = new GitHubApiClient({
             token: secret,
@@ -128,7 +129,7 @@ export class AppService {
         await userApi.acceptRepositoryInvitationByRepo(
             githubOrg,
             repo.name,
-            userGithubAccessToken,
+            githubAccessToken,
         );
 
         return repo;

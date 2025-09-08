@@ -18,7 +18,7 @@ export class DatabaseConfig {
             migrations: migrations ? ["db/migrations/**"] : [],
             autoLoadEntities: true,
             url: this.configService.get("DB_URL"),
-            synchronize: true, // TODO: move to migrations,
+            synchronize: false, // TODO: move to migrations,
             timezone: 'Z',
             dateStrings: false,
         };

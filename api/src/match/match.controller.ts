@@ -27,6 +27,7 @@ export class MatchController {
 
     private logger = new Logger("MatchController");
 
+    @UseGuards(UserGuard)
     @Get("swiss/:eventId")
     getSwissMatches(
         @Param("eventId", ParseUUIDPipe) eventId:
@@ -94,6 +95,7 @@ export class MatchController {
         return await this.matchService.getAllQueueMatches(eventId);
     }
 
+    @UseGuards(UserGuard)
     @Get("logs/:matchId")
     async getMatchLogs(@Param("matchId", ParseUUIDPipe) matchId: string, @UserId() userId: string) {
         const logs = await this.matchService.getMatchLogs(matchId, userId);
@@ -129,6 +131,7 @@ export class MatchController {
         return await this.matchService.getMatchById(matchId);
     }
 
+    @UseGuards(UserGuard)
     @Get('queue/:eventId/timeseries')
     async getQueueMatchesTimeSeries(
         @Param('eventId') eventId: string,

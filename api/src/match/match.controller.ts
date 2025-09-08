@@ -5,7 +5,7 @@ import {
     Logger,
     Param,
     ParseUUIDPipe,
-    Put,
+    Put, Query,
     UnauthorizedException,
     UseGuards
 } from '@nestjs/common';
@@ -27,6 +27,7 @@ export class MatchController {
 
     private logger = new Logger("MatchController");
 
+    @UseGuards(UserGuard)
     @Get("swiss/:eventId")
     getSwissMatches(
         @Param("eventId", ParseUUIDPipe) eventId:
@@ -83,6 +84,18 @@ export class MatchController {
         return await this.matchService.getQueueMatches(eventId, userId);
     }
 
+    @UseGuards(UserGuard)
+    @Get("queue/:eventId/admin")
+    async getAllQueueMatches(
+        @Param("eventId", ParseUUIDPipe) eventId: string,
+        @UserId() userId: string
+    ) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException("You are not authorized to view all queue matches.");
+        return await this.matchService.getAllQueueMatches(eventId);
+    }
+
+    @UseGuards(UserGuard)
     @Get("logs/:matchId")
     async getMatchLogs(@Param("matchId", ParseUUIDPipe) matchId: string, @UserId() userId: string) {
         const logs = await this.matchService.getMatchLogs(matchId, userId);
@@ -115,6 +128,43 @@ export class MatchController {
     async getMatchById(
         @Param("matchId", ParseUUIDPipe) matchId: string
     ): Promise<MatchEntity> {
-       return await this.matchService.getMatchById(matchId);
+        return await this.matchService.getMatchById(matchId);
+    }
+
+    @UseGuards(UserGuard)
+    @Get('queue/:eventId/timeseries')
+    async getQueueMatchesTimeSeries(
+        @Param('eventId') eventId: string,
+        @UserId() userId: string,
+        @Query('interval') interval?: 'minute' | 'hour' | 'day',
+        @Query('start') startStr?: string,
+        @Query('end') endStr?: string,
+    ) {
+        if (!await this.eventService.isEventAdmin(eventId, userId))
+            throw new UnauthorizedException("You are not authorized to view queue match stats.");
+
+        let start: Date | undefined = undefined;
+        let end: Date | undefined = undefined;
+
+        if (startStr) {
+            const d = new Date(startStr);
+            if (isNaN(d.getTime())) {
+                throw new BadRequestException('Invalid start date');
+            }
+            start = d;
+        }
+        if (endStr) {
+            const d = new Date(endStr);
+            if (isNaN(d.getTime())) {
+                throw new BadRequestException('Invalid end date');
+            }
+            end = d;
+        }
+
+        if (start && end && start > end) {
+            throw new BadRequestException('Start date must be before end date');
+        }
+
+        return this.matchService.getQueueMatchesTimeSeries({interval, start, end, eventId});
     }
 }

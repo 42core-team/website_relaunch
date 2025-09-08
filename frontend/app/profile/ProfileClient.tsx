@@ -11,6 +11,12 @@ function ProfileContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
+
   if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -18,13 +24,6 @@ function ProfileContent() {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
-
   if (!session) return null;
 
   return (

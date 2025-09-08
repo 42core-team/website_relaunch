@@ -39,7 +39,7 @@ export class EventService {
                 try {
                     const events = await this.eventRepository.findBy({
                         areTeamsLocked: false,
-                        state: EventState.TEAM_FINDING,
+                        state: EventState.CODING_PHASE,
                         repoLockDate: LessThanOrEqual(new Date())
                     })
                     for (const event of events) {
@@ -57,15 +57,42 @@ export class EventService {
 
     getAllEvents(): Promise<EventEntity[]> {
         return this.eventRepository.find({
+            where: {
+                isPrivate: false,
+            },
             order: {
                 startDate: "ASC"
             }
         });
     }
 
+    async getEventsForUser(userId: string): Promise<EventEntity[]> {
+        return this.eventRepository.find({
+            where: {
+                users: {
+                    id: userId,
+                },
+            },
+            order: {
+                startDate: "ASC",
+            },
+        });
+    }
+
     async getEventById(id: string, relations: FindOptionsRelations<EventEntity> = {}): Promise<EventEntity> {
         return await this.eventRepository.findOneOrFail({
             where: {id},
+            relations
+        });
+    }
+
+    async getEventByTeamId(teamId: string, relations: FindOptionsRelations<EventEntity> = {}): Promise<EventEntity> {
+        return await this.eventRepository.findOneOrFail({
+            where: {
+                teams: {
+                    id: teamId
+                }
+            },
             relations
         });
     }
@@ -99,6 +126,7 @@ export class EventService {
         myCoreBotDockerImage?: string,
         visualizerDockerImage?: string,
         monorepoUrl?: string,
+        isPrivate: boolean = false,
     ) {
         githubOrgSecret = CryptoJS.AES.encrypt(githubOrgSecret, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
 
@@ -122,10 +150,16 @@ export class EventService {
                     role: PermissionRole.ADMIN
                 }
             ],
+            users: [
+                {
+                    id: userId
+                }
+            ],
             gameServerDockerImage,
             myCoreBotDockerImage,
             visualizerDockerImage,
-            monorepoUrl
+            monorepoUrl,
+            isPrivate
         });
     }
 

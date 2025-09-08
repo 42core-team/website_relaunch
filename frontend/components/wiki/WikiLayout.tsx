@@ -59,6 +59,45 @@ export function WikiLayout({
     };
   }, []);
 
+  // Intercept in-content wiki links to enable Next.js client-side navigation
+  useEffect(() => {
+    const container = document.querySelector(".main-wiki-content");
+    if (!container) return;
+
+    const handleClick = (e: MouseEvent) => {
+      // Respect modifier keys and non-left clicks (open in new tab, etc.)
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.button !== 0
+      ) {
+        return;
+      }
+
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href") || "";
+      // Skip external links, hash links, and already-handled anchors
+      if (!href || href.startsWith("http") || href.startsWith("#")) return;
+
+      // Only intercept internal wiki links
+      if (!href.startsWith("/wiki/")) return;
+
+      e.preventDefault();
+      router.push(href);
+    };
+
+    container.addEventListener("click", handleClick as EventListener);
+    return () => {
+      container.removeEventListener("click", handleClick as EventListener);
+    };
+  }, [router]);
+
   const handleVersionChange = (newVersion: string) => {
     if (newVersion === currentVersion) return;
 

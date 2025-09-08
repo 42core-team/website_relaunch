@@ -375,7 +375,7 @@ async function getFilePathFromSlugWithVersion(
 
 function formatVersionName(slug: string): string {
   // Convert kebab-case or snake_case to Title Case
-  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  return slug.replace(/[-_]/g, " ");
 }
 
 function getTitleFromSlug(slug: string[]): string {

@@ -6,9 +6,7 @@ import DefaultLayout from "@/layouts/default";
 import ClientProviders from "@/components/ClientProviders";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXTAUTH_URL ?? "https://coregame.de",
-  ),
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "https://coregame.de"),
   title: {
     default: "CORE Game",
     template: "%s | CORE Game",

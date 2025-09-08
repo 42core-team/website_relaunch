@@ -5,6 +5,7 @@ import {
   MinLength,
   Min,
   IsNotEmpty,
+  IsBoolean,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -81,4 +82,8 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   monorepoUrl?: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  isPrivate: boolean;
 }

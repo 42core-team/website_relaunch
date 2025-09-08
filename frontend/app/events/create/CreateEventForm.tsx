@@ -10,6 +10,7 @@ import {
   Tooltip,
   Form,
   DateInput,
+  Switch,
 } from "@heroui/react";
 import { createEvent } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
@@ -135,6 +136,7 @@ export default function CreateEventForm() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [tagFetchError, setTagFetchError] = useState<string | null>(null);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Extract owner/repo from a GitHub URL like https://github.com/owner/repo
   const parseGitHubRepo = (
@@ -240,6 +242,7 @@ export default function CreateEventForm() {
         visualizerDockerImage,
         visualizerImageTag,
       ),
+      isPrivate,
     });
 
     if (isActionError(result)) {
@@ -313,6 +316,18 @@ export default function CreateEventForm() {
                   setEndDate(date ? new Date(date.toString()) : undefined)
                 }
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Private event</p>
+                <p className="text-xs text-default-500">
+                  Private events are hidden from the All Events tab.
+                </p>
+              </div>
+              <Switch isSelected={isPrivate} onValueChange={setIsPrivate}>
+                {isPrivate ? "Private" : "Public"}
+              </Switch>
             </div>
           </div>
         </Card>

@@ -126,14 +126,15 @@ export class TeamService {
         })
         const user = await this.userService.getUserById(userId);
 
-        await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
+        if (team.users.length > 1) {
+            await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
+        }
         await this.teamRepository.createQueryBuilder().relation("users")
             .of(teamId)
             .remove(userId);
 
         if (team.users.length <= 1)
             return this.deleteTeam(teamId);
-
     }
 
     getTeamCountForEvent(eventId: string): Promise<number> {

@@ -6,11 +6,13 @@ on:
     paths:
       - "api/**"
       - ".github/workflows/api-build.yml"
+      - ".github/workflows/api-deploy.yml"
   pull_request:
     branches: [ main, dev ]
     paths:
       - "api/**"
       - ".github/workflows/api-build.yml"
+      - ".github/workflows/api-deploy.yml"
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:

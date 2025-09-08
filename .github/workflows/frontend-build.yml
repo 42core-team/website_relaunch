@@ -6,11 +6,13 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-build.yml"
+      - ".github/workflows/frontend-deploy.yml"
   pull_request:
     branches: [main, dev]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-build.yml"
+      - ".github/workflows/frontend-deploy.yml"
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:

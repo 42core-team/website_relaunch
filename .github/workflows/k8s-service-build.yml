@@ -6,11 +6,13 @@ on:
     paths:
       - "k8s-service/**"
       - ".github/workflows/k8s-service-build.yml"
+      - ".github/workflows/k8s-service-deploy.yml"
   pull_request:
     branches: [ main, dev ]
     paths:
       - "k8s-service/**"
       - ".github/workflows/k8s-service-build.yml"
+      - ".github/workflows/k8s-service-deploy.yml"
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:

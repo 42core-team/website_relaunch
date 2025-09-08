@@ -40,8 +40,6 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "crypto-js": "^4.2.0",
-    "install": "^0.13.0",
-    "npm": "^11.6.0",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "pg": "^8.16.3",
@@ -94,5 +92,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "^9.3.5"
+    }
   }
 }

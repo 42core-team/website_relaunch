@@ -94,7 +94,6 @@ export class TeamService {
                 team.id
             );
 
-            //team.repo = createdRepo.name;
             await this.teamRepository.save(team);
         } catch (e) {
             this.logger.error(`Failed to create repository for team ${team.id}`, e);

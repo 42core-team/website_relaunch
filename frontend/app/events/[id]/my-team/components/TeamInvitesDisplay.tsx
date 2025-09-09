@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Team, acceptTeamInvite, declineTeamInvite } from "@/app/actions/team";
 import { isActionError } from "@/app/actions/errors";
+import { usePlausible } from "next-plausible";
 
 interface TeamInvitesDisplayProps {
   pendingInvites: Team[];
@@ -12,6 +13,8 @@ interface TeamInvitesDisplayProps {
 export default function TeamInvitesDisplay({
   pendingInvites,
 }: TeamInvitesDisplayProps) {
+  const plausible = usePlausible();
+
   const [invites, setInvites] = useState(pendingInvites);
   const [actionStates, setActionStates] = useState<
     Record<
@@ -27,6 +30,7 @@ export default function TeamInvitesDisplay({
   const router = useRouter();
 
   const handleAcceptInvite = async (teamId: string) => {
+    plausible("accept_team_invite");
     setActionStates((prev) => ({
       ...prev,
       [teamId]: { ...prev[teamId], isAccepting: true, message: undefined },
@@ -51,6 +55,7 @@ export default function TeamInvitesDisplay({
   };
 
   const handleDeclineInvite = async (teamId: string) => {
+    plausible("decline_team_invite");
     setActionStates((prev) => ({
       ...prev,
       [teamId]: { ...prev[teamId], isDeclining: true, message: undefined },

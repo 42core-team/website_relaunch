@@ -15,8 +15,11 @@ import {
   getPlatformName,
 } from "@/lib/constants/platform-icons";
 import { OAUTH_PROVIDERS } from "@/lib/constants/oauth";
+import { usePlausible } from "next-plausible";
 
 export default function SocialAccountsDisplay() {
+  const plausible = usePlausible();
+
   const { data: session } = useSession();
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +60,11 @@ export default function SocialAccountsDisplay() {
   }, [socialAccounts, message, clearMessage]);
 
   const handleUnlink = async (platform: string) => {
+    plausible("unlink_account", {
+      props: {
+        platform: platform,
+      },
+    });
     if (
       !session?.user?.id ||
       !confirm("Are you sure you want to unlink this account?")
@@ -148,7 +156,14 @@ export default function SocialAccountsDisplay() {
                 size="sm"
                 color="primary"
                 variant="flat"
-                onPress={initiate42OAuth}
+                onPress={() => {
+                  plausible("link_account", {
+                    props: {
+                      platform: OAUTH_PROVIDERS.FORTY_TWO,
+                    },
+                  });
+                  initiate42OAuth();
+                }}
                 isLoading={isInitiating}
                 spinner={
                   <svg

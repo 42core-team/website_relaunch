@@ -5,8 +5,11 @@ import { createTeam } from "@/app/actions/team";
 import { TeamCreationSection } from "@/components/team";
 import { isActionError } from "@/app/actions/errors";
 import { validateTeamName } from "@/lib/utils/validation";
+import { usePlausible } from "next-plausible";
 
 export default function TeamCreationForm() {
+  const plausible = usePlausible();
+
   const [newTeamName, setNewTeamName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -21,6 +24,8 @@ export default function TeamCreationForm() {
   }
 
   async function handleCreateTeam() {
+    plausible("create_team");
+
     const validation = validateTeamName(newTeamName);
     if (!validation.isValid) {
       setValidationError(validation.error!);

@@ -8,6 +8,7 @@ import { Match, MatchState } from "@/app/actions/tournament-model";
 import { Spinner } from "@heroui/spinner";
 import QueueMatchesList from "@/components/QueueMatchesList";
 import { useParams, useRouter } from "next/navigation";
+import { usePlausible } from "next-plausible";
 
 export default function QueueState(props: {
   queueState: QueueState;
@@ -15,6 +16,8 @@ export default function QueueState(props: {
   team: Team;
   queueMatches: Match[];
 }) {
+  const plausible = usePlausible();
+
   const [queueState, setQueueState] = useState<QueueState>(props.queueState);
   const [joiningQueue, setJoiningQueue] = useState(false);
 
@@ -62,6 +65,7 @@ export default function QueueState(props: {
                 isDisabled={joiningQueue}
                 onPress={() => {
                   setJoiningQueue(true);
+                  plausible("join_queue");
                   joinQueue(props.eventId)
                     .then(() => {
                       setQueueState({

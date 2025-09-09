@@ -18,7 +18,11 @@ export class AppService {
         this.githubServiceResultsClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github-service-results"))
         fs.mkdir(this.TMP_FOLDER).then(() => {
             this.logger.log(`Created temp folder at ${this.TMP_FOLDER}`);
-        });
+        }).catch((error) => {
+            if (error.code !== 'EXIST') {
+                this.logger.error(`Failed to create temp folder at ${this.TMP_FOLDER} because it already exists`);
+            }
+        })
     }
 
     decryptSecret(encryptedSecret: string): string {
@@ -205,6 +209,7 @@ export class AppService {
             });
             const repositoryApi = new RepositoryApi(githubApi);
             const userApi = new UserApi(githubApi);
+            this.logger.log(`Creating repo ${name} in org ${githubOrg} with secret ${secret}`);
             const repo = await repositoryApi.createRepo({
                 name,
                 private: true,

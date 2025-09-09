@@ -1,18 +1,18 @@
-name: Build k8s-service
+name: Build github-service
 
 on:
   push:
     branches: [ main, dev ]
     paths:
-      - "k8s-service/**"
-      - ".github/workflows/k8s-service-build.yml"
-      - ".github/workflows/k8s-service-deploy.yml"
+      - "github-service/**"
+      - ".github/workflows/github-service-build.yml"
+      - ".github/workflows/github-service-deploy.yml"
   pull_request:
     branches: [ main, dev ]
     paths:
-      - "k8s-service/**"
-      - ".github/workflows/k8s-service-build.yml"
-      - ".github/workflows/k8s-service-deploy.yml"
+      - "github-service/**"
+      - ".github/workflows/github-service-build.yml"
+      - ".github/workflows/github-service-deploy.yml"
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:
@@ -31,11 +31,10 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-k8s-service
+  IMAGE_NAME: ${{ github.repository }}-github-service
 
 jobs:
   build:
-    # Only run on pull requests that are cross-branch or on direct pushes
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'push' ||
@@ -51,7 +50,6 @@ jobs:
       packages: write
     outputs:
       short_sha: ${{ steps.short-sha.outputs.short_sha }}
-      branch_tag: ${{ steps.compute-tag.outputs.branch_tag }}
 
     steps:
       - name: Checkout repository
@@ -67,28 +65,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract short SHA
-        id: short-sha
-        run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Compute branch-shortsha tag
-        id: compute-tag
-        run: |
-          BRANCH_NAME="${{ github.ref_name }}"
-          SANITIZED_BRANCH=$(echo "${BRANCH_NAME}" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-          TAG="${SANITIZED_BRANCH}-${{ steps.short-sha.outputs.short_sha }}"
-          echo "branch_tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Computed tag: ${TAG}"
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr,prefix=pr-
+            type=sha,format=short
 
       - name: Build image (PR - no push)
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v6
         with:
-          context: ./k8s-service
-          file: ./k8s-service/Dockerfile
+          context: ./github-service
+          file: ./github-service/Dockerfile
           platforms: ${{ matrix.platform }}
           push: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.compute-tag.outputs.branch_tag }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.head_ref }}-${{ matrix.architecture }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
@@ -98,34 +94,51 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
-          context: ./k8s-service
-          file: ./k8s-service/Dockerfile
+          context: ./github-service
+          file: ./github-service/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.compute-tag.outputs.branch_tag }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }},mode=max
 
+      - name: Extract short SHA for deployment
+        id: short-sha
+        run: |
+          SHORT_SHA=$(echo "${{ steps.meta.outputs.tags }}" | grep -o '[a-f0-9]\{7\}' | head -1)
+          if [ -z "$SHORT_SHA" ]; then
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          fi
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Extracted short SHA: $SHORT_SHA"
+
       - name: Output image details
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "## ✅ k8s-service Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
+            echo "## ✅ github-service Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
           else
-            echo "## 🔨 k8s-service Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
+            echo "## 🔨 github-service Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag:** ${{ steps.compute-tag.outputs.branch_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo "**Short SHA:** ${{ steps.short-sha.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **Note:** Image was built for testing but not pushed to registry" >> $GITHUB_STEP_SUMMARY
+          fi
 
   deploy:
     needs: build
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/k8s-service-deploy.yml
+    uses: ./.github/workflows/github-service-deploy.yml
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
     secrets: inherit
+
+

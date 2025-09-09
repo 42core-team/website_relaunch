@@ -1,6 +1,7 @@
-import { config } from "dotenv";
 import { ConfigService } from "@nestjs/config";
 import {DatabaseConfig} from "./src/DatabaseConfig";
+
+import { config } from "dotenv";
 
 config();
 

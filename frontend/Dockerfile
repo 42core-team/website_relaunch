@@ -7,8 +7,7 @@ RUN npm install -g pnpm
 # Dependencies stage
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-ENV HUSKY=0
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Builder stage

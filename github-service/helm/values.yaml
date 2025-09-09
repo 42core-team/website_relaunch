@@ -1,0 +1,48 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/OWNER/REPO-github-service
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets:
+  - name: secret-pull-coregame
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: null
+
+# Optional non-sensitive environment variables
+env: {}
+
+# Sensitive values are passed as Kubernetes Secret
+secrets:
+  RABBITMQ_URL: ""
+  API_SECRET_ENCRYPTION_KEY: ""
+
+

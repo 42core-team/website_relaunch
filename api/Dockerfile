@@ -1,9 +1,13 @@
+# Stage 0: Base with pnpm
+FROM node:24-alpine AS base
+RUN npm install -g pnpm
+
 # Stage 1: Build
-FROM node:24-alpine AS builder
+FROM base AS builder
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 RUN pnpm run build
@@ -12,7 +16,7 @@ RUN pnpm run build
 RUN pnpm prune --prod
 
 # Stage 2: Production
-FROM node:24-alpine AS runner
+FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -21,5 +25,5 @@ COPY package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
-# Start the microservice
-CMD ["node", "dist/src/main.js"]
+# Run database migrations before starting the service
+CMD ["sh", "-lc", "pnpm run migration:run && node dist/src/main.js"]

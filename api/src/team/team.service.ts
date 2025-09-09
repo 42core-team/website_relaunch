@@ -91,7 +91,8 @@ export class TeamService {
                 event.githubOrgSecret,
                 event.repoTemplateOwner,
                 event.repoTemplateName,
-                team.id
+                team.id,
+                event.monorepoUrl
             );
 
             await this.teamRepository.save(team);

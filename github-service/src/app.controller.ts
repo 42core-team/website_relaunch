@@ -100,7 +100,8 @@ export class AppController {
         encryptedSecret: string,
         repoTemplateOwner: string,
         repoTemplateName: string,
-        teamId: string
+        teamId: string,
+        monoRepoUrl: string
     }) {
         const safeData = {
             name: data.name,
@@ -119,7 +120,8 @@ export class AppController {
             data.encryptedSecret,
             data.repoTemplateOwner,
             data.repoTemplateName,
-            data.teamId
+            data.teamId,
+            data.monoRepoUrl
         );
     }
 }

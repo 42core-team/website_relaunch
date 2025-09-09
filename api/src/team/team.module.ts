@@ -7,6 +7,7 @@ import {GithubApiModule} from "../github-api/github-api.module";
 import {EventModule} from "../event/event.module";
 import {UserModule} from "../user/user.module";
 import {MatchModule} from "../match/match.module";
+import { TeamEventsController } from './team.events.controller';
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import {MatchModule} from "../match/match.module";
         forwardRef(() => MatchModule),
         UserModule,
     ],
-    controllers: [TeamController],
+    controllers: [TeamController, TeamEventsController],
     providers: [TeamService],
     exports: [TeamService],
 })

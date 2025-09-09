@@ -38,6 +38,18 @@ updates:
       - "dependencies"
       - "frontend"
 
+  - package-ecosystem: "npm"
+    directory: "/github-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-service"
+
   # Go modules
   - package-ecosystem: "gomod"
     directory: "/k8s-service"
@@ -90,3 +102,16 @@ updates:
       - "dependencies"
       - "docker"
       - "k8s-service"
+
+  - package-ecosystem: "docker"
+    directory: "/github-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "github-service"

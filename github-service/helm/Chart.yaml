@@ -1,0 +1,8 @@
+apiVersion: v2
+name: github-service
+description: Helm chart for the GitHub microservice (RabbitMQ consumer)
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+

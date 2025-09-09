@@ -74,6 +74,15 @@ export const TeamInviteModal = ({
     }
   };
 
+  // Invite first non-invited search result on Enter
+  const handleEnterToInvite = () => {
+    if (isSearching || searchResults.length === 0) return;
+    const firstAvailable = searchResults.find((u) => !u.isInvited);
+    if (!firstAvailable) return;
+    if (isInviting[firstAvailable.id]) return;
+    void handleInviteUser(firstAvailable.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <ModalContent>
@@ -87,6 +96,13 @@ export const TeamInviteModal = ({
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="mb-4"
+            autoFocus={true}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleEnterToInvite();
+              }
+            }}
           />
           <div className="max-h-[300px] overflow-y-auto">
             {isSearching ? (

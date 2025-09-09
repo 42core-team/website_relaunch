@@ -1,4 +1,5 @@
 import {DataSource, DataSourceOptions} from "typeorm";
+import { join } from "path";
 import {ConfigService} from "@nestjs/config";
 
 export class DatabaseConfig {
@@ -15,7 +16,10 @@ export class DatabaseConfig {
             database: this.configService.getOrThrow("DB_NAME"),
             schema: this.configService.getOrThrow("DB_SCHEMA"),
             entities: ["dist/**/*.entity{.ts,.js}"],
-            migrations: migrations ? ["db/migrations/**"] : [],
+            migrations: migrations ? [
+                join(__dirname, "..", "db", "migrations", "*.js"), // production (compiled)
+                "db/migrations/*.ts" // local development (ts-node)
+            ] : [],
             autoLoadEntities: true,
             url: this.configService.get("DB_URL"),
             synchronize: false,

@@ -194,7 +194,7 @@ jobs:
             --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \
             --set secrets.RABBITMQ_URL="${{ secrets.RABBITMQ_URL }}" \
             --wait \
-            --timeout=10m \
+            --timeout=5m \
             --atomic \
             --history-max=5
 

@@ -216,7 +216,7 @@ jobs:
             --set secrets.FORTY_TWO_CLIENT_SECRET="${{ secrets.FORTY_TWO_CLIENT_SECRET }}" \
             --set secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}" \
             --wait \
-            --timeout=10m \
+            --timeout=5m \
             --atomic \
             --history-max=5
 

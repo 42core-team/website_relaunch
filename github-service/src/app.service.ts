@@ -6,6 +6,7 @@ import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {getRabbitmqConfig} from "./main";
 import * as fs from "fs/promises";
 import simpleGit from "simple-git";
+import * as path from "node:path";
 
 @Injectable()
 export class AppService {
@@ -13,6 +14,7 @@ export class AppService {
     private readonly logger = new Logger(AppService.name);
 
     private readonly TMP_FOLDER = "./tmp"
+    private readonly MY_CORE_BOT_FOLDER = "my-core-bot"
 
     constructor(private configService: ConfigService) {
         this.githubServiceResultsClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github-service-results"))
@@ -159,27 +161,54 @@ export class AppService {
         monoRepoUrl: string,
         teamRepoUrl: string,
         decryptedGithubAccessToken: string,
-        tempFolderPath: string
+        tempFolderPath: string,
+        eventId: string
     ) {
         this.logger.log(`Cloning mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`);
-        const git = simpleGit(tempFolderPath);
-        await git.clone(monoRepoUrl, tempFolderPath, ['--depth', '1']);
+        let git = simpleGit(tempFolderPath);
+        await git.clone(monoRepoUrl, "./", ['--filter=blob:none', '--sparse']);
         this.logger.log(`Cloned mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`);
-        await git.submoduleUpdate(['--init', '--', 'my-core-bot']);
+        await git.submoduleUpdate(['--init', '--', this.MY_CORE_BOT_FOLDER]);
         this.logger.log(`Updated submodules in temp folder ${tempFolderPath}`);
 
-        try {
-            await git.removeRemote("team-repo");
-        } catch (error) {
-            this.logger.warn(`No origin remote to remove in temp folder ${tempFolderPath}`);
-        }
+
+        await fs.rm(`${tempFolderPath}/.git`, {recursive: true, force: true});
+        await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {recursive: true, force: true});
+        this.logger.log(`Removed .git folder in temp folder ${tempFolderPath}`);
+
+        git = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
+
+        await git.init();
+        this.logger.log(`Initialized new git repo in temp folder ${tempFolderPath}`);
+
         await git.addRemote('team-repo', teamRepoUrl.replace('https://', `https://${decryptedGithubAccessToken}@`));
         this.logger.log(`Added remote team-repo ${teamRepoUrl} in temp folder ${tempFolderPath}`);
-        await git.push('team-repo', 'main');
-        this.logger.log(`Pushed to team-repo ${teamRepoUrl} from temp folder ${tempFolderPath}`);
-        // await fs.rm(tempFolderPath, {recursive: true, force: true});
-        this.logger.log(`Removed temp folder ${tempFolderPath}`);
 
+        // if .coreignore exists
+        const coreignorePath = path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, '.coreignore');
+        if (await fs.stat(coreignorePath).then(() => true).catch(() => false)) {
+            const coreIgnoreContent = await fs.readFile(coreignorePath, 'utf-8');
+            const gitignorePath = path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, '.gitignore');
+            await fs.writeFile(gitignorePath, coreIgnoreContent);
+            this.logger.log(`Copied .coreignore to .gitignore in temp folder ${tempFolderPath}`);
+        }
+
+        await fs.writeFile(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, "project.json"), JSON.stringify({
+            eventId: eventId
+        }))
+
+        this.logger.log(`Wrote project.json in temp folder ${tempFolderPath}`);
+
+        await git.add('.');
+        await git.commit('Initial commit');
+        this.logger.log(`Committed all files in temp folder ${tempFolderPath}`);
+
+        const branchInfo = await git.branch();
+        if (!branchInfo.all.includes('main')) {
+            await git.branch(['-M', 'main']);
+        }
+        await git.push('team-repo', 'main', ['-u']);
+        this.logger.log(`Pushed to team-repo ${teamRepoUrl} from temp folder ${tempFolderPath}`);
     }
 
     async createTeamRepository(
@@ -191,7 +220,8 @@ export class AppService {
         repoTemplateOwner: string,
         repoTemplateName: string,
         teamId: string,
-        monoRepoUrl: string
+        monoRepoUrl: string,
+        eventId: string
     ) {
         this.logger.log(`Creating team repository ${JSON.stringify({
             name,
@@ -209,7 +239,7 @@ export class AppService {
             });
             const repositoryApi = new RepositoryApi(githubApi);
             const userApi = new UserApi(githubApi);
-            this.logger.log(`Creating repo ${name} in org ${githubOrg} with secret ${secret}`);
+            this.logger.log(`Creating repo ${name} in org ${githubOrg}`);
             const repo = await repositoryApi.createRepo({
                 name,
                 private: true,
@@ -217,11 +247,17 @@ export class AppService {
             }, githubOrg)
 
             const tempFolderPath = `${this.TMP_FOLDER}/${repo.name}-${Date.now()}`;
-            await fs.mkdir(tempFolderPath);
-            console.log(repo)
-            this.logger.log(`Created temp folder at ${tempFolderPath} for repo ${repo.name} and url ${repo.clone_url}`);
-            await this.cloneMonoRepoAndPushToTeamRepo(monoRepoUrl, repo.clone_url, secret, tempFolderPath);
-
+            try {
+                await fs.mkdir(tempFolderPath);
+                await this.cloneMonoRepoAndPushToTeamRepo(monoRepoUrl, repo.clone_url, secret, tempFolderPath, eventId);
+            } catch (e) {
+                this.logger.error(`Failed to clone mono repo and push to team repo for repo ${repo.name}`, e as Error);
+                await this.deleteRepository(repo.name, githubOrg, secret);
+                return false;
+            } finally {
+                await fs.rm(tempFolderPath, {recursive: true, force: true});
+                this.logger.log(`Removed temp folder ${tempFolderPath}`);
+            }
 
             this.githubServiceResultsClient.emit("repository_created", {
                 repositoryName: repo.name,

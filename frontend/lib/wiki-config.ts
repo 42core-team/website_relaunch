@@ -1,1 +1,1 @@
-export const DEFAULT_WIKI_VERSION = "rush02";
+export const DEFAULT_WIKI_VERSION = "latest";

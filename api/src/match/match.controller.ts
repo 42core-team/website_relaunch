@@ -3,7 +3,7 @@ import {
     Controller,
     Get,
     Logger,
-    Param,
+    Param, ParseBoolPipe,
     ParseUUIDPipe,
     Put, Query,
     UnauthorizedException,
@@ -31,9 +31,10 @@ export class MatchController {
     @Get("swiss/:eventId")
     getSwissMatches(
         @Param("eventId", ParseUUIDPipe) eventId:
-        string, @UserId() userId: string
+        string, @UserId() userId: string,
+        @Query("adminRevealQuery", ParseBoolPipe) adminRevealQuery: boolean
     ) {
-        return this.matchService.getSwissMatches(eventId, userId);
+        return this.matchService.getSwissMatches(eventId, userId, adminRevealQuery);
     }
 
     @UseGuards(UserGuard)
@@ -73,9 +74,10 @@ export class MatchController {
     @Get("tournament/:eventId")
     getTournamentMatches(
         @Param("eventId", ParseUUIDPipe) eventId: string,
-        @UserId() userId: string
+        @UserId() userId: string,
+        @Query("adminRevealQuery", ParseBoolPipe) adminRevealQuery: boolean
     ) {
-        return this.matchService.getTournamentMatches(eventId, userId);
+        return this.matchService.getTournamentMatches(eventId, userId, adminRevealQuery);
     }
 
     @UseGuards(UserGuard)

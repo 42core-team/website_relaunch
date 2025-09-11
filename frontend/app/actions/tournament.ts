@@ -10,6 +10,7 @@ export async function getSwissMatches(eventId: string, adminReveal: boolean) {
         params.append("adminRevealQuery", "true");
     }
     return (await axiosInstance.get(`/match/swiss/${eventId}`, {params})).data as Match[];
+
 }
 
 export async function startSwissMatches(eventId: string) {

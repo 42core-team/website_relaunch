@@ -1,6 +1,9 @@
 import Actions from "@/app/events/[id]/groups/actions";
 import {getSwissMatches} from "@/app/actions/tournament";
 import GraphView from "@/app/events/[id]/groups/graphView";
+import {isEventAdmin} from "@/app/actions/event";
+import {isActionError} from "@/app/actions/errors";
+import {Switch} from "@heroui/react";
 
 export const metadata = {
     title: "Group Phase",
@@ -15,7 +18,13 @@ export default async function page({
     params: Promise<{ id: string }>;
     searchParams: Promise<{ adminReveal?: string }>;
 }) {
-    const matches = await getSwissMatches((await params).id, Boolean((await searchParams).adminReveal));
+    const eventId = (await params).id;
+    const isAdminView = (await searchParams).adminReveal === "true";
+    const matches = await getSwissMatches(eventId, isAdminView);
+    const eventAdmin = await isEventAdmin(eventId)
+    if(isActionError(eventAdmin)) {
+        throw new Error("Failed to verify admin status");
+    }
 
     return (
         <div>
@@ -27,7 +36,7 @@ export default async function page({
                 In the group phase, teams compete using the Swiss tournament system,
                 with rankings determined by the Buchholz scoring system.
             </p>
-            <GraphView matches={matches}/>
+            <GraphView matches={matches} eventAdmin={eventAdmin} isAdminView={isAdminView}/>
         </div>
     );
 }

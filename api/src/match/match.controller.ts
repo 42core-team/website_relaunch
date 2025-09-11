@@ -32,9 +32,10 @@ export class MatchController {
     getSwissMatches(
         @Param("eventId", ParseUUIDPipe) eventId:
         string, @UserId() userId: string,
-        @Query("adminRevealQuery", ParseBoolPipe) adminRevealQuery: boolean
+        @Query("adminRevealQuery") adminRevealQuery: boolean
     ) {
-        return this.matchService.getSwissMatches(eventId, userId, adminRevealQuery);
+        console.log(adminRevealQuery)
+        return this.matchService.getSwissMatches(eventId, userId, Boolean(adminRevealQuery));
     }
 
     @UseGuards(UserGuard)
@@ -75,7 +76,7 @@ export class MatchController {
     getTournamentMatches(
         @Param("eventId", ParseUUIDPipe) eventId: string,
         @UserId() userId: string,
-        @Query("adminRevealQuery", ParseBoolPipe) adminRevealQuery: boolean
+        @Query("adminRevealQuery") adminRevealQuery: boolean
     ) {
         return this.matchService.getTournamentMatches(eventId, userId, adminRevealQuery);
     }

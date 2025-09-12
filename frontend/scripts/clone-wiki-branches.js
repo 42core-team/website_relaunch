@@ -169,14 +169,3 @@ latestPerBase.forEach(([base, tag]) => {
 
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
-
-// Remove deprecated wiki directories that came from the old wiki repo
-// if this has been here a while, we can remove it again
-const DEPRECATED_DIRS = ["season2-reloaded", "season2", "season1", "rush02"];
-for (const name of DEPRECATED_DIRS) {
-  const doomed = path.join(BASE_DIR, name);
-  if (fs.existsSync(doomed)) {
-    console.log(`Removing deprecated wiki directory ${name}...`);
-    fs.rmSync(doomed, { recursive: true, force: true });
-  }
-}

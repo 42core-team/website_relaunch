@@ -4,7 +4,8 @@ import matter from "gray-matter";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkHtml from "remark-html";
-import { DEFAULT_WIKI_VERSION } from "./wiki-config";
+
+const FALLBACK_WIKI_VERSION = "latest";
 
 export interface WikiPage {
   slug: string[];
@@ -42,7 +43,7 @@ const contentDirectory = path.join(process.cwd(), "content/wiki");
 export async function getDefaultWikiVersion(): Promise<string> {
   const versions = await getAvailableVersions();
   const defaultVersion = versions.find((v) => v.isDefault);
-  return defaultVersion ? defaultVersion.slug : DEFAULT_WIKI_VERSION;
+  return defaultVersion ? defaultVersion.slug : FALLBACK_WIKI_VERSION;
 }
 
 export async function getAvailableVersions(): Promise<WikiVersion[]> {
@@ -71,7 +72,7 @@ export async function getAvailableVersions(): Promise<WikiVersion[]> {
       .map((v) => v.slug)
       .filter((slug) => isStableTagName(slug));
 
-    let defaultSlug = DEFAULT_WIKI_VERSION;
+    let defaultSlug = FALLBACK_WIKI_VERSION;
     if (tagSlugs.length > 0) {
       defaultSlug = tagSlugs.sort(compareTagNamesDesc)[0];
     }

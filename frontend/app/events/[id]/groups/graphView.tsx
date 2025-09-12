@@ -112,12 +112,11 @@ export default function GraphView({matches, eventAdmin, isAdminView}: {
             {eventAdmin &&
                 <div className="flex items-center mb-2 mt-2 gap-4">
                     Toggle admin view
-                    <Switch onValueChange={() => {
+                    <Switch onValueChange={(value) => {
                         console.log("toggle")
-                        if (isAdminView)
-                            router.push(`/events/${eventId}/groups`);
-                         else
-                            router.push(`/events/${eventId}/groups?adminReveal=true`);
+                        const params = new URLSearchParams(window.location.search);
+                        params.set("adminReveal", value ? "true" : "false");
+                        router.replace(`?${params.toString()}`);
                     }} defaultSelected={isAdminView}/>
                 </div>
             }

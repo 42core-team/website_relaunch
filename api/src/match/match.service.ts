@@ -733,7 +733,9 @@ export class MatchService {
         const containers: {
             id: string,
             containers: string[]
-        } = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs/containers`).then(res => res.json());
+        } = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs/containers`).then(res => res.json()).catch(err => {
+            this.logger.error(`Error fetching containers for match ${matchId}: ${err.message}`);
+        });
 
         if (!containers || !containers.containers || containers.containers.length === 0) {
             this.logger.warn(`No containers found for match ${matchId}.`);

@@ -1,56 +1,57 @@
 import {
-  getLogsOfMatch,
-  getMatchById,
-  getTournamentTeamCount,
+    getLogsOfMatch,
+    getMatchById,
+    getTournamentTeamCount,
 } from "@/app/actions/tournament";
 import MatchLogsDisplay from "@/components/match/MatchLogsDisplay";
-import { isActionError } from "@/app/actions/errors";
-import { isEventAdmin } from "@/app/actions/event";
+import {isActionError} from "@/app/actions/errors";
+import {isEventAdmin} from "@/app/actions/event";
 import MatchActions from "@/app/events/[id]/match/[matchId]/matchActions";
-import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
+import {Metadata} from "next/dist/lib/metadata/types/metadata-interface";
 
 export const metadata: Metadata = {
-  title: "Match Details",
-  description: "View the replay and logs for this match.",
+    title: "Match Details",
+    description: "View the replay and logs for this match.",
 };
 
 export default async function MatchPage({
-  params,
-}: {
-  params: Promise<{ matchId: string; id: string }>;
+                                            params,
+                                        }: {
+    params: Promise<{ matchId: string; id: string }>;
 }) {
-  const { matchId, id } = await params;
-  let matchLogs = await getLogsOfMatch(matchId);
-  const match = await getMatchById(matchId);
-  if (isActionError(match)) {
-    return <div className="text-red-500">Error fetching match data</div>;
-  }
+    const {matchId, id} = await params;
+    let matchLogs = await getLogsOfMatch(matchId);
+    const match = await getMatchById(matchId);
+    if (isActionError(match)) {
+        return <div className="text-red-500">Error fetching match data</div>;
+    }
 
-  if (isActionError(matchLogs)) matchLogs = [];
+    if (isActionError(matchLogs)) matchLogs = [];
 
-  const isAdmin = await isEventAdmin(id);
-  if (isActionError(isAdmin))
-    return <div className="text-red-500">Error checking admin status</div>;
+    const isAdmin = await isEventAdmin(id);
+    if (isActionError(isAdmin))
+        return <div className="text-red-500">Error checking admin status</div>;
 
-  const tournamentTeamCount = await getTournamentTeamCount(id);
-  const maxRounds = Math.ceil(tournamentTeamCount / 2);
+    const tournamentTeamCount = await getTournamentTeamCount(id);
+    const maxRounds = Math.ceil(tournamentTeamCount / 2);
+    const visualizerUrl = `${process.env.NEXT_PUBLIC_VISUALIZER_URL}/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;
 
-  const visualizerUrl = `${process.env.NEXT_PUBLIC_VISUALIZER_URL}/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;
+    console.log(match)
 
-  return (
-    <div className="space-y-8">
-      {/* Iframe container with in-frame-style overlay control */}
-      <div className="relative w-full h-[750px] rounded-md overflow-hidden border border-gray-200">
-        <iframe
-          src={visualizerUrl}
-          className="w-full h-full"
-          title="Match Visualizer"
-          allow="fullscreen"
-        />
-      </div>
+    return (
+        <div className="space-y-8">
+            {/* Iframe container with in-frame-style overlay control */}
+            <div className="relative w-full h-[750px] rounded-md overflow-hidden border border-gray-200">
+                <iframe
+                    src={visualizerUrl}
+                    className="w-full h-full"
+                    title="Match Visualizer"
+                    allow="fullscreen"
+                />
+            </div>
 
-      {isAdmin && <MatchActions matchId={matchId} />}
-      <MatchLogsDisplay logs={matchLogs} />
-    </div>
-  );
+            {isAdmin && <MatchActions matchId={matchId} isMatchRevealed={match.isRevealed}/>}
+            <MatchLogsDisplay logs={matchLogs}/>
+        </div>
+    );
 }

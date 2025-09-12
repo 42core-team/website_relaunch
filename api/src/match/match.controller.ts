@@ -34,7 +34,6 @@ export class MatchController {
         string, @UserId() userId: string,
         @Query("adminRevealQuery") adminRevealQuery: boolean
     ) {
-        console.log(adminRevealQuery)
         return this.matchService.getSwissMatches(eventId, userId, Boolean(adminRevealQuery));
     }
 

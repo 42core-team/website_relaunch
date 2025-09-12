@@ -17,6 +17,7 @@ export interface Match {
   phase: MatchPhase;
   createdAt: string;
   updatedAt: string;
+  isRevealed: boolean;
   teams: {
     id: string;
     name: string;

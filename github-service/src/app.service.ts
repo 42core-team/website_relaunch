@@ -15,6 +15,7 @@ export class AppService {
 
     private readonly TMP_FOLDER = "./tmp"
     private readonly MY_CORE_BOT_FOLDER = "my-core-bot"
+    private readonly COREIGNORE_FILE = ".coreignore"
 
     constructor(private configService: ConfigService) {
         this.githubServiceResultsClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github-service-results"))
@@ -168,9 +169,8 @@ export class AppService {
         let git = simpleGit(tempFolderPath);
         await git.clone(monoRepoUrl, "./", ['--filter=blob:none', '--sparse']);
         this.logger.log(`Cloned mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`);
-        await git.submoduleUpdate(['--init', '--', this.MY_CORE_BOT_FOLDER]);
-        this.logger.log(`Updated submodules in temp folder ${tempFolderPath}`);
-
+        await git.raw(['sparse-checkout', 'set', this.MY_CORE_BOT_FOLDER]);
+        this.logger.log(`Checked out main branch in temp folder ${tempFolderPath}`);
 
         await fs.rm(`${tempFolderPath}/.git`, {recursive: true, force: true});
         await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {recursive: true, force: true});
@@ -185,11 +185,12 @@ export class AppService {
         this.logger.log(`Added remote team-repo ${teamRepoUrl} in temp folder ${tempFolderPath}`);
 
         // if .coreignore exists
-        const coreignorePath = path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, '.coreignore');
+        const coreignorePath = path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, this.COREIGNORE_FILE);
         if (await fs.stat(coreignorePath).then(() => true).catch(() => false)) {
             const coreIgnoreContent = await fs.readFile(coreignorePath, 'utf-8');
             const gitignorePath = path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, '.gitignore');
             await fs.writeFile(gitignorePath, coreIgnoreContent);
+            await fs.rm(coreignorePath);
             this.logger.log(`Copied .coreignore to .gitignore in temp folder ${tempFolderPath}`);
         }
 

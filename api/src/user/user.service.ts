@@ -49,7 +49,6 @@ export class UserService {
         canCreateEvent?: boolean,
     ): Promise<UpdateResult> {
         const encryptedToken = CryptoJS.AES.encrypt(githubAccessToken, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
-
         return this.userRepository.update(id, {
             email,
             username,

@@ -42,7 +42,7 @@ jobs:
 
       - name: Create deployment
         id: deployment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const deployment = await github.rest.repos.createDeployment({
@@ -59,7 +59,7 @@ jobs:
             return deployment.data.id;
 
       - name: Set deployment status to in progress
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -194,7 +194,7 @@ jobs:
             --set secrets.FRONTEND_SECRET="${{ secrets.FRONTEND_SECRET }}" \
             --set secrets.RABBITMQ_URL="${{ secrets.RABBITMQ_URL }}" \
             --wait \
-            --timeout=10m \
+            --timeout=5m \
             --atomic \
             --history-max=5
 
@@ -216,7 +216,7 @@ jobs:
 
       - name: Set deployment status to success
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -230,7 +230,7 @@ jobs:
 
       - name: Set deployment status to failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({

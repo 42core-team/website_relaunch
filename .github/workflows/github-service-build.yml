@@ -1,0 +1,151 @@
+name: Build github-service
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - "github-service/**"
+      - ".github/workflows/github-service-build.yml"
+      - ".github/workflows/github-service-deploy.yml"
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - "github-service/**"
+      - ".github/workflows/github-service-build.yml"
+      - ".github/workflows/github-service-deploy.yml"
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-github-service
+
+jobs:
+  build:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       github.head_ref != 'dev' &&
+       github.event.pull_request.base.ref != github.event.pull_request.head.ref)
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        platform: [ linux/amd64 ]
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      short_sha: ${{ steps.short-sha.outputs.short_sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Sanitize branch names
+        id: sanitize-branch
+        run: |
+          RAW_REF="${{ github.head_ref || github.ref_name }}"
+          SANITIZED=$(echo "$RAW_REF" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          echo "name=$SANITIZED" >> $GITHUB_OUTPUT
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr,prefix=pr-
+            type=sha,format=short
+
+      - name: Build image (PR - no push)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./github-service
+          file: ./github-service/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }},mode=max
+
+      - name: Build and push Docker image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./github-service
+          file: ./github-service/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }},mode=max
+
+      - name: Extract short SHA for deployment
+        id: short-sha
+        run: |
+          SHORT_SHA=$(echo "${{ steps.meta.outputs.tags }}" | grep -o '[a-f0-9]\{7\}' | head -1)
+          if [ -z "$SHORT_SHA" ]; then
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          fi
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Extracted short SHA: $SHORT_SHA"
+
+      - name: Output image details
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "## ✅ github-service Image Built and Pushed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## 🔨 github-service Image Built (Not Pushed)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Short SHA:** ${{ steps.short-sha.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **Note:** Image was built for testing but not pushed to registry" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/github-service-deploy.yml
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
+    secrets: inherit
+
+

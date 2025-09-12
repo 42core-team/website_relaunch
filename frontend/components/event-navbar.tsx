@@ -48,6 +48,7 @@ export default function EventNavbar({
     return isEventAdmin
       ? [
           ...baseItems,
+          { name: "Queue Matches", path: `/events/${eventId}/queue-matches` },
           { name: "Dashboard", path: `/events/${eventId}/dashboard` },
         ]
       : baseItems;

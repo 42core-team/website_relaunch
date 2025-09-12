@@ -56,7 +56,7 @@ export class TeamService {
 
         await Promise.all(team.users.map(async (user) => {
             try {
-                await this.githubApiService.removeWritePermissionsForUser(
+                await this.githubApiService.removeWritePermissions(
                     user.username,
                     team.event.githubOrg,
                     team.repo,
@@ -83,17 +83,19 @@ export class TeamService {
 
         const repoName = event.name + '-' + name + '-' + team.id;
         try {
-            const createdRepo = await this.githubApiService.createTeamRepository(
+            await this.githubApiService.createTeamRepository(
                 repoName,
                 user.username,
                 user.githubAccessToken,
                 event.githubOrg,
                 event.githubOrgSecret,
                 event.repoTemplateOwner,
-                event.repoTemplateName
+                event.repoTemplateName,
+                team.id,
+                event.monorepoUrl,
+                event.id
             );
 
-            team.repo = createdRepo.name;
             await this.teamRepository.save(team);
         } catch (e) {
             this.logger.error(`Failed to create repository for team ${team.id}`, e);
@@ -126,14 +128,15 @@ export class TeamService {
         })
         const user = await this.userService.getUserById(userId);
 
-        await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
+        if (team.users.length > 1) {
+            await this.githubApiService.removeUserFromRepository(team.repo, user.username, team.event.githubOrg, team.event.githubOrgSecret)
+        }
         await this.teamRepository.createQueryBuilder().relation("users")
             .of(teamId)
             .remove(userId);
 
         if (team.users.length <= 1)
             return this.deleteTeam(teamId);
-
     }
 
     getTeamCountForEvent(eventId: string): Promise<number> {
@@ -332,5 +335,9 @@ export class TeamService {
                 name: "ASC"
             }
         });
+    }
+
+    async setTeamRepository(teamId: string, repositoryName: string) {
+        return this.teamRepository.update(teamId, {repo: repositoryName});
     }
 }

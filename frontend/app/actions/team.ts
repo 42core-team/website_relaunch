@@ -42,6 +42,11 @@ export async function getQueueMatches(eventId: string) {
   return (await axiosInstance.get(`/match/queue/${eventId}/`)).data as Match[];
 }
 
+export async function getQueueMatchesAdmin(eventId: string) {
+  return (await axiosInstance.get(`/match/queue/${eventId}/admin`))
+    .data as Match[];
+}
+
 export async function getQueueState(eventId: string): Promise<QueueState> {
   return (
     await axiosInstance.get<QueueState>(`team/event/${eventId}/queue/state`)

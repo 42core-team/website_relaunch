@@ -1,124 +1,104 @@
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import * as CryptoJS from "crypto-js";
-import { GitHubApiClient, RepositoryApi, UserApi } from "../common/githubApi";
+import {Injectable} from "@nestjs/common";
+import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
+import {ConfigService} from "@nestjs/config";
+import {getRabbitmqConfig} from "../main";
 
 @Injectable()
 export class GithubApiService {
-  constructor(private readonly configService: ConfigService) {}
+    private githubClient: ClientProxy
 
-  decryptSecret(encryptedSecret: string): string {
-    return CryptoJS.AES.decrypt(
-      encryptedSecret,
-      this.configService.getOrThrow<string>("API_SECRET_ENCRYPTION_KEY"),
-    ).toString(CryptoJS.enc.Utf8);
-  }
+    constructor(
+        private configService: ConfigService,
+    ) {
+        this.githubClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github_service"))
+    }
 
-  async removeWritePermissionsForUser(
-    username: string,
-    repoOwner: string,
-    repoName: string,
-    encryptedSecret: string,
-  ) {
-    const secret = this.decryptSecret(encryptedSecret);
-    const githubApi = new GitHubApiClient({
-      token: secret,
-    });
-    const repositoryApi = new RepositoryApi(githubApi);
-    return await repositoryApi.updateCollaboratorPermission(
-      repoOwner,
-      repoName,
-      username,
-      "pull",
-    );
-  }
+    decryptSecret(encryptedSecret: string): string {
+        return CryptoJS.AES.decrypt(
+            encryptedSecret,
+            this.configService.getOrThrow<string>("API_SECRET_ENCRYPTION_KEY"),
+        ).toString(CryptoJS.enc.Utf8);
+    }
 
-  async addUserToRepository(
-    repositoryName: string,
-    username: string,
-    githubOrg: string,
-    encryptedSecret: string,
-    githubAccessToken: string,
-  ) {
-    const secret = this.decryptSecret(encryptedSecret);
-    const githubApi = new GitHubApiClient({
-      token: secret,
-    });
-    const repositoryApi = new RepositoryApi(githubApi);
-    const userApi = new UserApi(githubApi);
-    await repositoryApi.addCollaborator(
-      githubOrg,
-      repositoryName,
-      username,
-      "push",
-    );
-    await userApi.acceptRepositoryInvitationByRepo(
-      githubOrg,
-      repositoryName,
-      githubAccessToken,
-    );
-  }
+    async removeWritePermissions(
+        username: string,
+        repoOwner: string,
+        repoName: string,
+        encryptedSecret: string,
+    ) {
+        this.githubClient.emit('remove_write_permissions', {
+            username,
+            repoOwner,
+            repoName,
+            encryptedSecret,
+        })
+    }
 
-  async removeUserFromRepository(
-    repositoryName: string,
-    username: string,
-    githubOrg: string,
-    encryptedSecret: string,
-  ) {
-    const secret = this.decryptSecret(encryptedSecret);
-    const githubApi = new GitHubApiClient({
-      token: secret,
-    });
-    const repositoryApi = new RepositoryApi(githubApi);
-    const userApi = new UserApi(githubApi);
-    await repositoryApi.removeCollaborator(githubOrg, repositoryName, username);
-  }
+    async addUserToRepository(
+        repositoryName: string,
+        username: string,
+        githubOrg: string,
+        encryptedSecret: string,
+        githubAccessToken: string,
+    ) {
+        this.githubClient.emit('add_user_to_repository', {
+            repositoryName,
+            username,
+            githubOrg,
+            encryptedSecret,
+            githubAccessToken,
+        })
+    }
 
-  async deleteRepository(
-    repositoryName: string,
-    githubOrg: string,
-    encryptedSecret: string,
-  ) {
-    const secret = this.decryptSecret(encryptedSecret);
-    const githubApi = new GitHubApiClient({
-      token: secret,
-    });
-    const repositoryApi = new RepositoryApi(githubApi);
-    return await repositoryApi.deleteRepo(githubOrg, repositoryName);
-  }
+    async removeUserFromRepository(
+        repositoryName: string,
+        username: string,
+        githubOrg: string,
+        encryptedSecret: string,
+    ) {
+        this.githubClient.emit('remove_user_from_repository', {
+            repositoryName,
+            username,
+            githubOrg,
+            encryptedSecret,
+        })
+    }
 
-  async createTeamRepository(
-    name: string,
-    username: string,
-    userGithubAccessToken: string,
-    githubOrg: string,
-    encryptedSecret: string,
-    repoTemplateOwner: string,
-    repoTemplateName: string,
-  ) {
-    const secret = this.decryptSecret(encryptedSecret);
-    const githubApi = new GitHubApiClient({
-      token: secret,
-    });
-    const repositoryApi = new RepositoryApi(githubApi);
-    const userApi = new UserApi(githubApi);
-    const repo = await repositoryApi.createRepoFromTemplate(
-      repoTemplateOwner,
-      repoTemplateName,
-      {
-        owner: githubOrg,
-        name,
-        private: true,
-      },
-    );
+    async deleteRepository(
+        repositoryName: string,
+        githubOrg: string,
+        encryptedSecret: string,
+    ) {
+        this.githubClient.emit('delete_repository', {
+            repositoryName,
+            githubOrg,
+            encryptedSecret,
+        })
+    }
 
-    await repositoryApi.addCollaborator(githubOrg, repo.name, username, "push");
-    await userApi.acceptRepositoryInvitationByRepo(
-      githubOrg,
-      repo.name,
-      userGithubAccessToken,
-    );
-
-    return repo;
-  }
+    async createTeamRepository(
+        name: string,
+        username: string,
+        userGithubAccessToken: string,
+        githubOrg: string,
+        encryptedSecret: string,
+        repoTemplateOwner: string,
+        repoTemplateName: string,
+        teamId: string,
+        monoRepoUrl: string,
+        eventId: string
+    ) {
+        this.githubClient.emit('create_team_repository', {
+            name,
+            username,
+            userGithubAccessToken,
+            githubOrg,
+            encryptedSecret,
+            repoTemplateOwner,
+            repoTemplateName,
+            teamId,
+            monoRepoUrl,
+            eventId
+        })
+    }
 }

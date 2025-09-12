@@ -6,7 +6,7 @@ import {
     Param,
     ParseUUIDPipe,
     Post,
-    Put,
+    Put, Query,
     UnauthorizedException,
     UseGuards,
 } from "@nestjs/common";
@@ -26,6 +26,12 @@ export class EventController {
         private readonly teamService: TeamService,
         private readonly userService: UserService,
     ) {
+    }
+
+    @UseGuards(UserGuard)
+    @Get("my")
+    async getMyEvents(@UserId() userId: string) {
+        return this.eventService.getEventsForUser(userId);
     }
 
     @Get()
@@ -71,6 +77,7 @@ export class EventController {
             createEventDto.myCoreBotDockerImage,
             createEventDto.visualizerDockerImage,
             createEventDto.monorepoUrl,
+            createEventDto.isPrivate,
         );
     }
 

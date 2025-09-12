@@ -3,12 +3,15 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {UserEntity} from "./entities/user.entity";
 import {Repository, UpdateResult} from "typeorm";
 import {UserInviteSearchResult} from "./dtos/user-search-invite.dto";
+import * as CryptoJS from "crypto-js";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly userRepository: Repository<UserEntity>,
+        private configService: ConfigService,
     ) {
     }
 
@@ -21,13 +24,15 @@ export class UserService {
         githubAccessToken: string,
         canCreateEvent?: boolean,
     ): Promise<UserEntity> {
+        const encryptedToken = CryptoJS.AES.encrypt(githubAccessToken, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
+
         const newUser = this.userRepository.create({
             email,
             username,
             name,
             profilePicture,
             githubId,
-            githubAccessToken,
+            githubAccessToken: encryptedToken,
             canCreateEvent,
         });
         return this.userRepository.save(newUser);
@@ -43,13 +48,14 @@ export class UserService {
         githubAccessToken: string,
         canCreateEvent?: boolean,
     ): Promise<UpdateResult> {
+        const encryptedToken = CryptoJS.AES.encrypt(githubAccessToken, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
         return this.userRepository.update(id, {
             email,
             username,
             name,
             profilePicture,
             githubId,
-            githubAccessToken,
+            githubAccessToken: encryptedToken,
             canCreateEvent: canCreateEvent,
         });
     }
@@ -121,8 +127,7 @@ export class UserService {
                 'isInvited',
             )
             .innerJoin("user.events", "event", "event.id = :eventId", {eventId})
-            .leftJoin("user.teams", "team")
-            .leftJoin("team.event", "teamEvent", "teamEvent.id = :eventId", {eventId})
+            .leftJoin("user.teams", "team", "team.eventId = :eventId", {eventId})
             .leftJoin("user.teamInvites", "inviteTeam")
             .leftJoin("inviteTeam.event", "inviteEvent")
             .leftJoin("user.socialAccounts", "sa")

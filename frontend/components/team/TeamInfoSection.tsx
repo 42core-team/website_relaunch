@@ -9,6 +9,7 @@ import {
   ModalFooter,
   ModalHeader,
   useDisclosure,
+  Skeleton,
 } from "@heroui/react";
 import { Team, TeamMember } from "@/app/actions/team";
 import TeamInviteModal from "./TeamInviteModal";
@@ -22,6 +23,7 @@ interface TeamInfoSectionProps {
   onLeaveTeam: () => Promise<boolean>;
   isLeaving: boolean;
   teamMembers: TeamMember[];
+  isRepoPending?: boolean;
 }
 
 export const TeamInfoSection = ({
@@ -29,6 +31,7 @@ export const TeamInfoSection = ({
   onLeaveTeam,
   isLeaving,
   teamMembers,
+  isRepoPending = false,
 }: TeamInfoSectionProps) => {
   const eventId = useParams().id as string;
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -78,7 +81,7 @@ export const TeamInfoSection = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
           <p className="text-sm text-default-500">Repository</p>
-          <p className="font-medium">
+          <div className="font-medium">
             {myTeam.repo ? (
               <a
                 href={getRepoUrl()}
@@ -88,10 +91,12 @@ export const TeamInfoSection = ({
               >
                 {myTeam.repo}
               </a>
+            ) : isRepoPending ? (
+              <Skeleton className="h-5 w-75 rounded-md m-2" />
             ) : (
               "Not yet configured"
             )}
-          </p>
+          </div>
         </div>
         <div>
           <p className="text-sm text-default-500">Created</p>
@@ -140,7 +145,9 @@ export const TeamInfoSection = ({
               >
                 <div className="flex flex-col items-center rounded-xl bg-content1/50 p-4 ring-1 ring-default-200 shadow-sm transition hover:shadow-md hover:ring-primary/60">
                   <Avatar
-                      style={member.isEventAdmin ? {outline: "orange 2px solid"} : {}}
+                    style={
+                      member.isEventAdmin ? { outline: "orange 2px solid" } : {}
+                    }
                     size="lg"
                     src={member.profilePicture}
                     name={(member.name || "User").substring(0, 2).toUpperCase()}

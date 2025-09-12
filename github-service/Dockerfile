@@ -26,5 +26,9 @@ COPY --from=builder /app/dist ./dist
 RUN apk update
 RUN apk add --no-cache git
 
+# Set git config for container
+RUN git config --global user.name "corethegame"
+RUN git config --global user.email "core@paulgrossmann.de"
+
 # Start the microservice
 CMD ["node", "dist/main.js"]

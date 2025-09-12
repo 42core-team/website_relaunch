@@ -24,6 +24,11 @@ on:
         options:
           - dev
           - prod
+      force_rebuild:
+        description: "Force full rebuild (disable cache) for Docker/Next.js build. For example when you want to update the wiki without any changes to the frontend."
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -102,6 +107,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           platforms: ${{ matrix.platform }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.force_rebuild == 'true' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

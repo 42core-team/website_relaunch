@@ -66,13 +66,15 @@ export class GitHubApiClient {
             retries++;
             continue;
           } else {
-            throw new Error("Rate limit exceeded and max retries reached");
+            throw new GitHubRateLimitError();
           }
         }
 
         // Handle other errors
         if (!response.ok) {
-          throw new Error(
+          throw new GitHubApiError(
+            response.status,
+            response.statusText,
             `GitHub API error on ${url}: ${response.status} ${response.statusText}`,
           );
         }
@@ -288,5 +290,23 @@ export class GitHubApiClient {
     options: Omit<RequestOptions, "method"> = {},
   ): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "DELETE" });
+  }
+}
+
+export class GitHubRateLimitError extends Error {
+  constructor(message: string = "Rate limit exceeded and max retries reached") {
+    super(message);
+    this.name = "GitHubRateLimitError";
+  }
+}
+
+export class GitHubApiError extends Error {
+  status: number;
+  statusText: string;
+  constructor(status: number, statusText: string, message?: string) {
+    super(message || `GitHub API Error: ${status} ${statusText}`);
+    this.name = "GitHubApiError";
+    this.status = status;
+    this.statusText = statusText;
   }
 }

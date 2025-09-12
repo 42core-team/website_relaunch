@@ -11,7 +11,7 @@ export class AppService {
     private readonly logger = new Logger(AppService.name);
 
     constructor(private configService: ConfigService) {
-        this.githubServiceResultsClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github-service-results"))
+        this.githubServiceResultsClient = ClientProxyFactory.create(getRabbitmqConfig(configService, "github_service_results"))
     }
 
     decryptSecret(encryptedSecret: string): string {

@@ -14,6 +14,7 @@ import {
   searchUsersForInvite,
   sendTeamInvite,
 } from "@/app/actions/team";
+import { usePlausible } from "next-plausible";
 
 interface TeamInviteModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ export const TeamInviteModal = ({
   onClose,
   eventId,
 }: TeamInviteModalProps) => {
+  const plausible = usePlausible();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -53,6 +56,7 @@ export const TeamInviteModal = ({
 
   // Send invite to a user
   const handleInviteUser = async (userId: string) => {
+    plausible("invite_team_member");
     setIsInviting((prev) => ({ ...prev, [userId]: true }));
     try {
       await sendTeamInvite(eventId, userId);

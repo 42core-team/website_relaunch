@@ -83,7 +83,7 @@ export class TeamService {
 
         const repoName = event.name + '-' + name + '-' + team.id;
         try {
-            const createdRepo = await this.githubApiService.createTeamRepository(
+            await this.githubApiService.createTeamRepository(
                 repoName,
                 user.username,
                 user.githubAccessToken,
@@ -91,7 +91,9 @@ export class TeamService {
                 event.githubOrgSecret,
                 event.repoTemplateOwner,
                 event.repoTemplateName,
-                team.id
+                team.id,
+                event.monorepoUrl,
+                event.id
             );
 
             await this.teamRepository.save(team);

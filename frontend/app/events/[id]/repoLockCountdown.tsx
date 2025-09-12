@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/clientHeroui";
 import { useEffect, useState } from "react";
 
 export default function RepoLockCountdown(props: { repoLockDate: string }) {

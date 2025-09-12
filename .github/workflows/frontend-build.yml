@@ -66,6 +66,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Sanitize branch name for tags
+        id: sanitize-branch
+        run: |
+          RAW_REF="${{ github.head_ref || github.ref_name }}"
+          SANITIZED=$(echo "$RAW_REF" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          echo "name=$SANITIZED" >> $GITHUB_OUTPUT
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
@@ -96,9 +103,9 @@ jobs:
           build-args: |
             CURRENT_BRANCH=${{ github.head_ref || github.ref_name }}
           cache-from: |
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.head_ref }}-${{ matrix.architecture }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.head_ref }}-${{ matrix.architecture }},mode=max
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }},mode=max
 
       - name: Build and push Docker image
         if: github.event_name != 'pull_request'
@@ -112,9 +119,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-main-${{ matrix.architecture }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ github.ref_name }}-${{ matrix.architecture }},mode=max
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ steps.sanitize-branch.outputs.name }}-${{ matrix.architecture }},mode=max
           build-args: |
             NEXT_PUBLIC_FORTY_TWO_CLIENT_ID=${{ vars.NEXT_PUBLIC_FORTY_TWO_CLIENT_ID }}
             NEXT_PUBLIC_BACKEND_PUBLIC_URL=${{ vars.NEXT_PUBLIC_BACKEND_PUBLIC_URL }}

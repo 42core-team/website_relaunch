@@ -107,10 +107,10 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 text-sm">
               <Link
-                href="https://github.com/42core-team/core/blob/dev/LICENSE"
+                href="/impressum"
                 className="text-default-500 hover:text-primary"
               >
-                Terms of Service
+                Impressum
               </Link>
             </div>
           </div>

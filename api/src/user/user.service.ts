@@ -54,7 +54,6 @@ export class UserService {
             name,
             profilePicture,
             githubId,
-            githubAccessToken,
             githubAccessToken: encryptedToken,
         });
     }

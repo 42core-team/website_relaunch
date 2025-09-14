@@ -41,7 +41,6 @@ export class UserService {
         profilePicture: string,
         githubId: string,
         githubAccessToken: string,
-        canCreateEvent?: boolean,
     ): Promise<UpdateResult> {
         return this.userRepository.update(id, {
             email,
@@ -50,7 +49,6 @@ export class UserService {
             profilePicture,
             githubId,
             githubAccessToken,
-            canCreateEvent: canCreateEvent,
         });
     }
 

@@ -1,57 +1,60 @@
 "use server";
 
-import axiosInstance, {handleError} from "@/app/actions/axios";
-import {Match, MatchLogs} from "@/app/actions/tournament-model";
-import {ServerActionResponse} from "@/app/actions/errors";
+import axiosInstance, { handleError } from "@/app/actions/axios";
+import { Match, MatchLogs } from "@/app/actions/tournament-model";
+import { ServerActionResponse } from "@/app/actions/errors";
 
 export async function getSwissMatches(eventId: string, adminReveal: boolean) {
-    const params = new URLSearchParams();
-    if (adminReveal) {
-        params.append("adminRevealQuery", "true");
-    }
-    return (await axiosInstance.get(`/match/swiss/${eventId}`, {params})).data as Match[];
-
+  const params = new URLSearchParams();
+  if (adminReveal) {
+    params.append("adminRevealQuery", "true");
+  }
+  return (await axiosInstance.get(`/match/swiss/${eventId}`, { params }))
+    .data as Match[];
 }
 
 export async function startSwissMatches(eventId: string) {
-    return (await axiosInstance.put(`/match/swiss/${eventId}`)).data;
+  return (await axiosInstance.put(`/match/swiss/${eventId}`)).data;
 }
 
 export async function startTournamentMatches(eventId: string) {
-    return (await axiosInstance.put(`/match/tournament/${eventId}`)).data;
+  return (await axiosInstance.put(`/match/tournament/${eventId}`)).data;
 }
 
 export async function getTournamentTeamCount(eventId: string) {
-    return (
-        await axiosInstance.get<number>(`/match/tournament/${eventId}/teamCount`)
-    ).data;
+  return (
+    await axiosInstance.get<number>(`/match/tournament/${eventId}/teamCount`)
+  ).data;
 }
 
-export async function getTournamentMatches(eventId: string, adminReveal: boolean) {
-    const params = new URLSearchParams();
-    if (adminReveal) {
-        params.append("adminRevealQuery", "true");
-    }
-    return (await axiosInstance.get(`/match/tournament/${eventId}`, {params}))
-        .data as Match[];
+export async function getTournamentMatches(
+  eventId: string,
+  adminReveal: boolean,
+) {
+  const params = new URLSearchParams();
+  if (adminReveal) {
+    params.append("adminRevealQuery", "true");
+  }
+  return (await axiosInstance.get(`/match/tournament/${eventId}`, { params }))
+    .data as Match[];
 }
 
 export async function getLogsOfMatch(
-    matchId: string,
+  matchId: string,
 ): Promise<ServerActionResponse<MatchLogs>> {
-    return handleError(axiosInstance.get<MatchLogs>(`/match/logs/${matchId}`));
+  return handleError(axiosInstance.get<MatchLogs>(`/match/logs/${matchId}`));
 }
 
 export async function revealMatch(
-    matchId: string,
+  matchId: string,
 ): Promise<ServerActionResponse<Match>> {
-    return handleError(axiosInstance.put<Match>(`/match/reveal/${matchId}`));
+  return handleError(axiosInstance.put<Match>(`/match/reveal/${matchId}`));
 }
 
 export async function getMatchById(
-    matchId: string,
+  matchId: string,
 ): Promise<ServerActionResponse<Match>> {
-    return handleError(axiosInstance.get<Match>(`/match/${matchId}`));
+  return handleError(axiosInstance.get<Match>(`/match/${matchId}`));
 }
 
 // Functions:

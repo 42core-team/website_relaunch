@@ -49,10 +49,8 @@ export default function App({ children }: { children: React.ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <body>
         <PlausibleProvider
-          domain={process.env.NEXTAUTH_URL ?? "coregame.de"}
-          customDomain={
-            process.env.PLAUSIBLE_CUSTOM_DOMAIN ?? "https://plausible.io"
-          }
+          domain={process.env.PLAUSIBLE_DOMAIN ?? "coregame.de"}
+          customDomain={process.env.PLAUSIBLE_CUSTOM_DOMAIN}
           selfHosted={true}
           trackOutboundLinks={true}
           trackFileDownloads={true}

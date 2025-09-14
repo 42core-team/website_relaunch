@@ -24,6 +24,9 @@ env:
   BACKEND_URL: "http://api-dev" # internal API route
   NEXT_PUBLIC_VISUALIZER_URL: "https://dev.visualizer.coregame.de"
   NEXT_PUBLIC_BACKEND_PUBLIC_URL: "https://dev.api.coregame.de" # public API route accessible from outside the cluster
+  # Plausible analytics domain defaults for dev
+  PLAUSIBLE_DOMAIN: "dev.coregame.de"
+  PLAUSIBLE_CUSTOM_DOMAIN: "https://plausible.coregame.de"
 
 ingress:
   enabled: true

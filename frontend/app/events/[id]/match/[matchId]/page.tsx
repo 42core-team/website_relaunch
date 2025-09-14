@@ -34,8 +34,7 @@ export default async function MatchPage({
 
   const tournamentTeamCount = await getTournamentTeamCount(id);
   const maxRounds = Math.ceil(tournamentTeamCount / 2);
-
-  const visualizerUrl = `${process.env.NEXT_PUBLIC_VISUALIZER_URL}/?replay=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;
+  const visualizerUrl = `${process.env.NEXT_PUBLIC_VISUALIZER_URL}/?replays=https://core-replays.object.storage.eu01.onstackit.cloud/${matchId}/replay.json&mode=${match.phase}&round=${match.round}&maxRounds=${maxRounds}`;
 
   return (
     <div className="space-y-8">
@@ -49,7 +48,9 @@ export default async function MatchPage({
         />
       </div>
 
-      {isAdmin && <MatchActions matchId={matchId} />}
+      {isAdmin && (
+        <MatchActions matchId={matchId} isMatchRevealed={match.isRevealed} />
+      )}
       <MatchLogsDisplay logs={matchLogs} />
     </div>
   );

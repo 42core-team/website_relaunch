@@ -46,7 +46,6 @@ export class UserService {
         profilePicture: string,
         githubId: string,
         githubAccessToken: string,
-        canCreateEvent?: boolean,
     ): Promise<UpdateResult> {
         const encryptedToken = CryptoJS.AES.encrypt(githubAccessToken, this.configService.getOrThrow("API_SECRET_ENCRYPTION_KEY")).toString()
         return this.userRepository.update(id, {
@@ -56,7 +55,6 @@ export class UserService {
             profilePicture,
             githubId,
             githubAccessToken: encryptedToken,
-            canCreateEvent: canCreateEvent,
         });
     }
 

@@ -7,15 +7,19 @@ import { Event } from "@/app/actions/event";
 export default function EventsTabs({
   myEvents,
   allEvents,
+  isLoggedIn,
 }: {
   myEvents: Event[];
   allEvents: Event[];
+  isLoggedIn: boolean;
 }) {
+  if (!isLoggedIn) {
+    return <EventsTable events={allEvents} />;
+  }
   return (
     <Tabs
       aria-label="Events tabs"
       className="w-full"
-      variant="underlined"
       defaultSelectedKey={myEvents.length ? "my" : "all"}
     >
       <Tab key="my" title={`My Events (${myEvents.length})`}>

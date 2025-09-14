@@ -5,6 +5,8 @@ import {
   getTournamentTeamCount,
 } from "@/app/actions/tournament";
 import { Match } from "@/app/actions/tournament-model";
+import { isEventAdmin } from "@/app/actions/event";
+import { isActionError } from "@/app/actions/errors";
 
 export const metadata = {
   title: "Tournament Bracket",
@@ -13,11 +15,21 @@ export const metadata = {
 
 export default async function page({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ adminReveal?: string }>;
 }) {
   const eventId = (await params).id;
-  const serializedMatches: Match[] = await getTournamentMatches(eventId);
+  const eventAdmin = await isEventAdmin(eventId);
+  if (isActionError(eventAdmin)) {
+    throw new Error("Failed to verify admin status");
+  }
+  const isAdminView = (await searchParams).adminReveal === "true";
+  const serializedMatches: Match[] = await getTournamentMatches(
+    eventId,
+    isAdminView,
+  );
   const teamCount = await getTournamentTeamCount(eventId);
 
   return (
@@ -27,7 +39,12 @@ export default async function page({
       </div>
       <h1>Tournament Tree</h1>
       <p></p>
-      <GraphView matches={serializedMatches} teamCount={teamCount} />
+      <GraphView
+        matches={serializedMatches}
+        teamCount={teamCount}
+        isEventAdmin={eventAdmin}
+        isAdminView={isAdminView}
+      />
     </div>
   );
 }

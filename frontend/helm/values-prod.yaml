@@ -28,6 +28,9 @@ env:
   BACKEND_URL: "http://api-main"
   NEXT_PUBLIC_VISUALIZER_URL: "https://visualizer.coregame.de"
   NEXT_PUBLIC_BACKEND_PUBLIC_URL: "https://api.coregame.de"
+  # Plausible analytics domain defaults for prod
+  PLAUSIBLE_DOMAIN: "coregame.de"
+  PLAUSIBLE_CUSTOM_DOMAIN: "https://plausible.coregame.de"
 
 ingress:
   enabled: true

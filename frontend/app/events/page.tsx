@@ -8,6 +8,8 @@ import EventsTabs from "@/app/events/EventsTabs";
 import { Button } from "@/components/clientHeroui";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/utils/authOptions";
 
 export const metadata: Metadata = {
   title: "Events",
@@ -36,6 +38,7 @@ async function getData() {
 
 export default async function EventsPage() {
   const { allEvents, myEvents, canCreate } = await getData();
+  const session = await getServerSession(authOptions);
 
   return (
     <>
@@ -53,7 +56,11 @@ export default async function EventsPage() {
         )}
       </div>
       <div className="mt-8">
-        <EventsTabs myEvents={myEvents} allEvents={allEvents} />
+        <EventsTabs
+          myEvents={myEvents}
+          allEvents={allEvents}
+          isLoggedIn={session != null}
+        />
       </div>
     </>
   );

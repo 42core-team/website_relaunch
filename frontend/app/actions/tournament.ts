@@ -4,8 +4,13 @@ import axiosInstance, { handleError } from "@/app/actions/axios";
 import { Match, MatchLogs } from "@/app/actions/tournament-model";
 import { ServerActionResponse } from "@/app/actions/errors";
 
-export async function getSwissMatches(eventId: string) {
-  return (await axiosInstance.get(`/match/swiss/${eventId}`)).data as Match[];
+export async function getSwissMatches(eventId: string, adminReveal: boolean) {
+  const params = new URLSearchParams();
+  if (adminReveal) {
+    params.append("adminRevealQuery", "true");
+  }
+  return (await axiosInstance.get(`/match/swiss/${eventId}`, { params }))
+    .data as Match[];
 }
 
 export async function startSwissMatches(eventId: string) {
@@ -22,8 +27,15 @@ export async function getTournamentTeamCount(eventId: string) {
   ).data;
 }
 
-export async function getTournamentMatches(eventId: string) {
-  return (await axiosInstance.get(`/match/tournament/${eventId}`))
+export async function getTournamentMatches(
+  eventId: string,
+  adminReveal: boolean,
+) {
+  const params = new URLSearchParams();
+  if (adminReveal) {
+    params.append("adminRevealQuery", "true");
+  }
+  return (await axiosInstance.get(`/match/tournament/${eventId}`, { params }))
     .data as Match[];
 }
 

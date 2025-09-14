@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import DefaultLayout from "@/layouts/default";
 import ClientProviders from "@/components/ClientProviders";
+import PlausibleProvider from "next-plausible";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? "https://coregame.de"),
@@ -47,9 +48,17 @@ export default function App({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ClientProviders>
-          <DefaultLayout>{children}</DefaultLayout>
-        </ClientProviders>
+        <PlausibleProvider
+          domain={process.env.PLAUSIBLE_DOMAIN ?? "coregame.de"}
+          customDomain={process.env.PLAUSIBLE_CUSTOM_DOMAIN}
+          selfHosted={true}
+          trackOutboundLinks={true}
+          trackFileDownloads={true}
+        >
+          <ClientProviders>
+            <DefaultLayout>{children}</DefaultLayout>
+          </ClientProviders>
+        </PlausibleProvider>
       </body>
     </html>
   );

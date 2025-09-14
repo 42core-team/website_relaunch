@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Team, TeamMember, leaveTeam } from "@/app/actions/team";
 import { TeamInfoSection } from "@/components/team";
 import { isActionError } from "@/app/actions/errors";
+import { usePlausible } from "next-plausible";
 
 interface TeamInfoDisplayProps {
   team: Team;
@@ -14,6 +15,8 @@ export default function TeamInfoDisplay({
   team,
   teamMembers,
 }: TeamInfoDisplayProps) {
+  const plausible = usePlausible();
+
   const [isLeaving, setIsLeaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRepoPending, setIsRepoPending] = useState<boolean>(false);
@@ -73,6 +76,7 @@ export default function TeamInfoDisplay({
   }, [team?.repo, eventId]);
 
   async function handleLeaveTeam(): Promise<boolean> {
+    plausible("leave_team");
     setIsLeaving(true);
     setErrorMessage(null);
 

@@ -100,7 +100,9 @@ export class AppController {
         encryptedSecret: string,
         repoTemplateOwner: string,
         repoTemplateName: string,
-        teamId: string
+        teamId: string,
+        monoRepoUrl: string,
+        eventId: string
     }) {
         const safeData = {
             name: data.name,
@@ -109,6 +111,7 @@ export class AppController {
             repoTemplateOwner: data.repoTemplateOwner,
             repoTemplateName: data.repoTemplateName,
             teamId: data.teamId,
+            eventId: data.eventId,
         };
         this.logger.log(`create_team_repository event received ${JSON.stringify(safeData)}`);
         return await this.appService.createTeamRepository(
@@ -119,7 +122,9 @@ export class AppController {
             data.encryptedSecret,
             data.repoTemplateOwner,
             data.repoTemplateName,
-            data.teamId
+            data.teamId,
+            data.monoRepoUrl,
+            data.eventId
         );
     }
 }

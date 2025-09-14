@@ -62,37 +62,22 @@ export default function EventsTable({ events }: { events: Event[] }) {
         <TableBody items={events} emptyContent="No events found">
           {(event) => (
             <TableRow
+              as={Link}
+              href={`/events/${event.id}`}
               key={event.id}
               className="cursor-pointer transition-colors hover:bg-default-100"
             >
+              <TableCell>{event.name}</TableCell>
               <TableCell>
-                <Link href={`/events/${event.id}`} className="block w-full">
-                  {event.name}
-                </Link>
+                {new Date(event.startDate).toLocaleDateString()}
               </TableCell>
               <TableCell>
-                <Link href={`/events/${event.id}`} className="block w-full">
-                  {new Date(event.startDate).toLocaleDateString()}
-                </Link>
+                {event.minTeamSize} - {event.maxTeamSize} members
               </TableCell>
               <TableCell>
-                <Link href={`/events/${event.id}`} className="block w-full">
-                  {event.minTeamSize} - {event.maxTeamSize} members
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link
-                  href={`/events/${event.id}`}
-                  className="flex w-full items-center gap-2"
-                >
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color={stateColor(event.state)}
-                  >
-                    {formatState(event.state)}
-                  </Chip>
-                </Link>
+                <Chip size="sm" variant="flat" color={stateColor(event.state)}>
+                  {formatState(event.state)}
+                </Chip>
               </TableCell>
             </TableRow>
           )}

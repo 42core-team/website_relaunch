@@ -56,7 +56,6 @@ export class UserService {
             githubId,
             githubAccessToken,
             githubAccessToken: encryptedToken,
-            canCreateEvent: canCreateEvent,
         });
     }
 

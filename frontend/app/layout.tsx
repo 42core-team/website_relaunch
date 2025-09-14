@@ -54,6 +54,7 @@ export default function App({ children }: { children: React.ReactNode }) {
           selfHosted={true}
           trackOutboundLinks={true}
           trackFileDownloads={true}
+          taggedEvents={true}
         >
           <ClientProviders>
             <DefaultLayout>{children}</DefaultLayout>

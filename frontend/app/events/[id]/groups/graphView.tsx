@@ -118,7 +118,6 @@ export default function GraphView({
           Toggle admin view
           <Switch
             onValueChange={(value) => {
-              console.log("toggle");
               const params = new URLSearchParams(window.location.search);
               params.set("adminReveal", value ? "true" : "false");
               router.replace(`?${params.toString()}`);

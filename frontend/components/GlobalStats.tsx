@@ -18,7 +18,6 @@ export default function GlobalStats(props: { initialStats: MatchStats }) {
     try {
       const data = await getGlobalStats();
       setStats(data);
-      console.log("fetched stats", data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching global stats:", error);

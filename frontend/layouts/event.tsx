@@ -54,7 +54,11 @@ export default async function EventLayout({
   return (
     <div className="relative flex flex-col min-h-lvh">
       {showJoinNotice && userId && (
-        <EventJoinNotice eventId={eventId} userId={userId} />
+        <EventJoinNotice
+          eventId={eventId}
+          userId={userId}
+          startDate={event.startDate}
+        />
       )}
       <EventNavbar
         event={event}

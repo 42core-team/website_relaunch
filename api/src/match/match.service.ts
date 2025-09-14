@@ -509,7 +509,7 @@ export class MatchService {
         this.logger.log(`Created next tournament matches for event ${event.name} in round ${event.currentRound}.`);
     }
 
-    async getSwissMatches(eventId: string, userId: string) {
+    async getSwissMatches(eventId: string, userId: string, adminReveal: boolean) {
         const swissMatches = await this.matchRepository.find({
             where: {
                 teams: {
@@ -528,7 +528,7 @@ export class MatchService {
             }
         })
 
-        if (userId && await this.eventService.isEventAdmin(eventId, userId))
+        if (userId && await this.eventService.isEventAdmin(eventId, userId) && adminReveal)
             return swissMatches;
 
         return swissMatches.map(match => {
@@ -594,7 +594,7 @@ export class MatchService {
         return sum;
     }
 
-    async getTournamentMatches(eventId: string, userId: string) {
+    async getTournamentMatches(eventId: string, userId: string, adminReveal: boolean) {
         const tournamentMatches = await this.matchRepository.find({
             where: {
                 teams: {
@@ -613,7 +613,7 @@ export class MatchService {
             }
         });
 
-        if (userId && await this.eventService.isEventAdmin(eventId, userId))
+        if (userId && await this.eventService.isEventAdmin(eventId, userId) && adminReveal)
             return tournamentMatches;
 
         return tournamentMatches.map(match => {
@@ -733,7 +733,9 @@ export class MatchService {
         const containers: {
             id: string,
             containers: string[]
-        } = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs/containers`).then(res => res.json());
+        } = await fetch(`${this.k8sServiceUrl}/v1/match/${matchId}/logs/containers`).then(res => res.json()).catch(err => {
+            this.logger.error(`Error fetching containers for match ${matchId}: ${err.message}`);
+        });
 
         if (!containers || !containers.containers || containers.containers.length === 0) {
             this.logger.warn(`No containers found for match ${matchId}.`);

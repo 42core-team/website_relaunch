@@ -127,6 +127,11 @@ export class EventController {
             );
         }
 
+        const event = await this.eventService.getEventById(eventId);
+        if (new Date() < event.startDate) {
+            throw new BadRequestException("Event has not started yet.");
+        }
+
         return this.userService.joinEvent(userId, eventId);
     }
 

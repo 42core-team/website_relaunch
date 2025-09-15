@@ -90,6 +90,24 @@ jobs:
             type=ref,event=pr,prefix=pr-
             type=sha,format=short
 
+      - name: Debug force_rebuild status
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "force_rebuild (raw): '${{ inputs.force_rebuild }}'"
+          echo "no-cache field (non-PR step): ${{ inputs.force_rebuild }}"
+          echo "no-cache active (non-PR only): ${{ github.event_name != 'pull_request' && (inputs.force_rebuild || false) }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Environment input: '${{ inputs.environment }}'"
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔎 Debug: force_rebuild status" >> $GITHUB_STEP_SUMMARY
+          echo "- Event: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- force_rebuild (raw): '${{ inputs.force_rebuild }}'" >> $GITHUB_STEP_SUMMARY
+          echo "- no-cache field (non-PR step): ${{ inputs.force_rebuild }}" >> $GITHUB_STEP_SUMMARY
+          echo "- no-cache active (non-PR only): ${{ github.event_name != 'pull_request' && (inputs.force_rebuild || false) }}" >> $GITHUB_STEP_SUMMARY
+
       - name: Build image (PR - no push)
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v6
@@ -114,7 +132,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           platforms: ${{ matrix.platform }}
-          no-cache: ${{ inputs.force_rebuild == 'true' }}
+          no-cache: ${{ inputs.force_rebuild }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

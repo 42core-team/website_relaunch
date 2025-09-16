@@ -86,6 +86,8 @@ export class GithubApiService {
         repoTemplateName: string,
         teamId: string,
         monoRepoUrl: string,
+        monoRepoBranch: string,
+        monoRepoTag: string,
         eventId: string
     ) {
         this.githubClient.emit('create_team_repository', {
@@ -98,6 +100,8 @@ export class GithubApiService {
             repoTemplateName,
             teamId,
             monoRepoUrl,
+            monoRepoBranch,
+            monoRepoTag,
             eventId
         })
     }

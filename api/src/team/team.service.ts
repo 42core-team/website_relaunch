@@ -93,6 +93,8 @@ export class TeamService {
                 event.repoTemplateName,
                 team.id,
                 event.monorepoUrl,
+                "dev",
+                "0.0.2.1",
                 event.id
             );
 

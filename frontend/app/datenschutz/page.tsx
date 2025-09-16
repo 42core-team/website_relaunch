@@ -376,19 +376,26 @@ export default function DatenschtutzPage() {
         <p>
           Wenn Sie sich über GitHub OAuth auf unserer Website anmelden, werden
           die folgenden Daten von Ihrem GitHub-Konto erfasst und verarbeitet:
-          E-Mail-Adresse, Name, Nutzername und Profilbild. Diese Daten werden
-          ausschließlich zur Authentifizierung und zur Bereitstellung der
-          Funktionen unserer Website verwendet. Eine Weitergabe an Dritte
-          erfolgt nicht.
+          E-Mail-Adresse, Name, Nutzername, Profilbild, User ID und
+          Access-Token. Diese Daten werden ausschließlich zur Authentifizierung
+          und zur Bereitstellung der Funktionen unserer Website verwendet. Eine
+          Weitergabe an Dritte erfolgt nicht.
+        </p>
+        <p>
+          Die Speicherung erfolgt auf Grundlage Ihrer Einwilligung gemäß Art. 6
+          Abs. 1 lit. a DSGVO.
         </p>
         <h3>42.fr OAuth</h3>
         <p>
           Wenn Sie sich über 42 OAuth auf unserer Website anmelden, werden die
-          folgenden Daten von Ihrem 42-Konto erfasst und verarbeitet:
-          E-Mail-Adresse, Name, Nutzername und Profilbild. Diese Daten werden
-          ausschließlich zur Authentifizierung und zur Bereitstellung der
-          Funktionen unserer Website verwendet. Eine Weitergabe an Dritte
-          erfolgt nicht.
+          folgenden Daten von Ihrem 42-Konto erfasst und verarbeitet: Nutzer Id
+          und Username. Diese Daten werden ausschließlich zur Authentifizierung
+          und zur Bereitstellung der Funktionen unserer Website verwendet. Eine
+          Weitergabe an Dritte erfolgt nicht.
+        </p>
+        <p>
+          Die Speicherung erfolgt auf Grundlage Ihrer Einwilligung gemäß Art. 6
+          Abs. 1 lit. a DSGVO.
         </p>
         <h3>Server-Log-Dateien</h3>{" "}
         <p>

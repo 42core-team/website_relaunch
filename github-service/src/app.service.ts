@@ -209,39 +209,27 @@ export class AppService {
     );
     let git = simpleGit(tempFolderPath);
     await git.clone(monoRepoUrl, "./", ["--filter=blob:none", "--sparse"]);
-    this.logger.log("fetch tag " + monoRepoVersion);
     try {
       await git.fetch(["origin", `tag`, monoRepoVersion, "--no-tags"]);
     } catch (_) {
       this.logger.warn(`Failed to fetch tag ${monoRepoVersion}, using branch instead`);
     }
     await git.checkout(monoRepoVersion);
-    this.logger.log(
-      `Cloned mono repo ${monoRepoUrl} (branch: ${monoRepoVersion}) to temp folder ${tempFolderPath}`,
-    );
     await git.raw(["sparse-checkout", "set", this.MY_CORE_BOT_FOLDER]);
-    this.logger.log(`Checked out ${monoRepoVersion} branch in temp folder ${tempFolderPath}`);
 
     await fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
     await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
       recursive: true,
       force: true,
     });
-    this.logger.log(`Removed .git folder in temp folder ${tempFolderPath}`);
 
     git = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
 
     await git.init();
-    this.logger.log(
-      `Initialized new git repo in temp folder ${tempFolderPath}`,
-    );
 
     await git.addRemote(
       "team-repo",
       teamRepoUrl.replace("https://", `https://${decryptedGithubAccessToken}@`),
-    );
-    this.logger.log(
-      `Added remote team-repo ${teamRepoUrl} in temp folder ${tempFolderPath}`,
     );
 
     // if .coreignore exists
@@ -264,23 +252,17 @@ export class AppService {
       );
       await fs.writeFile(gitignorePath, coreIgnoreContent);
       await fs.rm(coreignorePath);
-      this.logger.log(
-        `Copied .coreignore to .gitignore in temp folder ${tempFolderPath}`,
-      );
     }
 
-    await fs.writeFile(
-      path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, "project.json"),
-      JSON.stringify({
-        eventId: eventId,
-      }),
-    );
-
-    this.logger.log(`Wrote project.json in temp folder ${tempFolderPath}`);
+    // await fs.writeFile(
+    //   path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, "project.json"),
+    //   JSON.stringify({
+    //     eventId: eventId,
+    //   }),
+    // );
 
     await git.add(".");
     await git.commit("Initial commit");
-    this.logger.log(`Committed all files in temp folder ${tempFolderPath}`);
 
     const branchInfo = await git.branch();
     if (!branchInfo.all.includes("main")) {

@@ -64,7 +64,7 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
 
           return (
             <li key={rel.id} className="border border-default-200 rounded-md">
-              <details>
+              <details {...(globalIndex === 0 ? { open: true } : {})}>
                 <summary className="cursor-pointer list-none p-4 hover:bg-default-100 rounded-t-md">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-2">

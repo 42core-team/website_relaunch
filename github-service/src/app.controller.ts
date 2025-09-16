@@ -101,6 +101,8 @@ export class AppController {
         teamId: string,
         monoRepoUrl: string,
         monoRepoVersion: string,
+        myCoreBotDockerImage: string,
+        visualizerDockerImage: string,
         eventId: string
     }) {
         const safeData = {
@@ -121,6 +123,8 @@ export class AppController {
             data.teamId,
             data.monoRepoUrl,
             data.monoRepoVersion,
+            data.myCoreBotDockerImage,
+            data.visualizerDockerImage,
             data.eventId
         );
     }

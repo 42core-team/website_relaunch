@@ -92,6 +92,8 @@ export class TeamService {
                 team.id,
                 event.monorepoUrl,
                 event.monorepoVersion,
+                event.myCoreBotDockerImage,
+                event.visualizerDockerImage,
                 event.id
             );
 

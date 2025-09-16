@@ -7,6 +7,7 @@ import { getRabbitmqConfig } from "./main";
 import * as fs from "fs/promises";
 import simpleGit from "simple-git";
 import * as path from "node:path";
+import * as YAML from "yaml";
 
 @Injectable()
 export class AppService {
@@ -199,6 +200,8 @@ export class AppService {
   async cloneMonoRepoAndPushToTeamRepo(
     monoRepoUrl: string,
     monoRepoVersion: string,
+    myCoreBotDockerImage: string,
+    visualizerDockerImage: string,
     teamRepoUrl: string,
     decryptedGithubAccessToken: string,
     tempFolderPath: string,
@@ -254,6 +257,13 @@ export class AppService {
       await fs.rm(coreignorePath);
     }
 
+    // Update devcontainer/docker-compose.yml image tags for my-core-bot and visualizer
+    await this.updateDevcontainerDockerCompose(
+      path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER),
+      myCoreBotDockerImage,
+      visualizerDockerImage,
+    );
+
     // await fs.writeFile(
     //   path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER, "project.json"),
     //   JSON.stringify({
@@ -274,6 +284,76 @@ export class AppService {
     );
   }
 
+  private async updateDevcontainerDockerCompose(
+    repoRoot: string,
+    myCoreBotDockerImage: string,
+    visualizerDockerImage: string,
+  ): Promise<void> {
+    try {
+      const composePath = path.join(
+        repoRoot,
+        ".devcontainer",
+        "docker-compose.yml",
+      );
+      const exists = await fs
+        .stat(composePath)
+        .then(() => true)
+        .catch(() => false);
+      if (!exists) {
+        this.logger.log(
+          `No .devcontainer/docker-compose.yml found at ${composePath}, skipping image tag update`,
+        );
+        return;
+      }
+
+      const originalContent = await fs.readFile(composePath, "utf-8");
+
+      const doc = YAML.parseDocument(originalContent);
+      const services = doc.get("services");
+      if (!services || typeof services !== "object") {
+        this.logger.log(
+          `No services section in ${composePath}, skipping image tag update`,
+        );
+        return;
+      }
+
+      if (YAML.isMap(services)) {
+        for (const pair of services.items) {
+          const serviceName = String(pair.key);
+          const imageVal = doc.getIn([
+            "services",
+            serviceName,
+            "image",
+          ]) as string | undefined;
+          if (!imageVal || typeof imageVal !== "string") continue;
+
+          if (serviceName === "my-core-bot") {
+            doc.setIn(["services", serviceName, "image"], myCoreBotDockerImage);
+            this.logger.log(
+              `Updated image for service ${serviceName} to ${myCoreBotDockerImage}`,
+            );
+          } else if (serviceName === "visualizer") {
+            doc.setIn(["services", serviceName, "image"], visualizerDockerImage);
+            this.logger.log(
+              `Updated image for service ${serviceName} to ${visualizerDockerImage}`,
+            );
+          }
+        }
+      }
+
+      const updatedContent = doc.toString();
+      await fs.writeFile(composePath, updatedContent);
+      this.logger.log(
+        `Updated devcontainer docker-compose image tags to ${myCoreBotDockerImage} and ${visualizerDockerImage} at ${composePath}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to update .devcontainer/docker-compose.yml image tags`,
+        error as Error,
+      );
+    }
+  }
+
   async createTeamRepository(
     name: string,
     username: string,
@@ -283,6 +363,8 @@ export class AppService {
     teamId: string,
     monoRepoUrl: string,
     monoRepoVersion: string,
+    myCoreBotDockerImage: string,
+    visualizerDockerImage: string,
     eventId: string,
   ) {
     this.logger.log(
@@ -318,6 +400,8 @@ export class AppService {
         await this.cloneMonoRepoAndPushToTeamRepo(
           monoRepoUrl,
           monoRepoVersion,
+          myCoreBotDockerImage,
+          visualizerDockerImage,
           repo.clone_url,
           secret,
           tempFolderPath,

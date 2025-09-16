@@ -114,8 +114,7 @@ export default function CreateEventForm() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [minTeamSize, setMinTeamSize] = useState(1);
   const [maxTeamSize, setMaxTeamSize] = useState(4);
-  const [repoTemplateOwner, setRepoTemplateOwner] = useState("42core-team");
-  const [repoTemplateName, setRepoTemplateName] = useState("my-core-bot");
+  const [monorepoVersion, setMonorepoVersion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [monorepoUrl, setMonorepoUrl] = useState(
@@ -207,6 +206,32 @@ export default function CreateEventForm() {
     setIsLoading(true);
     setError(null);
 
+    const monorepoUrlString = monorepoUrl.trim();
+    const monorepoVersionString = monorepoVersion.trim();
+    const gameServerDockerImageString = combineImageAndTag(
+      gameServerDockerImage,
+      gameServerImageTag,
+    );
+    const myCoreBotDockerImageString = combineImageAndTag(
+      myCoreBotDockerImage,
+      myCoreBotImageTag,
+    );
+    const visualizerDockerImageString = combineImageAndTag(
+      visualizerDockerImage,
+      visualizerImageTag,
+    );
+
+    if (!startDate) return setError("Start Date is required");
+    if (!endDate) return setError("End Date is required");
+    if (!monorepoUrlString) return setError("Monorepo URL is required");
+    if (!monorepoVersionString) return setError("Monorepo Version is required");
+    if (!gameServerDockerImageString)
+      return setError("Game Server image is required");
+    if (!myCoreBotDockerImageString)
+      return setError("My Core Bot image is required");
+    if (!visualizerDockerImageString)
+      return setError("Visualizer image is required");
+
     const validationError = await validateGithubToken(
       githubOrg,
       githubOrgSecret,
@@ -223,26 +248,16 @@ export default function CreateEventForm() {
       githubOrg,
       githubOrgSecret,
       location: location.trim(),
-      startDate: startDate?.getTime() ?? 0,
-      endDate: endDate?.getTime() ?? 0,
+      startDate: startDate.getTime(),
+      endDate: endDate.getTime(),
       minTeamSize,
       maxTeamSize,
-      repoTemplateOwner: repoTemplateOwner,
-      repoTemplateName: repoTemplateName,
-      monorepoUrl: monorepoUrl || undefined,
-      gameServerDockerImage: combineImageAndTag(
-        gameServerDockerImage,
-        gameServerImageTag,
-      ),
-      myCoreBotDockerImage: combineImageAndTag(
-        myCoreBotDockerImage,
-        myCoreBotImageTag,
-      ),
-      visualizerDockerImage: combineImageAndTag(
-        visualizerDockerImage,
-        visualizerImageTag,
-      ),
-      isPrivate,
+      monorepoUrl: monorepoUrlString,
+      monorepoVersion: monorepoVersionString,
+      gameServerDockerImage: gameServerDockerImageString,
+      myCoreBotDockerImage: myCoreBotDockerImageString,
+      visualizerDockerImage: visualizerDockerImageString,
+      isPrivate: isPrivate,
     });
 
     if (isActionError(result)) {
@@ -407,41 +422,31 @@ export default function CreateEventForm() {
                 onValueChange={(v) => setGithubOrgSecret(v.trim())}
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                isRequired
-                label="Template Owner"
-                labelPlacement="outside"
-                placeholder="e.g. 42core-team"
-                value={repoTemplateOwner}
-                onValueChange={(v) => setRepoTemplateOwner(v.trim())}
-              />
-              <Input
-                isRequired
-                label="Template Repository"
-                labelPlacement="outside"
-                placeholder="e.g. my-core-bot"
-                value={repoTemplateName}
-                onValueChange={(v) => setRepoTemplateName(v.trim())}
-              />
-            </div>
           </div>
         </Card>
 
         <Card className="w-full p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Docker Image Configuration
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Version Configuration</h2>
           <div className="space-y-4">
-            <Input
-              label="Monorepo URL"
-              labelPlacement="outside"
-              placeholder="https://github.com/42core-team/monorepo"
-              value={monorepoUrl}
-              onValueChange={(v) => setMonorepoUrl(v.trim())}
-              description="GitHub repository URL to fetch available Docker image tags"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+              <Input
+                label="Monorepo URL"
+                labelPlacement="outside"
+                placeholder="https://github.com/42core-team/monorepo"
+                value={monorepoUrl}
+                onValueChange={(v) => setMonorepoUrl(v.trim())}
+                description="GitHub repository URL to fetch available tags"
+                className="md:col-span-2"
+              />
+              <Input
+                label="Monorepo Version"
+                labelPlacement="outside"
+                placeholder="e.g., dev, v0.0.0.1, not v0.0.0"
+                value={monorepoVersion}
+                onValueChange={setMonorepoVersion}
+                list="repo-tags"
+              />
+            </div>
 
             {tagFetchError && (
               <div className="text-sm text-danger">{tagFetchError}</div>
@@ -449,65 +454,69 @@ export default function CreateEventForm() {
             {isLoadingTags && (
               <div className="text-xs text-default-500">Loading tags…</div>
             )}
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Game Server Base Image"
-                labelPlacement="outside"
-                placeholder="e.g., ghcr.io/42core-team/server"
-                value={gameServerDockerImage}
-                onValueChange={(v) => setGameServerDockerImage(v.trim())}
-              />
-              <Input
-                label="My Core Bot Base Image"
-                labelPlacement="outside"
-                placeholder="e.g., ghcr.io/42core-team/my-core-bot"
-                value={myCoreBotDockerImage}
-                onValueChange={(v) => setMyCoreBotDockerImage(v.trim())}
-              />
-              <Input
-                label="Visualizer Base Image"
-                labelPlacement="outside"
-                placeholder="e.g., ghcr.io/42core-team/visualizer"
-                value={visualizerDockerImage}
-                onValueChange={(v) => setVisualizerDockerImage(v.trim())}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">
-                  Game Server Image Tag
-                </label>
+          <h3 className="text-lg font-semibold my-4">
+            Docker Images Configuration
+          </h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              {/* Game Server image + tag */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <Input
-                  placeholder="e.g., dev, v0.0.0.0"
+                  label="Game Server Image"
+                  labelPlacement="outside"
+                  placeholder="e.g., ghcr.io/42core-team/server"
+                  value={gameServerDockerImage}
+                  onValueChange={(v) => setGameServerDockerImage(v.trim())}
+                  className="md:col-span-2"
+                />
+                <Input
+                  label="Tag"
+                  labelPlacement="outside"
+                  placeholder="e.g., dev, v0.0.0, v0.0.0.1"
                   value={gameServerImageTag}
                   onValueChange={setGameServerImageTag}
-                  className="w-full"
                   list="repo-tags"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">
-                  My Core Bot Image Tag
-                </label>
+
+              {/* My Core Bot image + tag */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <Input
-                  placeholder="e.g., dev, v0.0.0.0"
+                  label="My Core Bot Image"
+                  labelPlacement="outside"
+                  placeholder="e.g., ghcr.io/42core-team/my-core-bot"
+                  value={myCoreBotDockerImage}
+                  onValueChange={(v) => setMyCoreBotDockerImage(v.trim())}
+                  className="md:col-span-2"
+                />
+                <Input
+                  label="Tag"
+                  labelPlacement="outside"
+                  placeholder="e.g., dev, v0.0.0, v0.0.0.1"
                   value={myCoreBotImageTag}
                   onValueChange={setMyCoreBotImageTag}
-                  className="w-full"
                   list="repo-tags"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">
-                  Visualizer Image Tag
-                </label>
+
+              {/* Visualizer image + tag */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <Input
-                  placeholder="e.g., dev, v0.0.0.0"
+                  label="Visualizer Image"
+                  labelPlacement="outside"
+                  placeholder="e.g., ghcr.io/42core-team/visualizer"
+                  value={visualizerDockerImage}
+                  onValueChange={(v) => setVisualizerDockerImage(v.trim())}
+                  className="md:col-span-2"
+                />
+                <Input
+                  label="Tag"
+                  labelPlacement="outside"
+                  placeholder="e.g., dev, v0.0.0, v0.0.0.1"
                   value={visualizerImageTag}
                   onValueChange={setVisualizerImageTag}
-                  className="w-full"
                   list="repo-tags"
                 />
               </div>

@@ -41,12 +41,6 @@ export class EventEntity {
   @Column()
   githubOrgSecret: string;
 
-  @Column({ nullable: true })
-  repoTemplateOwner: string;
-
-  @Column({ nullable: true })
-  repoTemplateName: string;
-
   @Column({ default: "" })
   location: string;
 
@@ -91,6 +85,9 @@ export class EventEntity {
 
   @Column({ nullable: true })
   monorepoUrl: string;
+
+  @Column({ nullable: true, default: "dev" })
+  monorepoVersion: string;
 
   @Column({ default: false })
   isPrivate: boolean;

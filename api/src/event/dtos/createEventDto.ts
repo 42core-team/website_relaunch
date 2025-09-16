@@ -54,34 +54,24 @@ export class CreateEventDto {
   maxTeamSize: number;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  repoTemplateOwner?: string;
+  gameServerDockerImage: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  repoTemplateName?: string;
+  myCoreBotDockerImage: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  gameServerDockerImage?: string;
+  visualizerDockerImage: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  myCoreBotDockerImage?: string;
+  monorepoUrl: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  visualizerDockerImage?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  monorepoUrl?: string;
+  monorepoVersion: string;
 
   @ApiProperty()
   @IsBoolean()

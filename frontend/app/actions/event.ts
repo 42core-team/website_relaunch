@@ -16,13 +16,12 @@ export interface Event {
   currentRound: number;
   type?: string;
   treeFormat?: number;
-  repoTemplateOwner?: string;
-  repoTemplateName?: string;
   githubOrg: string;
   repoLockDate?: string;
   areTeamsLocked: boolean;
   state: EventState;
   monorepoUrl?: string;
+  monorepoVersion?: string;
   gameServerDockerImage?: string;
   myCoreBotDockerImage?: string;
   visualizerDockerImage?: string;
@@ -93,13 +92,12 @@ interface EventCreateParams {
   endDate: number;
   minTeamSize: number;
   maxTeamSize: number;
-  repoTemplateOwner: string;
-  repoTemplateName: string;
-  gameServerDockerImage?: string;
-  myCoreBotDockerImage?: string;
-  visualizerDockerImage?: string;
-  monorepoUrl?: string;
-  isPrivate?: boolean;
+  monorepoVersion: string;
+  gameServerDockerImage: string;
+  myCoreBotDockerImage: string;
+  visualizerDockerImage: string;
+  monorepoUrl: string;
+  isPrivate: boolean;
 }
 
 // Create a new event

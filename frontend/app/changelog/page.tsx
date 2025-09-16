@@ -1,0 +1,139 @@
+import { getPaginatedReleases } from "@/lib/changelog";
+import Link from "next/link";
+import { remark } from "remark";
+import remarkGfm from "remark-gfm";
+import remarkHtml from "remark-html";
+
+async function markdownToHtml(md: string): Promise<string> {
+  const file = await remark().use(remarkGfm).use(remarkHtml).process(md || "");
+  return String(file);
+}
+
+export const dynamic = "force-static";
+
+type SearchProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const PAGE_SIZE = 21;
+
+export default async function ChangelogPage({ searchParams }: SearchProps) {
+  const sp = (await searchParams) || {};
+  const pageParam = Array.isArray(sp.page) ? sp.page[0] : sp.page;
+  const page = Math.max(1, parseInt(pageParam || "1", 10) || 1);
+
+  const { releases, total, totalPages, perPage } = getPaginatedReleases(
+    page,
+    PAGE_SIZE,
+  );
+
+  // Pre-render Markdown bodies to HTML at build-time
+  const renderedBodies = await Promise.all(
+    releases.map((r) => markdownToHtml(r.body)),
+  );
+
+  return (
+    <div className="py-10">
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold">Changelog</h1>
+        <p className="text-default-500">
+          All changes from{" "}
+          <a
+            href="https://github.com/42core-team/monorepo/releases"
+            className="underline hover:no-underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            42core-team/monorepo
+          </a>
+          . {total} release{total === 1 ? "" : "s"} total.
+        </p>
+      </header>
+
+      <ul className="space-y-4">
+        {releases.map((rel, idx) => {
+          const html = renderedBodies[idx];
+          const date = new Date(rel.published_at);
+          const badge =
+            rel.prerelease ? (
+              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-warning-100 text-warning-700">
+                prerelease
+              </span>
+            ) : null;
+
+          return (
+            <li key={rel.id} className="border border-default-200 rounded-md">
+              <details>
+                <summary className="cursor-pointer list-none p-4 hover:bg-default-100 rounded-t-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{rel.name}</span>
+                      <span className="text-default-500">({rel.tag_name})</span>
+                      {badge}
+                    </div>
+                    <div className="text-sm text-default-500">
+                      {date.toLocaleDateString()}
+                    </div>
+                  </div>
+                </summary>
+
+                <div className="px-4 pb-4">
+                  {html.trim() ? (
+                    <article
+                      className="prose dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: html }}
+                    />
+                  ) : (
+                    <p className="text-default-500 italic">No description.</p>
+                  )}
+
+                  <div className="mt-4">
+                    <Link
+                      href={rel.html_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline hover:no-underline"
+                    >
+                      View on GitHub →
+                    </Link>
+                  </div>
+                </div>
+              </details>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Pagination */}
+      <nav className="mt-8 flex items-center justify-between">
+        <Link
+          href={`/changelog?page=${Math.max(1, page - 1)}`}
+          className={`px-3 py-2 rounded border ${
+            page <= 1
+              ? "pointer-events-none opacity-50 border-default-200"
+              : "border-default-300 hover:bg-default-100"
+          }`}
+          aria-disabled={page <= 1}
+        >
+          ← Newer
+        </Link>
+
+        <span className="text-sm text-default-500">
+          Page {page} / {totalPages} &middot; {perPage} per page
+        </span>
+
+        <Link
+          href={`/changelog?page=${Math.min(totalPages, page + 1)}`}
+          className={`px-3 py-2 rounded border ${
+            page >= totalPages
+              ? "pointer-events-none opacity-50 border-default-200"
+              : "border-default-300 hover:bg-default-100"
+          }`}
+          aria-disabled={page >= totalPages}
+        >
+          Older →
+        </Link>
+      </nav>
+    </div>
+  );
+}

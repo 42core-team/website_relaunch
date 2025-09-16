@@ -9,13 +9,13 @@ async function markdownToHtml(md: string): Promise<string> {
   return String(file);
 }
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 type SearchProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const PAGE_SIZE = 21;
+const PAGE_SIZE = 42;
 
 export default async function ChangelogPage({ searchParams }: SearchProps) {
   const sp = (await searchParams) || {};

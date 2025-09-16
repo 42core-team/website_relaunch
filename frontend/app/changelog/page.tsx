@@ -9,6 +9,16 @@ async function markdownToHtml(md: string): Promise<string> {
   return String(file);
 }
 
+// determines which version number was incremented in a release
+function bumpLevel(curr: string, prev?: string): 1 | 2 | 3 | 4 {
+  if (!prev) return 4;
+  const toNums = (t: string) =>
+    t.replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const c = toNums(curr), p = toNums(prev);
+  for (let i = 0; i < 4; i++) if ((c[i] ?? 0) !== (p[i] ?? 0)) return (i + 1) as 1|2|3|4;
+  return 4;
+}
+
 export const dynamic = "force-dynamic";
 
 type SearchProps = {
@@ -55,6 +65,21 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
           const date = new Date(rel.published_at);
 
           const globalIndex = (page - 1) * perPage + idx;
+          const prevTag = releases[idx + 1]?.tag_name;
+          const level = bumpLevel(rel.tag_name, prevTag);
+
+          const sizeClass =
+            level === 1 ? "text-4xl" :
+            level === 2 ? "text-3xl" :
+            level === 3 ? "text-xl"  :
+                          "text-base";
+
+          const weightClass =
+            level === 1 ? "font-black"     :
+            level === 2 ? "font-extrabold" :
+            level === 3 ? "font-bold"      :
+                          "font-medium";
+
           const latestBadge =
             globalIndex === 0 ? (
               <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary-100 text-primary-700">
@@ -68,7 +93,7 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
                 <summary className="cursor-pointer list-none p-4 hover:bg-default-100 rounded-t-md">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{rel.name}</span>
+                      <span className={`${sizeClass} ${weightClass}`}>{rel.name}</span>
                       <span className="text-default-500">({rel.tag_name})</span>
                       {latestBadge}
                     </div>

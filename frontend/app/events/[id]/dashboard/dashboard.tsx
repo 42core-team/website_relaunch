@@ -130,18 +130,28 @@ export function DashboardPage({ eventId }: DashboardPageProps) {
             </h2>
             <div className="space-y-4">
               {event.monorepoUrl && (
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Monorepo URL
-                  </h3>
-                  <a
-                    href={event.monorepoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 break-all"
-                  >
-                    {event.monorepoUrl}
-                  </a>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      Monorepo URL
+                    </h3>
+                    <a
+                      href={event.monorepoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 break-all"
+                    >
+                      {event.monorepoUrl}
+                    </a>
+                  </div>
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      Monorepo Version
+                    </h3>
+                    <p className="text-white font-mono break-all">
+                      {event.monorepoVersion}
+                    </p>
+                  </div>
                 </div>
               )}
 

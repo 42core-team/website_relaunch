@@ -89,12 +89,9 @@ export class TeamService {
                 user.githubAccessToken,
                 event.githubOrg,
                 event.githubOrgSecret,
-                event.repoTemplateOwner,
-                event.repoTemplateName,
                 team.id,
                 event.monorepoUrl,
-                "dev",
-                "v0.0.2.1",
+                event.monorepoVersion,
                 event.id
             );
 

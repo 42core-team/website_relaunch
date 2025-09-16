@@ -198,8 +198,7 @@ export class AppService {
 
   async cloneMonoRepoAndPushToTeamRepo(
     monoRepoUrl: string,
-    monoRepoBranch: string,
-    monoRepoTag: string,
+    monoRepoVersion: string,
     teamRepoUrl: string,
     decryptedGithubAccessToken: string,
     tempFolderPath: string,
@@ -209,18 +208,19 @@ export class AppService {
       `Cloning mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`,
     );
     let git = simpleGit(tempFolderPath);
-    const cloneRef = monoRepoBranch ? monoRepoBranch : monoRepoTag;
     await git.clone(monoRepoUrl, "./", ["--filter=blob:none", "--sparse"]);
-    if (monoRepoTag){
-      this.logger.log("fetch tag " + monoRepoTag);
-      await git.fetch(["origin", `tag`, monoRepoTag, "--no-tags"]);
+    this.logger.log("fetch tag " + monoRepoVersion);
+    try {
+      await git.fetch(["origin", `tag`, monoRepoVersion, "--no-tags"]);
+    } catch (_) {
+      this.logger.warn(`Failed to fetch tag ${monoRepoVersion}, using branch instead`);
     }
-    await git.checkout(cloneRef);
+    await git.checkout(monoRepoVersion);
     this.logger.log(
-      `Cloned mono repo ${monoRepoUrl} (branch: ${cloneRef}) to temp folder ${tempFolderPath}`,
+      `Cloned mono repo ${monoRepoUrl} (branch: ${monoRepoVersion}) to temp folder ${tempFolderPath}`,
     );
     await git.raw(["sparse-checkout", "set", this.MY_CORE_BOT_FOLDER]);
-    this.logger.log(`Checked out ${cloneRef} branch in temp folder ${tempFolderPath}`);
+    this.logger.log(`Checked out ${monoRepoVersion} branch in temp folder ${tempFolderPath}`);
 
     await fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
     await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
@@ -300,8 +300,7 @@ export class AppService {
     encryptedSecret: string,
     teamId: string,
     monoRepoUrl: string,
-    monoRepoBranch: string,
-    monoRepoTag: string,
+    monoRepoVersion: string,
     eventId: string,
   ) {
     this.logger.log(
@@ -336,8 +335,7 @@ export class AppService {
         await fs.mkdir(tempFolderPath);
         await this.cloneMonoRepoAndPushToTeamRepo(
           monoRepoUrl,
-          monoRepoBranch,
-          monoRepoTag,
+          monoRepoVersion,
           repo.clone_url,
           secret,
           tempFolderPath,

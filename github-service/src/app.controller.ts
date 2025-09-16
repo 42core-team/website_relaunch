@@ -100,16 +100,14 @@ export class AppController {
         encryptedSecret: string,
         teamId: string,
         monoRepoUrl: string,
-        monoRepoBranch: string,
-        monoRepoTag: string,
+        monoRepoVersion: string,
         eventId: string
     }) {
         const safeData = {
             name: data.name,
             username: data.username,
             githubOrg: data.githubOrg,
-            monoRepoBranch: data.monoRepoBranch,
-            monoRepoTag: data.monoRepoTag,
+            monoRepoVersion: data.monoRepoVersion,
             teamId: data.teamId,
             eventId: data.eventId,
         };
@@ -122,8 +120,7 @@ export class AppController {
             data.encryptedSecret,
             data.teamId,
             data.monoRepoUrl,
-            data.monoRepoBranch,
-            data.monoRepoTag,
+            data.monoRepoVersion,
             data.eventId
         );
     }

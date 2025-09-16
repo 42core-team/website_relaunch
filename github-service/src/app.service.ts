@@ -210,17 +210,17 @@ export class AppService {
     );
     let git = simpleGit(tempFolderPath);
     const cloneRef = monoRepoBranch ? monoRepoBranch : monoRepoTag;
-    await git.clone(monoRepoUrl, "./", [
-      "--filter=blob:none",
-      "--sparse",
-      "--branch",
-      cloneRef,
-    ]);
+    await git.clone(monoRepoUrl, "./", ["--filter=blob:none", "--sparse"]);
+    if (monoRepoTag){
+      this.logger.log("fetch tag " + monoRepoTag);
+      await git.fetch(["origin", `tag`, monoRepoTag, "--no-tags"]);
+    }
+    await git.checkout(cloneRef);
     this.logger.log(
       `Cloned mono repo ${monoRepoUrl} (branch: ${cloneRef}) to temp folder ${tempFolderPath}`,
     );
     await git.raw(["sparse-checkout", "set", this.MY_CORE_BOT_FOLDER]);
-    this.logger.log(`Checked out main branch in temp folder ${tempFolderPath}`);
+    this.logger.log(`Checked out ${cloneRef} branch in temp folder ${tempFolderPath}`);
 
     await fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
     await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {

@@ -94,7 +94,7 @@ export class TeamService {
                 team.id,
                 event.monorepoUrl,
                 "dev",
-                "0.0.2.1",
+                "v0.0.2.1",
                 event.id
             );
 

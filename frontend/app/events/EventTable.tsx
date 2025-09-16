@@ -51,38 +51,36 @@ export default function EventsTable({ events }: { events: Event[] }) {
   };
 
   return (
-    <div className="mt-8">
-      <Table aria-label="Events table">
-        <TableHeader>
-          <TableColumn>Name</TableColumn>
-          <TableColumn>Start Date</TableColumn>
-          <TableColumn>Team Size</TableColumn>
-          <TableColumn>State</TableColumn>
-        </TableHeader>
-        <TableBody items={events} emptyContent="No events found">
-          {(event) => (
-            <TableRow
-              as={Link}
-              href={`/events/${event.id}`}
-              key={event.id}
-              className="cursor-pointer transition-colors hover:bg-default-100"
-            >
-              <TableCell>{event.name}</TableCell>
-              <TableCell>
-                {new Date(event.startDate).toLocaleDateString()}
-              </TableCell>
-              <TableCell>
-                {event.minTeamSize} - {event.maxTeamSize} members
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat" color={stateColor(event.state)}>
-                  {formatState(event.state)}
-                </Chip>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+    <Table aria-label="Events table">
+      <TableHeader>
+        <TableColumn>Name</TableColumn>
+        <TableColumn>Start Date</TableColumn>
+        <TableColumn>Team Size</TableColumn>
+        <TableColumn>State</TableColumn>
+      </TableHeader>
+      <TableBody items={events} emptyContent="No events found">
+        {(event) => (
+          <TableRow
+            as={Link}
+            href={`/events/${event.id}`}
+            key={event.id}
+            className="cursor-pointer transition-colors hover:bg-default-100"
+          >
+            <TableCell>{event.name}</TableCell>
+            <TableCell>
+              {new Date(event.startDate).toLocaleDateString()}
+            </TableCell>
+            <TableCell>
+              {event.minTeamSize} - {event.maxTeamSize} members
+            </TableCell>
+            <TableCell>
+              <Chip size="sm" variant="flat" color={stateColor(event.state)}>
+                {formatState(event.state)}
+              </Chip>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }

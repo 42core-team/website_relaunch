@@ -1,8 +1,24 @@
 import { getPaginatedReleases } from "@/lib/changelog";
+import { Metadata } from "next";
 import Link from "next/link";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkHtml from "remark-html";
+
+export const metadata: Metadata = {
+  title: "Changelog",
+  description: "Look at the latest features added to CORE Game.",
+  openGraph: {
+    title: "Changelog",
+    description: "Look at the latest features added to CORE Game.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Changelog",
+    description: "Look at the latest features added to CORE Game.",
+  },
+};
 
 async function markdownToHtml(md: string): Promise<string> {
   const file = await remark().use(remarkGfm).use(remarkHtml).process(md || "");

@@ -21,7 +21,10 @@ export const metadata: Metadata = {
 };
 
 async function markdownToHtml(md: string): Promise<string> {
-  const file = await remark().use(remarkGfm).use(remarkHtml).process(md || "");
+  const file = await remark()
+    .use(remarkGfm)
+    .use(remarkHtml)
+    .process(md || "");
   return String(file);
 }
 
@@ -29,9 +32,14 @@ async function markdownToHtml(md: string): Promise<string> {
 function bumpLevel(curr: string, prev?: string): 1 | 2 | 3 | 4 {
   if (!prev) return 4;
   const toNums = (t: string) =>
-    t.replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
-  const c = toNums(curr), p = toNums(prev);
-  for (let i = 0; i < 4; i++) if ((c[i] ?? 0) !== (p[i] ?? 0)) return (i + 1) as 1|2|3|4;
+    t
+      .replace(/^v/i, "")
+      .split(".")
+      .map((n) => parseInt(n, 10) || 0);
+  const c = toNums(curr),
+    p = toNums(prev);
+  for (let i = 0; i < 4; i++)
+    if ((c[i] ?? 0) !== (p[i] ?? 0)) return (i + 1) as 1 | 2 | 3 | 4;
   return 4;
 }
 
@@ -59,8 +67,8 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
 
   return (
     <div className="py-10">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold">Changelog</h1>
+      <header className="mb-4">
+        <h1 className="text-4xl font-bold pb-2">Changelog</h1>
         <p className="text-default-500">
           All changes from{" "}
           <a
@@ -85,16 +93,22 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
           const level = bumpLevel(rel.tag_name, prevTag);
 
           const sizeClass =
-            level === 1 ? "text-4xl" :
-            level === 2 ? "text-3xl" :
-            level === 3 ? "text-xl"  :
-                          "text-base";
+            level === 1
+              ? "text-4xl"
+              : level === 2
+                ? "text-3xl"
+                : level === 3
+                  ? "text-xl"
+                  : "text-base";
 
           const weightClass =
-            level === 1 ? "font-black"     :
-            level === 2 ? "font-extrabold" :
-            level === 3 ? "font-bold"      :
-                          "font-medium";
+            level === 1
+              ? "font-black"
+              : level === 2
+                ? "font-extrabold"
+                : level === 3
+                  ? "font-bold"
+                  : "font-medium";
 
           const latestBadge =
             globalIndex === 0 ? (
@@ -109,7 +123,9 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
                 <summary className="cursor-pointer list-none p-4 hover:bg-default-100 rounded-t-md">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className={`${sizeClass} ${weightClass}`}>{rel.name}</span>
+                      <span className={`${sizeClass} ${weightClass}`}>
+                        {rel.name}
+                      </span>
                       <span className="text-default-500">({rel.tag_name})</span>
                       {latestBadge}
                     </div>
@@ -119,7 +135,7 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
                   </div>
                 </summary>
 
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-4 pt-2">
                   {html.trim() ? (
                     <article
                       className="prose dark:prose-invert max-w-none"

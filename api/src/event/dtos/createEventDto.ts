@@ -56,16 +56,6 @@ export class CreateEventDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  repoTemplateOwner?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  repoTemplateName?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
   gameServerDockerImage?: string;
 
   @ApiProperty()
@@ -82,6 +72,11 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   monorepoUrl?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  monorepoVersion?: string;
 
   @ApiProperty()
   @IsBoolean()

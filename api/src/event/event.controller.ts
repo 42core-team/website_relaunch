@@ -71,12 +71,11 @@ export class EventController {
             createEventDto.endDate,
             createEventDto.minTeamSize,
             createEventDto.maxTeamSize,
-            createEventDto.repoTemplateOwner,
-            createEventDto.repoTemplateName,
             createEventDto.gameServerDockerImage,
             createEventDto.myCoreBotDockerImage,
             createEventDto.visualizerDockerImage,
             createEventDto.monorepoUrl,
+            createEventDto.monorepoVersion,
             createEventDto.isPrivate,
         );
     }

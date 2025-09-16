@@ -1,7 +1,13 @@
 import {forwardRef, Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {EventEntity, EventState} from "./entities/event.entity";
-import {DataSource, LessThanOrEqual, Repository, UpdateResult} from "typeorm";
+import {
+  DataSource,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+  UpdateResult,
+} from "typeorm";
 import {PermissionRole} from "../user/entities/user.entity";
 import * as CryptoJS from "crypto-js";
 import {ConfigService} from "@nestjs/config";
@@ -64,6 +70,14 @@ export class EventService {
                 startDate: "ASC"
             }
         });
+    }
+
+    getAllEventsForQueue(): Promise<EventEntity[]> {
+        return this.eventRepository.findBy({
+          startDate: LessThanOrEqual(new Date()),
+          endDate: MoreThanOrEqual(new Date()),
+          areTeamsLocked: false
+        })
     }
 
     async getEventsForUser(userId: string): Promise<EventEntity[]> {

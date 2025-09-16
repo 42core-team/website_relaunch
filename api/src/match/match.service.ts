@@ -56,10 +56,9 @@ export class MatchService {
 
             if (gotLock[0].pg_try_advisory_lock) {
                 try {
-                    const events = await this.eventService.getAllEvents();
+                    const events = await this.eventService.getAllEventsForQueue();
                     await Promise.all(events.map(async (event) => {
                         let teamsInQueue = await this.teamService.getTeamsInQueue(event.id);
-
                         while (teamsInQueue.length >= 2) {
                             const team1 = teamsInQueue[Math.floor(Math.random() * teamsInQueue.length)];
                             teamsInQueue = teamsInQueue.filter(team => team.id !== team1.id);

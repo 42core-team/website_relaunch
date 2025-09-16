@@ -98,18 +98,18 @@ export class AppController {
         userGithubAccessToken: string,
         githubOrg: string,
         encryptedSecret: string,
-        repoTemplateOwner: string,
-        repoTemplateName: string,
         teamId: string,
         monoRepoUrl: string,
+        monoRepoVersion: string,
+        myCoreBotDockerImage: string,
+        visualizerDockerImage: string,
         eventId: string
     }) {
         const safeData = {
             name: data.name,
             username: data.username,
             githubOrg: data.githubOrg,
-            repoTemplateOwner: data.repoTemplateOwner,
-            repoTemplateName: data.repoTemplateName,
+            monoRepoVersion: data.monoRepoVersion,
             teamId: data.teamId,
             eventId: data.eventId,
         };
@@ -120,10 +120,11 @@ export class AppController {
             data.userGithubAccessToken,
             data.githubOrg,
             data.encryptedSecret,
-            data.repoTemplateOwner,
-            data.repoTemplateName,
             data.teamId,
             data.monoRepoUrl,
+            data.monoRepoVersion,
+            data.myCoreBotDockerImage,
+            data.visualizerDockerImage,
             data.eventId
         );
     }

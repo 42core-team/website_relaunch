@@ -89,10 +89,11 @@ export class TeamService {
                 user.githubAccessToken,
                 event.githubOrg,
                 event.githubOrgSecret,
-                event.repoTemplateOwner,
-                event.repoTemplateName,
                 team.id,
                 event.monorepoUrl,
+                event.monorepoVersion,
+                event.myCoreBotDockerImage,
+                event.visualizerDockerImage,
                 event.id
             );
 

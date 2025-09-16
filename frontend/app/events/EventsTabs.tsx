@@ -19,7 +19,7 @@ export default function EventsTabs({
   return (
     <Tabs
       aria-label="Events tabs"
-      className="w-full"
+      className="w-full ps-1.5 pb-0.5"
       defaultSelectedKey={myEvents.length ? "my" : "all"}
     >
       <Tab key="my" title={`My Events (${myEvents.length})`}>

@@ -48,8 +48,6 @@ export default async function MatchPage({
         />
       </div>
 
-      {maxRounds}
-
       {isAdmin && (
         <MatchActions matchId={matchId} isMatchRevealed={match.isRevealed} />
       )}

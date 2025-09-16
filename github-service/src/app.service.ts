@@ -5,16 +5,15 @@ import { ConfigService } from "@nestjs/config";
 import { ClientProxy, ClientProxyFactory } from "@nestjs/microservices";
 import { getRabbitmqConfig } from "./main";
 import * as fs from "fs/promises";
-import { cloneMonoRepoAndPushToTeamRepo } from "./repo.utils";
+import { RepoUtils } from "./repo.utils";
 
 @Injectable()
 export class AppService {
   private githubServiceResultsClient: ClientProxy;
   private readonly logger = new Logger(AppService.name);
+  private readonly repoUtils = new RepoUtils();
 
   private readonly TMP_FOLDER = "./tmp";
-  private readonly MY_CORE_BOT_FOLDER = "my-core-bot";
-  private readonly COREIGNORE_FILE = ".coreignore";
 
   constructor(private configService: ConfigService) {
     this.githubServiceResultsClient = ClientProxyFactory.create(
@@ -238,7 +237,7 @@ export class AppService {
       const tempFolderPath = `${this.TMP_FOLDER}/${repo.name}-${Date.now()}`;
       try {
         await fs.mkdir(tempFolderPath);
-        await cloneMonoRepoAndPushToTeamRepo(
+        await this.repoUtils.cloneMonoRepoAndPushToTeamRepo(
           monoRepoUrl,
           monoRepoVersion,
           myCoreBotDockerImage,

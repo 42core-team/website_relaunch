@@ -27,7 +27,6 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
     PAGE_SIZE,
   );
 
-  // Pre-render Markdown bodies to HTML at build-time
   const renderedBodies = await Promise.all(
     releases.map((r) => markdownToHtml(r.body)),
   );
@@ -54,10 +53,12 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
         {releases.map((rel, idx) => {
           const html = renderedBodies[idx];
           const date = new Date(rel.published_at);
-          const badge =
-            rel.prerelease ? (
-              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-warning-100 text-warning-700">
-                prerelease
+
+          const globalIndex = (page - 1) * perPage + idx;
+          const latestBadge =
+            globalIndex === 0 ? (
+              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary-100 text-primary-700">
+                latest
               </span>
             ) : null;
 
@@ -69,7 +70,7 @@ export default async function ChangelogPage({ searchParams }: SearchProps) {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{rel.name}</span>
                       <span className="text-default-500">({rel.tag_name})</span>
-                      {badge}
+                      {latestBadge}
                     </div>
                     <div className="text-sm text-default-500">
                       {date.toLocaleDateString()}

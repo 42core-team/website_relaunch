@@ -8,7 +8,6 @@ export type Release = {
   body: string;
   html_url: string;
   published_at: string; // ISO
-  prerelease: boolean;
   author: string | null;
 };
 

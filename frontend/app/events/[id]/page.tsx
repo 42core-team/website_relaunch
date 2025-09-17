@@ -52,7 +52,7 @@ export default async function EventPage({
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-gray-500">Description</h3>
-            <p className="mt-1">{event.description}</p>
+            <pre className="mt-1">{event.description}</pre>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

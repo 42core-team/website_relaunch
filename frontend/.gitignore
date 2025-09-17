@@ -37,5 +37,6 @@ next-env.d.ts
 /generated
 
 content/wiki
+content/changelog
 
 # pnpm

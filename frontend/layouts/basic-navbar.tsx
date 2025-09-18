@@ -288,6 +288,18 @@ const BasicNavbar = React.forwardRef<
         <NavbarMenuItem>
           <Link
             className={cn("mb-2 w-full text-default-500", {
+              "font-bold text-default-foreground": isActive("/changelog"),
+            })}
+            href="/changelog"
+            onPointerDown={() => setClickedItem("/changelog")}
+            onClick={() => setClickedItem("/changelog")}
+          >
+            Changelog
+          </Link>
+        </NavbarMenuItem>
+        <NavbarMenuItem>
+          <Link
+            className={cn("mb-2 w-full text-default-500", {
               "font-bold text-default-foreground": isActive("/about"),
             })}
             href="/about"

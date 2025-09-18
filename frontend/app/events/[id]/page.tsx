@@ -6,6 +6,9 @@ import {
 } from "@/app/actions/event";
 import { isActionError } from "@/app/actions/errors";
 import RepoLockCountdown from "@/app/events/[id]/repoLockCountdown";
+import { remark } from "remark";
+import remarkGfm from "remark-gfm";
+import remarkHtml from "remark-html";
 
 export default async function EventPage({
   params,
@@ -25,6 +28,13 @@ export default async function EventPage({
 
   const teamsCount = await getTeamsCountForEvent(id);
   const participantsCount = await getParticipantsCountForEvent(id);
+
+  const renderedDescription = String(
+    await remark()
+      .use(remarkGfm)
+      .use(remarkHtml)
+      .process(event.description || ""),
+  );
 
   return (
     <div className="container mx-auto py-8">
@@ -52,7 +62,10 @@ export default async function EventPage({
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-gray-500">Description</h3>
-            <pre className="mt-1">{event.description}</pre>
+            <div
+              className="prose dark:prose-invert max-w-none mt-1"
+              dangerouslySetInnerHTML={{ __html: renderedDescription }}
+            ></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

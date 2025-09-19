@@ -71,14 +71,12 @@ export default async function EventPage({
             <div>
               <h3 className="text-sm font-medium text-gray-500">Start Date</h3>
               <p className="mt-1">
-                {new Date(event.startDate).toLocaleDateString()}
+                {new Date(event.startDate).toLocaleString()}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">End Date</h3>
-              <p className="mt-1">
-                {new Date(event.endDate).toLocaleDateString()}
-              </p>
+              <p className="mt-1">{new Date(event.endDate).toLocaleString()}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

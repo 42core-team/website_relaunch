@@ -107,8 +107,9 @@ func (c *Client) CreateGameJob(game *Game) error {
 		})
 
 		botContainers = append(botContainers, corev1.Container{
-			Name:  containerName,
-			Image: bot.Image,
+			Name:            containerName,
+			Image:           bot.Image,
+			ImagePullPolicy: corev1.PullAlways,
 			Command: []string{
 				"sh", "-c", fmt.Sprintf("cd /shared-data/repo/my-core-bot && make && ./bot %s", *bot.RndID),
 			},

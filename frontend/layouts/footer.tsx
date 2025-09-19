@@ -61,6 +61,12 @@ export default function Footer() {
                 Wiki
               </Link>
               <Link
+                href="/changelog"
+                className="text-default-500 hover:text-primary"
+              >
+                Changelog
+              </Link>
+              <Link
                 href="/about"
                 className="text-default-500 hover:text-primary"
               >

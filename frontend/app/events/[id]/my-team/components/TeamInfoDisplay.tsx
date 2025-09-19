@@ -22,7 +22,7 @@ export default function TeamInfoDisplay({
   const [isRepoPending, setIsRepoPending] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const attemptsRef = useRef<number>(0);
-  const delayRef = useRef<number>(500); // start at 0.5s
+  const delayRef = useRef<number>(0);
   const eventId = useParams().id as string;
   const router = useRouter();
 
@@ -32,8 +32,11 @@ export default function TeamInfoDisplay({
       timeoutRef.current = null;
     }
 
-    function scheduleNext() {
+    function scheduleNext(firstRun: boolean = false) {
       timeoutRef.current = setTimeout(() => {
+        if (firstRun) {
+          delayRef.current = 250;
+        }
         // If repo appeared in the meantime, stop
         if (team?.repo) {
           setIsRepoPending(false);
@@ -44,7 +47,7 @@ export default function TeamInfoDisplay({
         attemptsRef.current += 1;
         router.refresh();
 
-        const maxAttempts = 8; // ~2 minutes total (0.5s → ~127.5s cumulative)
+        const maxAttempts = 10;
         if (attemptsRef.current >= maxAttempts) {
           setIsRepoPending(false);
           clearTimer();
@@ -61,8 +64,8 @@ export default function TeamInfoDisplay({
       setIsRepoPending(true);
       // reset counters when repo missing
       attemptsRef.current = 0;
-      delayRef.current = 1000;
-      scheduleNext();
+      delayRef.current = 2500;
+      scheduleNext(true);
     } else {
       setIsRepoPending(false);
       clearTimer();

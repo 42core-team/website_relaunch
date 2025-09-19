@@ -2,6 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {ClientProxy, ClientProxyFactory} from "@nestjs/microservices";
 import {ConfigService} from "@nestjs/config";
 import {getRabbitmqConfig} from "../main";
+import * as CryptoJS from "crypto-js";
 
 @Injectable()
 export class GithubApiService {

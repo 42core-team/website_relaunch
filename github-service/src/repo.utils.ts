@@ -183,6 +183,31 @@ export class RepoUtils {
         }
     }
 
+    private extractFolderNameFromRepoUrl(repoUrl: string): string {
+        try {
+            const url = new URL(repoUrl);
+            let repoName = url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname;
+            if (repoName.endsWith(".git")) {
+                repoName = repoName.slice(0, -4);
+            }
+
+            const repoNameParts = repoName.split("/");
+            const actualRepoName = repoNameParts[repoNameParts.length - 1];
+
+            const uuidPattern = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const match = actualRepoName.match(uuidPattern);
+
+            if (match) {
+                return actualRepoName.replace(uuidPattern, "");
+            }
+            this.logger.error(`Failed to extract folder name from repo URL ${repoUrl} using default folder name "my-core-bot"`);
+            return "my-core-bot";
+        } catch (error) {
+            this.logger.error(`Failed to extract folder name from repo URL ${repoUrl} using default folder name "my-core-bot"`, error as Error);
+            return "my-core-bot";
+        }
+    }
+
     private async updateReadmeRepoUrl(
         repoRoot: string,
         teamRepoUrl: string,
@@ -202,16 +227,19 @@ export class RepoUtils {
 
             const originalContent = await fs.readFile(readmePath, "utf-8");
             const sshUrl = this.toSshUrl(teamRepoUrl);
-            const updatedContent = originalContent.replaceAll("your-repo-url", sshUrl);
+            const folderName = this.extractFolderNameFromRepoUrl(teamRepoUrl);
+
+            let updatedContent = originalContent.replaceAll("your-repo-url", sshUrl + " " + folderName);
+            updatedContent = updatedContent.replaceAll("cd my-core-bot", `cd ${folderName}`);
 
             if (updatedContent !== originalContent) {
                 await fs.writeFile(readmePath, updatedContent);
                 this.logger.log(
-                    `Replaced 'your-repo-url' with actual team repo URL in ${readmePath}`,
+                    `Replaced 'your-repo-url' with actual team repo URL and 'my-core-bot' with folder name '${folderName}' in ${readmePath}`,
                 );
             } else {
                 this.logger.log(
-                    `No occurrences of 'your-repo-url' found in ${readmePath}`,
+                    `No occurrences of 'your-repo-url' or 'my-core-bot' found in ${readmePath}`,
                 );
             }
         } catch (error) {

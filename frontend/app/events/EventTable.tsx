@@ -51,7 +51,7 @@ export default function EventsTable({ events }: { events: Event[] }) {
   };
 
   return (
-    <Table aria-label="Events table">
+    <Table aria-label="Events table" className="mb-8">
       <TableHeader>
         <TableColumn>Name</TableColumn>
         <TableColumn>Start Date</TableColumn>

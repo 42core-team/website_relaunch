@@ -9,6 +9,7 @@ import RepoLockCountdown from "@/app/events/[id]/repoLockCountdown";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkHtml from "remark-html";
+import TimeBadge from "@/components/timeBadge";
 
 export default async function EventPage({
   params,
@@ -70,13 +71,11 @@ export default async function EventPage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Start Date</h3>
-              <p className="mt-1">
-                {new Date(event.startDate).toLocaleString()}
-              </p>
+              <TimeBadge className="mt-1" time={event.startDate} />
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">End Date</h3>
-              <p className="mt-1">{new Date(event.endDate).toLocaleString()}</p>
+              <TimeBadge className="mt-1" time={event.endDate} />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,7 +1,8 @@
 "use client";
 import { Button, Chip } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { joinEvent } from "@/app/actions/event";
+import { useRouter } from "next/navigation";
 
 interface EventJoinNoticeProps {
   eventId: string;
@@ -11,12 +12,40 @@ interface EventJoinNoticeProps {
 
 export default function EventJoinNotice({
   eventId,
-  userId,
+  userId: _userId,
   startDate,
 }: EventJoinNoticeProps) {
+  const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const hasStarted = new Date(startDate) <= new Date();
+  const [now, setNow] = useState<Date>(new Date());
+  const startsAt = new Date(startDate);
+  const hasStarted = startsAt <= now;
+  const didRefreshRef = useRef(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const timeLeftMs = startsAt.getTime() - now.getTime();
+    if (!didRefreshRef.current && timeLeftMs <= 0) {
+      didRefreshRef.current = true;
+      router.refresh();
+    }
+  }, [now, startsAt, router]);
+
+  const formatTimeLeft = (ms: number) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const hhmmss = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    return days > 0 ? `${days}d ${hhmmss}` : hhmmss;
+  };
 
   const handleJoin = async () => {
     if (!hasStarted) return;
@@ -27,7 +56,7 @@ export default function EventJoinNotice({
       const success = await joinEvent(eventId);
 
       if (success) {
-        window.location.reload();
+        router.refresh();
       } else {
         setError("Failed to join the event. Please try again.");
       }
@@ -38,6 +67,8 @@ export default function EventJoinNotice({
       setIsJoining(false);
     }
   };
+
+  const timeLeftMs = startsAt.getTime() - now.getTime();
 
   return (
     <div className="w-full bg-primary-50 border-b border-primary-200">
@@ -63,8 +94,8 @@ export default function EventJoinNotice({
             <p className="text-warning-400">
               This event has not started yet. You can join once it begins.
             </p>
-            <Chip color="warning" variant="flat">
-              Not started
+            <Chip color="warning" variant="flat" aria-label="Event countdown">
+              Starts in {formatTimeLeft(timeLeftMs)}
             </Chip>
           </div>
         )}

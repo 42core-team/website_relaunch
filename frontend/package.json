@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "node scripts/clone-wiki-branches.js && node scripts/fetch-releases.js",
     "clone:wiki": "node scripts/clone-wiki-branches.js",
-    "dev": "next dev --turbo",
+    "dev": "NODE_ENV=development TZ=UTC next dev --turbo",
     "build": "next build",
     "start": "next start"
   },

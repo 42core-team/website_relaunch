@@ -68,16 +68,18 @@ export class RepoUtils {
         await gitRepo.branch(["-M", "main"]);
         await gitRepo.push("team-repo", "main", ["-u"]);
         this.logger.log(
-            `Pushed to team-repo ${teamRepo.ssh_url} from temp folder ${tempFolderPath}`,
+            `Pushed to team-repo ${teamRepo.clone_url} from temp folder ${tempFolderPath}`,
         );
     }
 
     private async initRepo(tempFolderPath: string): Promise<SimpleGit> {
-        fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
-        fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
-            recursive: true,
-            force: true,
-        });
+        await Promise.all([
+            fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true }),
+            fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
+                recursive: true,
+                force: true,
+            }),
+        ]);
 
         const gitRepo = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
         await gitRepo.init();

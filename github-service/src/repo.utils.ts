@@ -59,11 +59,11 @@ export class RepoUtils {
         );
 
         await Promise.all([
-            await gitRepo.addRemote(
+            gitRepo.addRemote(
                 "team-repo",
                 teamRepo.clone_url.replace("https://", `https://${decryptedGithubAccessToken}@`),
             ),
-            await gitRepo.add("."),
+            gitRepo.add("."),
         ]);
         await gitRepo.commit("Initial commit");
 

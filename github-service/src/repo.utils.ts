@@ -58,13 +58,11 @@ export class RepoUtils {
             teamRepo.ssh_url,
         );
 
-        await Promise.all([
-            gitRepo.addRemote(
-                "team-repo",
-                teamRepo.clone_url.replace("https://", `https://${decryptedGithubAccessToken}@`),
-            ),
-            gitRepo.add("."),
-        ]);
+        await gitRepo.addRemote(
+            "team-repo",
+            teamRepo.clone_url.replace("https://", `https://${decryptedGithubAccessToken}@`),
+        ),
+        await gitRepo.add("."),
         await gitRepo.commit("Initial commit");
 
         await gitRepo.branch(["-M", "main"]);
@@ -75,18 +73,14 @@ export class RepoUtils {
     }
 
     private async initRepo(tempFolderPath: string): Promise<SimpleGit> {
-        const [, , gitRepo] = await Promise.all([
-            fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true }),
-            fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
-                recursive: true,
-                force: true,
-            }),
-            (async () => {
-                const gitRepo = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
-                await gitRepo.init();
-                return gitRepo;
-            })(),
-        ]);
+        fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
+        fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
+            recursive: true,
+            force: true,
+        });
+
+        const gitRepo = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
+        await gitRepo.init();
 
         return gitRepo;
     }

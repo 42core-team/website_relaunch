@@ -3,6 +3,7 @@ import simpleGit, { SimpleGit } from "simple-git";
 import * as path from "node:path";
 import * as YAML from "yaml";
 import { Logger } from "@nestjs/common";
+import { GitHubRepository } from "./githubApi";
 
 export class RepoUtils {
     private readonly MY_CORE_BOT_FOLDER = "my-core-bot";
@@ -10,16 +11,14 @@ export class RepoUtils {
 
     private readonly logger = new Logger("RepoUtils");
 
-    async cloneMonoRepoAndPushToTeamRepo(
+    async cloneMonoRepo(
         monoRepoUrl: string,
         monoRepoVersion: string,
         myCoreBotDockerImage: string,
         visualizerDockerImage: string,
-        teamRepoUrl: string,
-        decryptedGithubAccessToken: string,
         tempFolderPath: string,
         eventId: string,
-    ) {
+    ): Promise<SimpleGit> {
         this.logger.log(
             `Cloning mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`,
         );
@@ -34,7 +33,7 @@ export class RepoUtils {
         await gitMono.raw(["sparse-checkout", "set", this.MY_CORE_BOT_FOLDER]);
 
         const [gitRepo, _] = await Promise.all([
-            this.initRepo(tempFolderPath, teamRepoUrl, decryptedGithubAccessToken),
+            this.initRepo(tempFolderPath),
             this.updateGitignoreFromCoreignore(
                 path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER),
             ),
@@ -43,13 +42,29 @@ export class RepoUtils {
                 myCoreBotDockerImage,
                 visualizerDockerImage,
             ),
-            this.updateReadmeRepoUrl(
-                path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER),
-                teamRepoUrl,
-            ),
         ]);
+        return gitRepo;
+    }
 
-        await gitRepo.add(".");
+    async pushToTeamRepo(
+        teamRepo: GitHubRepository,
+        decryptedGithubAccessToken: string,
+        tempFolderPath: string,
+        gitRepo: SimpleGit,
+    ) {
+        this.updateReadmeRepoUrl(
+            path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER),
+            teamRepo.name,
+            teamRepo.ssh_url,
+        );
+
+        await Promise.all([
+            await gitRepo.addRemote(
+                "team-repo",
+                teamRepo.clone_url.replace("https://", `https://${decryptedGithubAccessToken}@`),
+            ),
+            await gitRepo.add("."),
+        ]);
         await gitRepo.commit("Initial commit");
 
         const branchInfo = await gitRepo.branch();
@@ -58,25 +73,24 @@ export class RepoUtils {
         }
         await gitRepo.push("team-repo", "main", ["-u"]);
         this.logger.log(
-            `Pushed to team-repo ${teamRepoUrl} from temp folder ${tempFolderPath}`,
+            `Pushed to team-repo ${teamRepo.ssh_url} from temp folder ${tempFolderPath}`,
         );
     }
 
-    private async initRepo(tempFolderPath: string, teamRepoUrl: string, decryptedGithubAccessToken: string): Promise<SimpleGit> {
-        await fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true });
-        await fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
-            recursive: true,
-            force: true,
-        });
+    private async initRepo(tempFolderPath: string): Promise<SimpleGit> {
+        const [, , gitRepo] = await Promise.all([
+            fs.rm(`${tempFolderPath}/.git`, { recursive: true, force: true }),
+            fs.rm(`${tempFolderPath}/${this.MY_CORE_BOT_FOLDER}/.git`, {
+                recursive: true,
+                force: true,
+            }),
+            (async () => {
+                const gitRepo = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
+                await gitRepo.init();
+                return gitRepo;
+            })(),
+        ]);
 
-        const gitRepo = simpleGit(path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER));
-
-        await gitRepo.init();
-
-        await gitRepo.addRemote(
-            "team-repo",
-            teamRepoUrl.replace("https://", `https://${decryptedGithubAccessToken}@`),
-        );
         return gitRepo;
     }
 
@@ -183,34 +197,26 @@ export class RepoUtils {
         }
     }
 
-    private extractFolderNameFromRepoUrl(repoUrl: string): string {
+    private extractFolderNameFromRepoUrl(repoName: string): string {
         try {
-            const url = new URL(repoUrl);
-            let repoName = url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname;
-            if (repoName.endsWith(".git")) {
-                repoName = repoName.slice(0, -4);
-            }
-
-            const repoNameParts = repoName.split("/");
-            const actualRepoName = repoNameParts[repoNameParts.length - 1];
-
             const uuidPattern = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            const match = actualRepoName.match(uuidPattern);
+            const match = repoName.match(uuidPattern);
 
             if (match) {
-                return actualRepoName.replace(uuidPattern, "");
+                return repoName.replace(uuidPattern, "");
             }
-            this.logger.error(`Failed to extract folder name from repo URL ${repoUrl} using default folder name "my-core-bot"`);
+            this.logger.error(`Failed to extract folder name from repo ${repoName} using default folder name "my-core-bot"`);
             return "my-core-bot";
         } catch (error) {
-            this.logger.error(`Failed to extract folder name from repo URL ${repoUrl} using default folder name "my-core-bot"`, error as Error);
+            this.logger.error(`Failed to extract folder name from repo ${repoName} using default folder name "my-core-bot"`, error as Error);
             return "my-core-bot";
         }
     }
 
     private async updateReadmeRepoUrl(
         repoRoot: string,
-        teamRepoUrl: string,
+        repoName: string,
+        sshUrl: string,
     ): Promise<void> {
         try {
             const readmePath = path.join(repoRoot, "README.md");
@@ -226,8 +232,7 @@ export class RepoUtils {
             }
 
             const originalContent = await fs.readFile(readmePath, "utf-8");
-            const sshUrl = this.toSshUrl(teamRepoUrl);
-            const folderName = this.extractFolderNameFromRepoUrl(teamRepoUrl);
+            const folderName = this.extractFolderNameFromRepoUrl(repoName);
 
             let updatedContent = originalContent.replaceAll("your-repo-url", sshUrl + " " + folderName);
             updatedContent = updatedContent.replaceAll("cd my-core-bot", `cd ${folderName}`);

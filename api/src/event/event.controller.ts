@@ -49,6 +49,11 @@ export class EventController {
         return await this.eventService.getEventVersion(id);
     }
 
+    @Get("currentLiveEvent")
+    async getCurrentLiveEvent() {
+        return await this.eventService.getCurrentLiveEvent();
+    }
+
     @UseGuards(UserGuard)
     @Post()
     createEvent(

@@ -241,4 +241,18 @@ export class EventService {
             repoLockDate: date,
         });
     }
+
+  async getCurrentLiveEvent() {
+    const qb = this.eventRepository.createQueryBuilder('event')
+      .leftJoinAndSelect('event.users', 'user')
+      .where('event.startDate <= :now', { now: new Date() })
+      .andWhere('event.endDate >= :now', { now: new Date() })
+      .andWhere('event.areTeamsLocked = false')
+      .addSelect('COUNT(user.id)', 'userCount')
+      .groupBy('event.id')
+      .orderBy('userCount', 'DESC')
+      .limit(1);
+
+    return qb.getOne();
+  }
 }

@@ -172,7 +172,7 @@ export class RepoUtils {
 
             const coreIgnoreContent = await fs.readFile(coreignorePath, "utf-8");
             const gitignorePath = path.join(repoRoot, ".gitignore");
-            await fs.writeFile(gitignorePath, coreIgnoreContent);
+            await fs.appendFile(gitignorePath, coreIgnoreContent);
             await fs.rm(coreignorePath);
             this.logger.log(`Converted .coreignore to .gitignore at ${gitignorePath}`);
         } catch (error) {

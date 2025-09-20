@@ -23,13 +23,13 @@ export class RepoUtils {
             `Cloning mono repo ${monoRepoUrl} to temp folder ${tempFolderPath}`,
         );
         const gitMono = simpleGit(tempFolderPath);
-        await gitMono.clone(monoRepoUrl, "./", ["--filter=blob:none", "--sparse"]);
-        try {
-            await gitMono.fetch(["origin", `tag`, monoRepoVersion, "--no-tags"]);
-        } catch (_) {
-            this.logger.warn?.(`Failed to fetch tag ${monoRepoVersion}, using branch instead`);
-        }
-        await gitMono.checkout(monoRepoVersion);
+        await gitMono.clone(monoRepoUrl, "./", [
+            "--filter=blob:none",
+            "--sparse",
+            "--branch",
+            monoRepoVersion,
+            "--depth=1",
+        ]);
         await gitMono.raw(["sparse-checkout", "set", this.MY_CORE_BOT_FOLDER]);
 
         const [gitRepo, _] = await Promise.all([
@@ -52,7 +52,7 @@ export class RepoUtils {
         tempFolderPath: string,
         gitRepo: SimpleGit,
     ) {
-        this.updateReadmeRepoUrl(
+        await this.updateReadmeRepoUrl(
             path.join(tempFolderPath, this.MY_CORE_BOT_FOLDER),
             teamRepo.name,
             teamRepo.ssh_url,
@@ -67,10 +67,7 @@ export class RepoUtils {
         ]);
         await gitRepo.commit("Initial commit");
 
-        const branchInfo = await gitRepo.branch();
-        if (!branchInfo.all.includes("main")) {
-            await gitRepo.branch(["-M", "main"]);
-        }
+        await gitRepo.branch(["-M", "main"]);
         await gitRepo.push("team-repo", "main", ["-u"]);
         this.logger.log(
             `Pushed to team-repo ${teamRepo.ssh_url} from temp folder ${tempFolderPath}`,
@@ -183,17 +180,6 @@ export class RepoUtils {
                 `Failed to convert .coreignore to .gitignore`,
                 error as Error,
             );
-        }
-    }
-
-    private toSshUrl(httpsUrl: string): string {
-        try {
-            if (httpsUrl.startsWith("git@")) return httpsUrl;
-            const u = new URL(httpsUrl);
-            const path = u.pathname.startsWith("/") ? u.pathname.slice(1) : u.pathname;
-            return `git@${u.hostname}:${path}`;
-        } catch (_) {
-            return httpsUrl;
         }
     }
 
